@@ -1,0 +1,70 @@
+Changelog
+
+0.0.3a -> 0.0.4a
+
+    Version name 'Bowhead' to 'Finback'
+        -Split up rendering into two cores
+        -Switched to using OpenGL 1.5 core(for speed of development reasons)
+        -Added merc sprites
+        -Added jet sprites
+        -Added double jumping
+        -Fixed Game Loop & Timestep problems once and for all(for now)
+            Physics code now runs at a constant timestep and is
+            deterministic
+            It's possible to run the game with nearly any fps and
+            experience no physics/update slowdown
+        -Added .ini handling with SimpleIni library
+        -Diverted most settings into a .ini files
+        -Fixed input resonse
+        -Fine tuned controlls. Nothing is tied to framerate anymore.
+        -Simplified Character class state handling. More complex 
+            actions are handled in the Player-class and are broken 
+            down and passed down to the underlying character-class
+        -Fined tuned physics handling, there is still an acceptable
+            level of 'failed' collisions.
+        
+alpha 0.0.2 -> alpha 0.0.3
+    
+    Version 'Beluga' to 'Bowhead':
+        -Removed SFML gfx code
+        -Removed old object handling
+        -Replaced sfml sprite code with OGL code:
+            (NOTE) A few problems with the way sfml does
+            its sprite code, almost all are workable. 
+            Except for the way it rotates/draws the sprites
+            they rotate around a vertex instead of the center
+            in SFML 1.6.
+        -Simpler more straight forward sprite code
+        -Started to use sprite sheets
+        -SFML is used to display text
+        -Finally feel comfortable with OGL. Took ages but
+         i finally feel like I can code graphics code w/o 
+         running into constant problems.
+        -Converted to using glm for most everything that 
+         uses vectors, etc.,(GLM is amazing)
+        -Removed a lot of useless/deprecated code
+        -Added better fps/update timing
+        -Made a simple 'map maker'
+        -Added custom map loading
+        -Added bullets
+        -Wrote a gui system: menu and right click (SFML)
+        -Added shaders
+        -Rewrote Rendering for OpenGL 3.0
+        -changed a lot of code time for a new version
+        TODO:   
+            -Improve update loops
+            -Break up the code into modules
+            -Prepare for a more complex object/world code
+            -Add 'real' networking
+            
+        MapMaker:
+        -Added texturing to the mapmaker
+        -Added a gui to mapmaker
+        -Added vertex moving
+        -Added polygon moving
+        -Added above options to the right click menu
+        -relinked to static libraries cutting down on dlls
+        -Converted to a binary map format: 
+            bgmf: BinaryGameMapFormat
+        -Even more gui additions
+        
