@@ -1,0 +1,10 @@
+width = 50
+height = 50
+imgd = 200, 50
+off = 0, 0, 0
+pivot = 0.5, 0.5
+color = 1.0, 1.0, 1.0, 1.0
+scale = 1.0, 1.0, 1.0
+xstart = 0
+length = 3
+speed = 0.15

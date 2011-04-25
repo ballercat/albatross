@@ -1,0 +1,10 @@
+width = 17
+height = 3
+imgd = 17, 3
+off = 0, 0, 0
+pivot = 0.7, 0.7
+color = 1.0, 1.0, 1.0, 1.0
+scale = 2.0, 2.0, 2.0
+xstart = 0
+length = 0
+speed = 0

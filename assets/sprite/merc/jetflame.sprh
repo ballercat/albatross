@@ -1,0 +1,10 @@
+width = 10
+height = 10
+imgd = 10, 10
+off = 0, 0, 0
+pivot = 0.5, 0.5
+color = 1.0, 1.0, 1.0, 1.0
+scale = 1.0, 1.0, 1.0
+xstart = 0
+length = 0
+speed = 0
