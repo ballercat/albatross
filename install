@@ -1,0 +1,58 @@
+#!/bin/sh
+
+FILE="/tmp/out.$$"
+GREP="/bin/grep"
+
+verbose=$1
+
+echo "Verbose $verbose"
+#
+#Run as root only
+if [[ $EUID -ne 0 ]]; then
+	echo "This script must be run as root" 1>&2
+	exit 1
+fi
+
+echo -e "\033[1m*** Lib-Installer for Albatross(0.0.4a) ***\033[0m"
+
+SFMLdir="/home/default/Download/SFML-1.6"
+CHIPMUNKdir="/home/default/Download/Chipmunk-5.3.4"
+GLMdir="/home/default/Download/glm-0.9.1.2/"
+SIMPLEINIdir="/home/default/Download/simpleini"
+
+#create common directory
+echo -e "\033[32mCreating ./common directory...\033[0m"
+mkdir $1 common
+
+#Copy include files
+echo -e "\033[32mCopying SFML include files...\033[0m"
+cp -r $1 "$SFMLdir/include/SFML" ./common/
+
+echo -e "\033[32mCopying Chipmunk include files...\033[0m"
+cp -r $1 "$CHIPMUNKdir/include/chipmunk" ./common/
+
+echo -e "\033[32mCopying GLM include files...\033[0m"
+cp -r $1 "$GLMdir/glm" ./common/
+
+echo -e "\033[32mCopying SimpleIni include files...\033[0m"
+cp -r $1 "$SIMPLEINIdir/SimpleIni.h" ./common/
+cp -r $1 "$SIMPLEINIdir/ConvertUTF.h" ./common/
+
+echo "...."
+echo "Setting up the libs.."
+ln -s -f $1 "$SFMLdir/lib/libsfml-audio.so.1.6" /usr/lib/libsfml-audio.so
+ln -s -f $1 "$SFMLdir/lib/libsfml-graphics.so.1.6" /usr/lib/libsfml-graphics.so
+ln -s -f $1 "$SFMLdir/lib/libsfml-network.so.1.6" /usr/lib/libsfml-network.so
+ln -s -f $1 "$SFMLdir/lib/libsfml-system.so.1.6" /usr/lib/libsfml-system.so
+ln -s -f $1 "$SFMLdir/lib/libsfml-window.so.1.6" /usr/lib/libsfml-window.so
+
+ln -s -f $1 "$SFMLdir/lib/libsfml-audio.so.1.6" /usr/lib64/libsfml-audio.so.1.6
+ln -s -f $1 "$SFMLdir/lib/libsfml-graphics.so.1.6" /usr/lib64/libsfml-graphics.so.1.6
+ln -s -f $1 "$SFMLdir/lib/libsfml-network.so.1.6" /usr/lib64/libsfml-network.so.1.6
+ln -s -f $1 "$SFMLdir/lib/libsfml-system.so.1.6" /usr/lib64/libsfml-system.so.1.6
+ln -s -f $1 "$SFMLdir/lib/libsfml-window.so.1.6" /usr/lib64/libsfml-window.so.1.6
+
+ln -f $1 "$CHIPMUNKdir/lib/libchipmunk.so.5.3.4" /usr/lib/libchipmunk.so
+
+echo "Done!"
+
