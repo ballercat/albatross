@@ -123,7 +123,7 @@ GameObject::Status& Merc::Update(float dt)
 {
     myStatus.pos = myBody.GetLocation();
 	//TODO: get rid of the old Generic Vector template
-    GenVec3d v = myBody.GetVelocity();
+    deprecated::GenVec3d v = myBody.GetVelocity();
 	myStatus.v.x = v.x;
 	myStatus.v.y = v.y;
 	myStatus.v.z = 0.0f;
@@ -205,7 +205,7 @@ GameObject::Status& Merc::Update(float dt)
 ////////////////////////////////////////////////////////////
 void Merc::Move(glm::vec3 pos,float time)
 {
-    GenVec3d v = myBody.GetVelocity();
+    deprecated::GenVec3d v = myBody.GetVelocity();
     if(v.x < max_v::x && v.y < max_v::y )
         myBody.Move(pos,time);
 }
@@ -214,7 +214,7 @@ void Merc::Move(glm::vec3 pos,float time)
 ////////////////////////////////////////////////////////////
 void Merc::Impulse(glm::vec3 i)
 {
-    GenVec3d v = myBody.GetVelocity();
+    deprecated::GenVec3d v = myBody.GetVelocity();
 
     if(std::abs(v.x) < max_v::x)
         cpBodyApplyImpulse(&myBody.GetBodyDef(), cpv(i.x,0),cpv(0,0));

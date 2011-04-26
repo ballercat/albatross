@@ -1,4 +1,4 @@
-#include "GL\glew.h"
+#include "GL/glew.h"
 #include "mapmaker.h"
 #include "fixed_pipeline.h"
 #include "input.h"

@@ -154,10 +154,10 @@ public:
     {
         return myMass;
     }
-    inline const GenVec3d GetVelocity() const
+    inline const deprecated::GenVec3d GetVelocity() const
     {
         cpVect v = cpBodyGetVel(myBodyDef);
-        return GenVec3d(v.x,v.y);
+        return deprecated::GenVec3d(v.x,v.y);
     }
     inline cpSpace* __dbg_get_space() const
     {

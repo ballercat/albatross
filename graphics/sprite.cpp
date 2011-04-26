@@ -84,6 +84,7 @@ void Sprite::_parseInfo(const char *fpath)
     fscanf(fp, "length = %i\n", &mLength);
     fscanf(fp, "speed = %f\n", &mSpeed);
 
+	printf("Image dimensions %f %f \n", imgd.x, imgd.y);
 	fclose(fp);
 }
 

@@ -106,7 +106,7 @@ void MainClient::Run(void)
 									&map->color[0],
 									map->header.pc*3,
 									GL_TRIANGLES,
-									display->Texture[WORLD_LUMPYBARK] );
+									display->Texture[WORLD_PLAIN] );
 			}
 			Tree->Draw();
 

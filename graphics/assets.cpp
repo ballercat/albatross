@@ -22,6 +22,7 @@
 #include <SFML/Graphics.hpp>
 #include <cstdio>
 #include "assets.h"
+#include "SimpleIni.h"
 
 ////////////////////////////////////////////////////////////
 static bool LoadTex(GLuint texid, const char *fpath)
@@ -57,7 +58,7 @@ static bool LoadTex(GLuint texid, const char *fpath)
 ////////////////////////////////////////////////////////////
 void LoadTextures(const char *fpath, GLuint* Texture)
 {
-    FILE *fp;
+/*	FILE *fp;
 
     fp = fopen(fpath, "r");
     if(fp == NULL){
@@ -67,15 +68,36 @@ void LoadTextures(const char *fpath, GLuint* Texture)
 
     char texpath[256], texname[256];
     GLuint texid = 0;
-	GLuint type;
+	GLuint type; */
+	texini.LoadFile(fpath);
 
     glGenTextures(256, Texture);
+	CSimpleIniA texini;
+	
+	
+	std::string texpath;
+	LoadTex(Texture[PLAYER_TORSO], texini.GetValue("Merc", "still"));
+	LoadTex(Texture[PLAYER_LEGS], texini.GetValue("Merc", "run"));
+	LoadTex(Texture[PLAYER_JETS], texini.GetValue("Merc", "jets"));
+	LoadTex(Texture[JET_FLAME], texini.GetValue("Merc", "jetflame"));
 
+	texpath = texini.GetValue("Map", "plain");
+	LoadTex(Texture[WORLD_PLAIN], texpath.c_str());
+
+	texpath = texini.GetValue("AK", "main");
+	LoadTex(Texture[AK47], texpath.c_str());
+	texpath = texini.GetValue("AK", "bullet");
+	LoadTex(Texture[AK47_BULLET], texpath.c_str());
+	texpath = texini.GetValue("AK", "fire");
+	LoadTex(Texture[AK47_FIRE], texpath.c_str());
+
+	LoadTex(Texture[TREE_PLAIN], texini.GetValue("Sprite","tree"));	
+/*
     while(!feof(fp)) {
         if(fscanf(fp, "%s", texpath) != 1){
             fprintf(stderr, "Error parsing %s!\n", fpath);
             fprintf(stderr, "Dump: %s %u\n",texpath);
-            exit(0x301);
+            //exit(0x301);
         }
 
         if(!LoadTex(Texture[texid], texpath)){
@@ -87,7 +109,7 @@ void LoadTextures(const char *fpath, GLuint* Texture)
 		texid++;
     }
 
-    fclose(fp);
+    fclose(fp); */
 }
 
 ////////////////////////////////////////////////////////////
