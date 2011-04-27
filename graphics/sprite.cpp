@@ -24,7 +24,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <cstdio>
+#include "SimpleIni.h"
+#include <iostream>
+#include <ostream>
 
 Sprite::Sprite()
 {
@@ -63,6 +65,7 @@ Sprite::~Sprite(void){}
 
 void Sprite::_parseInfo(const char *fpath)
 {
+	/*
     FILE *fp;
     
     fp = fopen(fpath, "r");
@@ -84,8 +87,39 @@ void Sprite::_parseInfo(const char *fpath)
     fscanf(fp, "length = %i\n", &mLength);
     fscanf(fp, "speed = %f\n", &mSpeed);
 
-	printf("Image dimensions %f %f \n", imgd.x, imgd.y);
-	fclose(fp);
+	fclose(fp); */
+
+	CSimpleIniA sprh;
+	if(sprh.LoadFile(fpath) < 0){
+		std::cerr << "Error reading " << fpath << " sprite header\n";
+	}
+
+	width = sprh.GetDoubleValue("Sprite", "width");
+	height = sprh.GetDoubleValue("Sprite", "height");
+
+	imgd.x = sprh.GetDoubleValue("Image", "width");
+	imgd.y = sprh.GetDoubleValue("Image", "height");
+
+	off.x = sprh.GetDoubleValue("Offset", "x");
+	off.y = sprh.GetDoubleValue("Offset", "y");
+
+	pivot.x = sprh.GetDoubleValue("Pivot", "x");
+	pivot.y = sprh.GetDoubleValue("Pivot", "y");
+
+	color.r = sprh.GetDoubleValue("Color", "red");
+	color.g = sprh.GetDoubleValue("Color", "green");
+	color.b = sprh.GetDoubleValue("Color", "blue");
+	color.a = sprh.GetDoubleValue("Color", "alpha");
+
+	scale.x = sprh.GetDoubleValue("Scale", "x");
+	scale.y = sprh.GetDoubleValue("Scale", "y");
+	scale.z = sprh.GetDoubleValue("Scale", "z");
+
+	mLength = sprh.GetLongValue("Animation","length");
+	if(mLength){
+		mSpeed = sprh.GetDoubleValue("Animation","speed");
+		xstart = sprh.GetDoubleValue("Animation","xstart");
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -138,7 +172,7 @@ void Sprite::Build()
 void Sprite::Step(void)
 {
     float t = mTimer.GetElapsedTime();
-    if(t - mLastUpdate >= mSpeed )
+    if((t - mLastUpdate) >= mSpeed )
     {
         mPosition++;
         if(mPosition > mLength)

@@ -29,14 +29,11 @@ static bool LoadTex(GLuint texid, const char *fpath)
 {
     sf::Image rawimage;
     if(!rawimage.LoadFromFile(fpath)){
+		fprintf(stderr, "Failed loading %s\n", fpath);
         return false;
     }
 
-#ifdef SHADER_PIPELINE
-	glActiveTexture(GL_TEXTURE0);
-#else
 	glEnable(GL_TEXTURE_2D);
-#endif
     glBindTexture(GL_TEXTURE_2D, texid);
 
 
@@ -48,9 +45,7 @@ static bool LoadTex(GLuint texid, const char *fpath)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rawimage.GetWidth(), rawimage.GetHeight(),
                    0, GL_RGBA, GL_UNSIGNED_BYTE, rawimage.GetPixelsPtr());
 
-#ifdef FIXED_PIPELINE
 	glDisable(GL_TEXTURE_2D);
-#endif
 
     return true;
 }
@@ -69,15 +64,16 @@ void LoadTextures(const char *fpath, GLuint* Texture)
     char texpath[256], texname[256];
     GLuint texid = 0;
 	GLuint type; */
-	texini.LoadFile(fpath);
 
     glGenTextures(256, Texture);
 	CSimpleIniA texini;
-	
+	texini.LoadFile(fpath);
 	
 	std::string texpath;
-	LoadTex(Texture[PLAYER_TORSO], texini.GetValue("Merc", "still"));
-	LoadTex(Texture[PLAYER_LEGS], texini.GetValue("Merc", "run"));
+	if(!LoadTex(Texture[PLAYER_TORSO], texini.GetValue("Merc", "still")))
+		fprintf(stderr, "Failed loading texture\n");
+	if(!LoadTex(Texture[PLAYER_LEGS], texini.GetValue("Merc", "run")) )
+		fprintf(stderr, "Failed loading texture\n");
 	LoadTex(Texture[PLAYER_JETS], texini.GetValue("Merc", "jets"));
 	LoadTex(Texture[JET_FLAME], texini.GetValue("Merc", "jetflame"));
 

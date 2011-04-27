@@ -1,10 +1,31 @@
-width = 50
-height = 50
-imgd = 200, 50
-off = 0, 0, 0
-pivot = 0.5, 0.5
-color = 1.0, 1.0, 1.0, 1.0
-scale = 1.0, 1.0, 1.0
-xstart = 0
-length = 3
-speed = 0.15
+[Sprite]
+width=50
+height=50
+
+[Image]
+width=200
+height=50
+
+[Offset]
+x=0
+y=0
+
+[Pivot]
+x=0.5
+y=0.5
+
+[Color]
+red=1.0
+green=1.0
+blue=1.0
+alpha=1.0
+
+[Scale]
+x=1.0
+y=1.0
+z=1.0
+
+[Animation]
+xstart=0
+length=3
+speed=0.15

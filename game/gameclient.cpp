@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <glm/gtc/type_ptr.hpp>
 #include "SimpleIni.h"
+#include <iostream>
 
 static sf::Clock g_timer;
 
@@ -32,8 +33,10 @@ static sf::Clock g_timer;
 void MainClient::_loadGameSettings(void)
 {
 	CSimpleIniA ini;
-	ini.LoadFile("settings.ini");
-
+	if(	ini.LoadFile("settings.ini") < 0 ){
+		std::cerr << "Error reading settings.ini\n";
+	}
+	
 	//Input .ini file settings
 	info.mapfile 		= ini.GetValue("Settings", "map");
 
