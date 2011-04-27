@@ -34,7 +34,7 @@ void MainClient::_loadGameSettings(void)
 {
 	CSimpleIniA ini;
 	if(	ini.LoadFile("settings.ini") < 0 ){
-		std::cerr << "Error reading settings.ini\n";
+		throw "Could not open the settings file!";
 	}
 	
 	//Input .ini file settings
@@ -56,72 +56,86 @@ void MainClient::_loadGameSettings(void)
 MainClient::MainClient(void) :
     mPhysics(&physics::Simulator::Instance())
 {
-	//Parse the settings file
-	_loadGameSettings();
+	try
+	{
+		//Parse the settings file
+		_loadGameSettings();
 
 
-    //Create the display
-	display = new gfx::FixedPipeline(	info.window_width,
-										info.window_height,
-										"v0.0.4a(Finback)",
-										info.fullscreen	);
+    	//Create the display
+		display = new gfx::FixedPipeline(	info.window_width,
+											info.window_height,
+											"v0.0.4a(Finback)",
+											info.fullscreen	);
 
-    GLuint *Texture = display->Texture;
-	display->clearColor(0.5f, 0.7f, 0.8f, 1.0f);
+    	GLuint *Texture = display->Texture;
+		display->clearColor(0.5f, 0.7f, 0.8f, 1.0f);
 
-    mInput = new InputHandlerMixin<Input>(&mMessageQueue);
-    mInput->Window = display->Window;
+   		mInput = new InputHandlerMixin<Input>(&mMessageQueue);
+    	mInput->Window = display->Window;
 
-    mIP = network::GetLocalIP();
+    	mIP = network::GetLocalIP();
 
-    //Quick and dirty texture loading
-    LoadTextures("textures.ini", Texture);
+    	//Quick and dirty texture loading
+    	LoadTextures("textures.ini", Texture);
 
-	//Display settings
-	display->setCursor(info.cursorfile.c_str());
-	display->Window->SetFramerateLimit(info.fpslimit);
+		//Display settings
+		display->setCursor(info.cursorfile.c_str());
+		display->Window->SetFramerateLimit(info.fpslimit);
 
+		//Physics
+    	cpShape *shape;
+		cpSpace* space = mPhysics->GetWorldHandle();
+    	cpBody *staticBody = &space->staticBody;
 
-	//Physics
-    cpShape *shape;
-	cpSpace* space = mPhysics->GetWorldHandle();
-    cpBody *staticBody = &space->staticBody;
+    	//Bind bullet collision handlers
+    	cpSpaceAddCollisionHandler(space,0,1,b2w_begin,NULL,NULL,NULL,this);
 
-    //Bind bullet collision handlers
-    cpSpaceAddCollisionHandler(space,0,1,b2w_begin,NULL,NULL,NULL,this);
+		//Load the map, plug in polygon values into the game
+		map = bgmfopen(info.mapfile.c_str());
+    	glm::vec3 v0,v1,v2;
+    	for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
+    	{
+        	v0 = p->data[0];
+        	v1 = p->data[1];
+        	v2 = p->data[2];
 
-	//Load the map, plug in polygon values into the game
-	map = bgmfopen(info.mapfile.c_str());
-    glm::vec3 v0,v1,v2;
-    for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
-    {
-        v0 = p->data[0];
-        v1 = p->data[1];
-        v2 = p->data[2];
+        	//Add map polygon to physics world
+        	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v0.x,v0.y),cpv(v1.x,v1.y),0.0f));
+        	shape->e = 1.0f; shape->u = 1.0f;
+        	shape->collision_type = 0;
+        	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v1.x,v1.y),cpv(v2.x,v2.y),0.0f));
+        	shape->e = 1.0f; shape->u = 1.0f;
+       		shape->collision_type = 0;
+        	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v2.x,v2.y),cpv(v0.x,v0.y),0.0f));
+        	shape->e = 1.0f; shape->u = 1.0f;
+        	shape->collision_type = 0;
+    	}
 
-        //Add map polygon to physics world
-        shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v0.x,v0.y),cpv(v1.x,v1.y),0.0f));
-        shape->e = 1.0f; shape->u = 1.0f;
-        shape->collision_type = 0;
-        shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v1.x,v1.y),cpv(v2.x,v2.y),0.0f));
-        shape->e = 1.0f; shape->u = 1.0f;
-        shape->collision_type = 0;
-        shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v2.x,v2.y),cpv(v0.x,v0.y),0.0f));
-        shape->e = 1.0f; shape->u = 1.0f;
-        shape->collision_type = 0;
-    }
+    	//Create a player object
+    	mPlayer = new MercPlayer(glm::vec3(500,200,0),Texture);
 
-    //Create a player object
-    mPlayer = new MercPlayer(glm::vec3(500,200,0),Texture);
+		//Timing(NOTE: improve/move this)
+    	lastupdate = g_timer.GetElapsedTime();
+    	lastbullet = lastupdate;
+		objectupdate = lastupdate;
 
-	//Timing(NOTE: improve/move this)
-    lastupdate = g_timer.GetElapsedTime();
-    lastbullet = lastupdate;
-	objectupdate = lastupdate;
+		//Sprite hack
+		Tree = new Sprite("assets/sprite/tree/tree1.sprh",Texture[TREE_PLAIN]);
+		Tree->pos = glm::vec3(200,300,0);
+	}
 
-	//Sprite hack
-	Tree = new Sprite("assets/sprite/tree/tree1.sprh",Texture[TREE_PLAIN]);
-	Tree->pos = glm::vec3(200,300,0);
+	//Fatal error handling
+	catch(const char* p_Err){
+		std::cerr << "Error: " << p_Err << std::endl; 
+		exit(1);
+	}
+	catch(...){
+		std::cerr << "Unknow Error Occured while initializing\n";
+		std::cerr << "Exiting...\n";
+		exit(1);
+	}
+
 } //MainClient::MainClient
 
 ////////////////////////////////////////////////////////////
