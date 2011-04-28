@@ -184,7 +184,7 @@ int main(int argc,char** argv)
     Input* input = new Input();
     gfx::FixedPipeline* display;
 
-    display = new gfx::FixedPipeline("map maker");
+    display = new gfx::FixedPipeline(1024, 600, "map maker");
     input->Window = display->Window;
 
     LoadTextures("textures.ini",display->Texture);
@@ -389,7 +389,7 @@ int main(int argc,char** argv)
                                 &mm.map->color[0],
                                 mm.map->header.pc*3,
                                 GL_TRIANGLES,
-                                display->Texture[WORLD_LUMPYBARK] );
+                                display->Texture[WORLD_PLAIN] );
 
             if(change == &mm.move_poly || change == &mm.remove_poly ||
                change == &mm.color_poly)
@@ -466,7 +466,7 @@ int main(int argc,char** argv)
 
 			bgmf_poly polygon(glm::vec3(-435,-100,0),glm::vec3(-480,-55,0),glm::vec3(-390,-55,0));
 			glColor3f(mm.colorR,mm.colorG,mm.colorB);
-			drawTexPolygon(&polygon, display->Texture[WORLD_LUMPYBARK]);
+			drawTexPolygon(&polygon, display->Texture[WORLD_PLAIN]);
 			glPointSize(1.0f);
 		}glPopMatrix();
 
