@@ -98,7 +98,6 @@ void Merc::Initialize(void)
     lastdirection = 0;
     myBody.BuildCircle(20.0f,10.0f,myStatus.pos.x,myStatus.pos.y);
     myBody.Spawn(myStatus.pos);
-	std::cout << "Spawned merc\n";
 	//myBody.BuildRect(50,50,1.0f,myStatus.pos.x,myStatus.pos.y);
     myBody.SetGroup(0x01);
     myBody.SetCollisionType(MERCOBJECT_TYPE);
