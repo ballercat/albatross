@@ -21,6 +21,8 @@
 #include <SFML/System/Clock.hpp>
 #include<cmath>
 #include<stdlib.h>
+#include<iostream>
+
 static int lastdirection;
 
 sf::Clock timer;
@@ -95,11 +97,14 @@ void Merc::Initialize(void)
     direction = 0;
     lastdirection = 0;
     myBody.BuildCircle(20.0f,10.0f,myStatus.pos.x,myStatus.pos.y);
-    //myBody.BuildRect(50,50,1.0f,myStatus.pos.x,myStatus.pos.y);
+    myBody.Spawn(myStatus.pos);
+	std::cout << "Spawned merc\n";
+	//myBody.BuildRect(50,50,1.0f,myStatus.pos.x,myStatus.pos.y);
     myBody.SetGroup(0x01);
-    myBody.SetCollisionType(2);
+    myBody.SetCollisionType(MERCOBJECT_TYPE);
     myBody.SetShapeData(&myStatus);
     myBody.GetBodyDef().velocity_func = mercUpdateVelocity;
+
     myStatus.shape = myBody.__dbg_get_shape();
     myStatus.val = GameObject::Status::Active;
     myStatus.Airborne = true;
@@ -113,7 +118,13 @@ void Merc::Initialize(void)
 	coast = 0;
     id = 2;
     myStatus.groundShapes = cpArrayNew(0);
-    cpSpaceAddCollisionHandler(myBody.__dbg_get_space(),2,0,begin,preSolve,NULL,separate,NULL);
+    cpSpaceAddCollisionHandler(	myBody.__dbg_get_space(),
+								MERCOBJECT_TYPE,
+								MAPCOLLISION_TYPE,
+								begin,preSolve,
+								NULL,
+								separate,
+								NULL );
 }
 
 ////////////////////////////////////////////////////////////

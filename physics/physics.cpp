@@ -58,15 +58,18 @@ PhysicsObject::PhysicsObject(void) :
     myMass(0.0f),
     myBodyDef(NULL),
     myShapeDef(NULL),
+	m_Spawn(false),
     mWorldPtr(GenericSingleton<PhysicsSimulator>::Instance().GetWorldHandle())
 {
 
 }
+
 PhysicsObject::~PhysicsObject(void)
 {
-    cpSpaceRemoveShape(mWorldPtr, myShapeDef);
+	if(m_Spawn)
+    	cpSpaceRemoveShape(mWorldPtr, myShapeDef);
     cpSpaceRemoveBody(mWorldPtr, myBodyDef);
-    cpShapeFree(myShapeDef);
+    if(m_Spawn)
+		cpShapeFree(myShapeDef);
     cpBodyFree(myBodyDef);
 }
-

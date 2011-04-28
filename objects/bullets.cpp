@@ -50,9 +50,10 @@ Bullet9mm::~Bullet9mm(void)
 void Bullet9mm::Initialize(void)
 {
     myBody->BuildRect(1.0f,1.0f,1.0f,pos);
+	myBody->Spawn(pos);
     myBody->SetShapeData(this);
     myBody->SetGroup(0x01);
-    myBody->SetCollisionType(1);
+    myBody->SetCollisionType(BULLETOBJECT_TYPE);
 
     cpVect s = cpv(pos.x,pos.y);
     cpVect e = cpv(des.x,des.y);

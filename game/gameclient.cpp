@@ -89,7 +89,14 @@ MainClient::MainClient(void) :
     	cpBody *staticBody = &space->staticBody;
 
     	//Bind bullet collision handlers
-    	cpSpaceAddCollisionHandler(space,0,1,b2w_begin,NULL,NULL,NULL,this);
+    	cpSpaceAddCollisionHandler(	space, 
+									MAPCOLLISION_TYPE,
+									BULLETOBJECT_TYPE,
+									b2w_begin,
+									NULL,
+									NULL,
+									NULL,
+									this );
 
 		//Load the map, plug in polygon values into the game
 		map = bgmfopen(info.mapfile.c_str());
@@ -103,13 +110,13 @@ MainClient::MainClient(void) :
         	//Add map polygon to physics world
         	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v0.x,v0.y),cpv(v1.x,v1.y),0.0f));
         	shape->e = 1.0f; shape->u = 1.0f;
-        	shape->collision_type = 0;
+        	shape->collision_type = MAPCOLLISION_TYPE;
         	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v1.x,v1.y),cpv(v2.x,v2.y),0.0f));
         	shape->e = 1.0f; shape->u = 1.0f;
-       		shape->collision_type = 0;
+       		shape->collision_type = MAPCOLLISION_TYPE;
         	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v2.x,v2.y),cpv(v0.x,v0.y),0.0f));
         	shape->e = 1.0f; shape->u = 1.0f;
-        	shape->collision_type = 0;
+        	shape->collision_type = MAPCOLLISION_TYPE;
     	}
 
     	//Create a player object

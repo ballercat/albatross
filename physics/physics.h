@@ -108,6 +108,17 @@ public:
     ////////////////////////////////////////////////////////////
     virtual ~PhysicsObject(void);
 
+	////////////////////////////////////////////////////////////		
+    // Kill object(remove from space)	
+	////////////////////////////////////////////////////////////	 
+	void Kill(void)
+	{
+		cpSpaceRemoveShape(mWorldPtr, myShapeDef);
+		cpShapeFree(myShapeDef);
+
+		m_Spawn = false;
+	}	
+
     ////////////////////////////////////////////////////////////
     /// Move to a location in a time period.
     /// In screen coordinates.
@@ -171,6 +182,7 @@ protected:
     ////////////////////////////////////////////////////////////
     // Member Data
     ////////////////////////////////////////////////////////////
+	bool		m_Spawn; //is object added to the space
     float       myMass;
     cpBody*     myBodyDef;
     cpShape*    myShapeDef;
@@ -195,20 +207,34 @@ public:
     void BuildCircle(float radius, float mass, int x, int y)
     { //I think having Build<shape type> name makes for easier to understand final code
         Obj::myMass = INFINITY;
-        myRadius = radius;
+        m_Radius = radius;
         Obj::myBodyDef = cpBodyNew(mass, INFINITY);//cpMomentForCircle(mass, 0.0f, radius,cpvzero));
         Obj::myBodyDef->p = cpv(x,y);
         //Obj::myBodyDef->v = cpv(0,0);
+		cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef);
+	}
+	
 
-        cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef);
+	////////////////////////////////////////////////////////////
+	// Spawn the object at (x,y)
+	////////////////////////////////////////////////////////////			
+	void Spawn(glm::vec3 p_Pos)
+	{
+		//Don't do anything if the body already exists
+		if(Obj::m_Spawn)
+			return;
+		
+		Obj::myBodyDef->p = cpv(p_Pos.x, p_Pos.y);
+		Obj::myShapeDef = cpSpaceAddShape(Obj::mWorldPtr, cpCircleShapeNew(Obj::myBodyDef, m_Radius, cpvzero));
+		Obj::myShapeDef->e = 0.0f; Obj::myShapeDef->u = 0.0f;
+		myCircle = (cpCircleShape*)Obj::myShapeDef;
 
-        Obj::myShapeDef = cpSpaceAddShape(Obj::mWorldPtr, cpCircleShapeNew(Obj::myBodyDef, radius, cpvzero));
-        Obj::myShapeDef->e = 0.0f; Obj::myShapeDef->u = 0.0f;//0.9f;
-        myCircle = (cpCircleShape*)Obj::myShapeDef;
-    }
-    inline const float& GetRadius() const
+		Obj::m_Spawn = true;
+	}
+
+	inline const float& GetRadius() const
     {
-        return myRadius;
+        return m_Radius;
     }
     inline glm::vec3 GetLocation() const
     {
@@ -216,7 +242,7 @@ public:
         return glm::vec3(loc.x,loc.y, 0);
     }
 protected:
-    float myRadius;
+    float m_Radius;
     cpCircleShape *myCircle;
 };
 
@@ -234,30 +260,45 @@ public:
     }
     void BuildRect(float w,float h,float mass,int x, int y)
     {
-        cpVect  verts[] = {  cpv(-w/2,-h/2),
-                                cpv(-w/2,h/2),
-                                cpv(w/2,h/2),
-                                cpv(w/2,-h/2)
-                                };
-        Obj::myMass = mass;
+        m_Verts[0] = cpv(-w/2,-h/2);
+        m_Verts[1] = cpv(-w/2,h/2);
+        m_Verts[2] = cpv(w/2,h/2);
+        m_Verts[3] = cpv(w/2,-h/2);
+        
+		Obj::myMass = mass;
         myWidth = w;
         myHeight = h;
 
-        Obj::myBodyDef = cpBodyNew(mass, cpMomentForPoly(mass,4,verts,cpvzero));
+        Obj::myBodyDef = cpBodyNew(mass, cpMomentForPoly(mass, 4, m_Verts, cpvzero));
         Obj::myBodyDef->p = cpv(x,y);
         Obj::myBodyDef->v = cpv(0,0);
 
-        cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef);
-
-        Obj::myShapeDef = cpSpaceAddShape(Obj::mWorldPtr,
-                                          cpPolyShapeNew(Obj::myBodyDef,4,verts,cpvzero) );
-        Obj::myShapeDef->e = 0.0f; Obj::myShapeDef->u = 0.0f;
+        cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef); 
     }
-    inline glm::vec3 GetLocation() const
+
+	////////////////////////////////////////////////////////////
+	// Spawn the object at (x,y)
+	////////////////////////////////////////////////////////////			
+	void Spawn(glm::vec3 p_Pos)
+	{
+		//Don't do anything if the body already exists
+		if(Obj::m_Spawn)
+			return;
+		
+		Obj::myBodyDef->p = cpv(p_Pos.x, p_Pos.y);
+		Obj::myShapeDef = cpSpaceAddShape(Obj::mWorldPtr, 
+										  cpPolyShapeNew(Obj::myBodyDef, 4, m_Verts, cpvzero));
+		Obj::myShapeDef->e = 0.0f; Obj::myShapeDef->u = 0.0f;
+
+		Obj::m_Spawn = true;
+	}
+
+	inline glm::vec3 GetLocation() const
     {
         return glm::vec3(Obj::myBodyDef->p.x,Obj::myBodyDef->p.y,0);
     }
 protected:
+	cpVect m_Verts[4];
     float myWidth;
     float myHeight;
 };

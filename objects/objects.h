@@ -25,6 +25,11 @@
 #include<cstdio>
 #include<glm/glm.hpp>
 
+#define MAPCOLLISION_TYPE	0x00
+#define BULLETOBJECT_TYPE	0x01
+#define MERCOBJECT_TYPE		0x02
+#define WEAPONOBJECT_TYPE	0x03
+
 ////////////////////////////////////////////////////////////
 /// Most basic object in the game
 ////////////////////////////////////////////////////////////
@@ -40,7 +45,10 @@ class GameObject :
     public NonCopyable
 {
 public:
-    struct Status
+	////////////////////////////////////////////////////////////
+	/// Object status
+	////////////////////////////////////////////////////////////
+	struct Status
     {
         enum
         {
@@ -73,21 +81,46 @@ public:
         float       SleepTimer;
     };
 
+public:
+	////////////////////////////////////////////////////////////
+	///return a type of gameobject
+   	////////////////////////////////////////////////////////////  
+	static inline GameObject*   Create(int type)
+    {
+        return (*GameObject::CreatorsMap()[type]).Create();
+    }
+
+	////////////////////////////////////////////////////////////
+	/// Destructor
+	////////////////////////////////////////////////////////////
     virtual ~GameObject(void){}
 
-    ///> Update internal state, return status
-    virtual GameObject::Status& Update(float dt) = 0;
-    ///> Initializer
-    virtual void Initialize(void) = 0;
+public:
+	////////////////////////////////////////////////////////////
+    ///> Update internal state, return status 
+	////////////////////////////////////////////////////////////
+	virtual GameObject::Status& Update(float dt) = 0;
+    
+	////////////////////////////////////////////////////////////	
+	///> Initializer
+	//////////////////////////////////////////////////////////// 
+	virtual void Initialize(void) = 0;
 
+	////////////////////////////////////////////////////////////
+	// Spawn object
+	////////////////////////////////////////////////////////////
     inline void Spawn(int x, int y) {Spawn(glm::vec3(x,y,0));}
-    inline void Spawn(glm::vec3 pos)
+
+	////////////////////////////////////////////////////////////
+	/// Spawn object
+	////////////////////////////////////////////////////////////	
+	inline void Spawn(glm::vec3 pos)
     {
         myStatus.pos = pos;
         myStatus.val = Status::Unknown;
     }
 
-
+public:
     ///Getters & Setters
     inline const GameObject::Status& GetStatus(void) const
     {
@@ -109,24 +142,17 @@ public:
     {
         return myStatus.pos;
     }
+
+public:
     virtual void Move(glm::vec3 pos,float time) = 0;
     virtual void Impulse(glm::vec3 i) = 0;
-    virtual void Jump(float) = 0;
-    virtual void Right(void) = 0;
-    virtual void Left(void) = 0;
-    virtual void Jet(void) = 0;
-
-    ///return a type of gameobject
-    static inline GameObject*   Create(int type)
-    {
-        return (*GameObject::CreatorsMap()[type]).Create();
-    }
 
     inline int& CurrentAction(void)
     {
         return mAction;
     }
 
+	float rot_dAngle; //rotation angle(degrees)
     bool Airborne;
     unsigned int id;
 
@@ -144,11 +170,67 @@ protected:
     int mAction;
 };
 
+namespace object
+{
+	////////////////////////////////////////////////////////////
+	// Weapons
+	////////////////////////////////////////////////////////////
+	class Weapon : public GameObject
+	{
+	public:
+		struct Creator:
+				public ObjectCreator
+		{
+			Creator()
+			{
+				GameObject::CreatorsMap()[WEAPONOBJECT_TYPE] = this;
+			}
+			virtual inline Weapon* Create(void) const
+			{
+				return new Weapon();
+			}
+		};
+	
+	public:
+		////////////////////////////////////////////////////////////
+		// Update state	
+		////////////////////////////////////////////////////////////	
+		virtual GameObject::Status& Update(float unused);
+					
+		////////////////////////////////////////////////////////////
+		// Initialize self
+		////////////////////////////////////////////////////////////		
+		virtual void Initialize(void);
+		
+		////////////////////////////////////////////////////////////
+		// Spawn objects		
+		////////////////////////////////////////////////////////////		
+		virtual void Spawn(glm::vec3 pos);
+	
+		inline void Kill(void)
+		{
+			m_phBody.Kill();
+		}
 
-////////////////////////////////////////////////////////////
-/// Dynamic in-game objects(NON-BULLETS)
-////////////////////////////////////////////////////////////
+	public:
+		///////////////////////////////////////////////////////////
+		// Move to a location	
+		////////////////////////////////////////////////////////////
+		virtual void Move(glm::vec3 p_Pos, float p_Time)
+		{
+		}
+		
+		////////////////////////////////////////////////////////////
+		// Apply Impulse		
+		////////////////////////////////////////////////////////////		
+		virtual void Impulse(glm::vec3 p_Imp)
+		{
+		}
 
-
+	private:
+		physics::Rectangle m_phBody;	
+	};
+}
 
 #endif //GAME_OBJECTS_HEADER
+

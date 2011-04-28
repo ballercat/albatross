@@ -44,7 +44,7 @@ public:
 
     enum
     {
-        Type = 1
+        Type = MERCOBJECT_TYPE
     };
 
     struct Action{
@@ -74,10 +74,11 @@ public:
 	float 	direction;
 
 private:
-    physics::Circle myBody;
+	physics::Circle myBody;
 
+	
 private:
-    float   airtimer;
+    float   airtime;
 	float	coast;
 private:
     struct max_v

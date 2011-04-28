@@ -20,6 +20,31 @@
 #include "objects.h"
 #include "merc.h"
 
-Merc::Creator _soldiercreator;
+static Merc::Creator _soldiercreator;
+static object::Weapon::Creator _weaponcreator;
+
+using namespace object;
+
+GameObject::Status& Weapon::Update(float unused)
+{
+	myStatus.pos = m_phBody.GetLocation();	
+    rot_dAngle = m_phBody.GetBodyDef().a;	
+}
+
+void Weapon::Initialize(void)
+{
+	m_phBody.BuildRect(15.0f, 5.0f, 1.0f, myStatus.pos.x, myStatus.pos.y);
+	m_phBody.SetGroup(0x01);
+	m_phBody.SetCollisionType(WEAPONOBJECT_TYPE);
+	
+	myStatus.val = GameObject::Status::Active;
+}
+
+void Weapon::Spawn(glm::vec3 p_Pos)
+{
+	m_phBody.Spawn(p_Pos);
+	m_phBody.SetShapeData(&myStatus);
+}
+
 
 
