@@ -116,6 +116,9 @@ void MainClient::Run(void)
 				bullet->Draw();
 			}
 
+			if(info.debug)
+				DebugDrawPhysics();
+			
 			//Draw the player with interpolate
 			mPlayer->Draw((curtime - oldtime));
 
@@ -123,9 +126,6 @@ void MainClient::Run(void)
 			glPushMatrix();
 			display->cursor.Draw();
 			glPopMatrix();
-
-			if(info.debug)
-				DebugDrawPhysics();
 
 			//Draw fps
 			display->drawFPS();
