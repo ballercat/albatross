@@ -356,6 +356,8 @@ void ChipmunkToGame(cpShape *shape, cpSpace *space)
 }
 void MainClient::DebugDrawPhysics(void)
 {
+	glEnable(GL_VERTEX_ARRAY);
+	
     cpSpace *space = mPhysics->GetWorldHandle();
 
     cpSpaceHashEach(space->staticShapes,(cpSpaceHashIterator)ChipmunkToGame, space);
@@ -381,4 +383,6 @@ void MainClient::DebugDrawPhysics(void)
             }
         }
     } glEnd();
+	
+	glDisable(GL_VERTEX_ARRAY);
 }
