@@ -173,14 +173,12 @@ bool MainClient::_handleMessages(void)
                 if(t - lastbullet < 0.10f)
                     break;
                 lastbullet = t;
-                Bullet9mm *bullet = new Bullet9mm(display->Texture);
-                bullet->pos = mPlayer->barrel;
-                bullet->des = bullet->pos + display->stw(mInput->InputState().mouse.pos);
-                bullet->Initialize();
-                Bullets.Add(bullet);
+                glm::vec3 dest = display->stw(mInput->InputState().mouse.pos);
+               	Bullet *bullet = mPlayer->Shoot(dest);	
+				if(bullet != NULL)
+					Bullets.Add(bullet); 
 
-				mPlayer->Shoot();
-                break;
+				break;
             }
 			case message::GMSG_THROW:
 				mPlayer->Throw();

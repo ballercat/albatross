@@ -21,6 +21,7 @@
 #define PLAYER_HEADER_GUARD
 
 #include "merc.h"
+#include "bullets.h"
 #include "assets.h"
 #include <vector>
 #include <iostream>
@@ -44,6 +45,8 @@ public:
 		T::Initialize();
 		T::id = 2;
 		
+		m_pTexture = Texture;
+
 		rawsprite.push_back(new Sprite("assets/sprite/merc/still.sprh",Texture[PLAYER_TORSO]));
 		rawsprite.push_back(new Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]));
 		rawsprite.push_back(new Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]));
@@ -301,12 +304,19 @@ public:
 	////////////////////////////////////////////////////////////
 	///
 	////////////////////////////////////////////////////////////
-	void Shoot(void)
+	Bullet* Shoot(glm::vec3 p_Dest)
 	{
 		if(!m_hasWeapon)
-			return;
+			return NULL;
 		sparktimer = Time;
 		sparkcounter = 0.35f;
+	
+		Bullet9mm *bullet = new Bullet9mm(m_pTexture);
+		bullet->pos = barrel;
+		bullet->des = barrel + p_Dest;		
+		bullet->Initialize();
+		
+		return bullet;	
 	}
 
 	////////////////////////////////////////////////////////////
@@ -320,7 +330,7 @@ public:
 		m_Weapon->Spawn(spawn);
 		glm::vec3 impulse(-1*flip, 1, 0);
 		if(flip < 0)
-			m_Weapon->Impulse(impulse/2.0f,7,2);
+			m_Weapon->Impulse(impulse/4.0f,15,5);
 		else
 			m_Weapon->Impulse(impulse,1*flip,1*flip);	
 		m_hasWeapon = false;
@@ -411,7 +421,8 @@ private:
 	float angle2cursor; //zangle relative to cursor position
 	float angleR; //angle to cursor in radians
 	bool shoot;
-		
+	GLuint*	m_pTexture;
+	
 private:
 	////////////////////////////////////////////////////////////
 	///Jet flames handling data
