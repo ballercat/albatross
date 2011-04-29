@@ -111,13 +111,8 @@ public:
 	////////////////////////////////////////////////////////////		
     // Kill object(remove from space)	
 	////////////////////////////////////////////////////////////	 
-	void Kill(void)
-	{
-		cpSpaceRemoveShape(mWorldPtr, myShapeDef);
-		cpShapeFree(myShapeDef);
-
-		m_Spawn = false;
-	}	
+	void Kill(void);
+		
 
     ////////////////////////////////////////////////////////////
     /// Move to a location in a time period.
@@ -182,11 +177,11 @@ protected:
     ////////////////////////////////////////////////////////////
     // Member Data
     ////////////////////////////////////////////////////////////
-	bool		m_Spawn; //is object added to the space
     float       myMass;
     cpBody*     myBodyDef;
     cpShape*    myShapeDef;
     cpSpace*    mWorldPtr; ///Physics World pointer
+	bool		m_Spawn; //is object added to the space
 };
 
 
@@ -280,12 +275,11 @@ public:
 	// Spawn the object at (x,y)
 	////////////////////////////////////////////////////////////			
 	void Spawn(glm::vec3 p_Pos)
-	{
+	{		
+		Obj::myBodyDef->p = cpv(p_Pos.x, p_Pos.y);
 		//Don't do anything if the body already exists
 		if(Obj::m_Spawn)
 			return;
-		
-		Obj::myBodyDef->p = cpv(p_Pos.x, p_Pos.y);
 		Obj::myShapeDef = cpSpaceAddShape(Obj::mWorldPtr, 
 										  cpPolyShapeNew(Obj::myBodyDef, 4, m_Verts, cpvzero));
 		Obj::myShapeDef->e = 0.0f; Obj::myShapeDef->u = 0.0f;

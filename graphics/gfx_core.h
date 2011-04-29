@@ -80,8 +80,8 @@ namespace gfx
 		glm::vec3 camera;
 		glm::vec3 zoom;
 		glm::mat4 MVP;
-		float FrameTime;
-		int SkipFrames;
+		float 	FrameTime;
+		size_t 	SkipFrames;
 
 	protected:
 		///Protected data

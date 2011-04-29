@@ -38,6 +38,7 @@ void MainClient::_loadGameSettings(void)
 	}
 	
 	//Input .ini file settings
+	info.debug			= ini.GetBoolValue("Settings", "debug");	
 	info.mapfile 		= ini.GetValue("Settings", "map");
 
 	info.fullscreen 	= ini.GetBoolValue("Window", "fullscreen");
@@ -87,17 +88,7 @@ MainClient::MainClient(void) :
     	cpShape *shape;
 		cpSpace* space = mPhysics->GetWorldHandle();
     	cpBody *staticBody = &space->staticBody;
-
-    	//Bind bullet collision handlers
-    	cpSpaceAddCollisionHandler(	space, 
-									MAPCOLLISION_TYPE,
-									BULLETOBJECT_TYPE,
-									b2w_begin,
-									NULL,
-									NULL,
-									NULL,
-									this );
-
+		
 		//Load the map, plug in polygon values into the game
 		map = bgmfopen(info.mapfile.c_str());
     	glm::vec3 v0,v1,v2;
@@ -119,9 +110,12 @@ MainClient::MainClient(void) :
         	shape->collision_type = MAPCOLLISION_TYPE;
     	}
 
+		//Bind bullet collision handlers
+		_initCollisionHandlers(space);
+		
     	//Create a player object
     	mPlayer = new MercPlayer(glm::vec3(500,200,0),Texture);
-
+		
 		//Timing(NOTE: improve/move this)
     	lastupdate = g_timer.GetElapsedTime();
     	lastbullet = lastupdate;
@@ -143,6 +137,12 @@ MainClient::MainClient(void) :
 		exit(1);
 	}
 
+	mInput->Parse();
+	mInput->Parse();
+	mInput->HandleKeyboard();
+	mInput->HandleMouse();
+	
+	mMessageQueue.Clear();
 } //MainClient::MainClient
 
 ////////////////////////////////////////////////////////////
@@ -168,5 +168,37 @@ int MainClient::Connect(std::string server_ip)
     return 0;
 }
 
+////////////////////////////////////////////////////////////
+/// Collision handlers
+////////////////////////////////////////////////////////////
+void MainClient::_initCollisionHandlers(cpSpace *space)
+{
+	cpSpaceAddCollisionHandler(	space, 
+								MAPCOLLISION_TYPE,
+								BULLETOBJECT_TYPE,
+								b2w_begin,
+								NULL,
+								NULL,
+								NULL,
+								this );
 
+	cpSpaceAddCollisionHandler( space,
+								WEAPONOBJECT_TYPE,
+								PLAYEROBJECT_TYPE,
+								w2p_beginCollision,
+								NULL,
+								NULL,
+								NULL,
+								this );
+}
 
+cpBool MainClient::w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client)
+{
+	CP_ARBITER_GET_SHAPES(arb, a, b);
+	object::Weapon *weapon = (object::Weapon*)(a->data);
+	MainClient *client = (MainClient*)(p_Client);
+
+	client->mPlayer->Pickup(weapon);
+
+	return cpFalse;
+}

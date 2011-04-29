@@ -23,6 +23,7 @@
 #include "merc.h"
 #include "assets.h"
 #include <vector>
+#include <iostream>
 
 ////////////////////////////////////////////////////////////
 ///Player handler template-class
@@ -36,13 +37,13 @@ class Player :
 public:
 	////////////////////////////////////////////////////////////
 	///Constructor
-	////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////	
 	Player(glm::vec3 loc,GLuint *Texture)
 	{
 		T::Spawn(loc);
 		T::Initialize();
 		T::id = 2;
-
+		
 		rawsprite.push_back(new Sprite("assets/sprite/merc/still.sprh",Texture[PLAYER_TORSO]));
 		rawsprite.push_back(new Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]));
 		rawsprite.push_back(new Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]));
@@ -60,10 +61,17 @@ public:
 		running = false;
 		flip = 0;
 
+		m_Weapon = new object::Weapon();
+		m_Weapon->Initialize();
+		
+		m_hasWeapon = true;
+
 		//Jet flames
 		jflame_alpha.assign(10,0.0f);
 		jflame_pos.assign(10,glm::vec3());
 		jflame_count = 0;
+		
+		//Timing
 		Time = timer.GetElapsedTime();
 		jflame_eraser = Time;
 		jettimer = Time;
@@ -120,12 +128,14 @@ public:
 
 		angle2cursor = angle.z;
 
-		weapon->angle.z = angle.z;
-
 		legs->angle.x = angle.x;
 		torso->angle.x = angle.x;
-		weapon->angle.x = angle.x;
-
+		
+		if(m_hasWeapon){
+			weapon->angle.x = angle.x;
+			weapon->angle.z = angle.z;
+		}
+		
 		ps.x = int(ps.x);
 		ps.y = int(ps.y);
 
@@ -293,8 +303,35 @@ public:
 	////////////////////////////////////////////////////////////
 	void Shoot(void)
 	{
+		if(!m_hasWeapon)
+			return;
 		sparktimer = Time;
 		sparkcounter = 0.35f;
+	}
+
+	////////////////////////////////////////////////////////////
+	/// Throw whats in your hands
+	////////////////////////////////////////////////////////////
+	inline void Throw(void)
+	{
+		if(!m_hasWeapon)
+			return;
+		glm::vec3 spawn = ipos + glm::vec3(-30*flip,30,0);
+		m_Weapon->Spawn(spawn);
+		glm::vec3 impulse(-1*flip, 1, 0);
+		if(flip < 0)
+			m_Weapon->Impulse(impulse/2.0f,7,2);
+		else
+			m_Weapon->Impulse(impulse,1*flip,1*flip);	
+		m_hasWeapon = false;
+	}
+
+	inline void Pickup(object::Weapon *weapon)
+	{
+		if(m_hasWeapon)
+			return;
+		m_Weapon = weapon;
+		m_hasWeapon = true;
 	}
 
 public:
@@ -325,9 +362,16 @@ private:
 	void _updatePositions(glm::vec3& npos)
 	{
 		//Adjust position
-		weapon->pos = npos; weapon->pos.y -= 8;
-		weapon->pos.x += 2*flip;
-
+		if(m_hasWeapon){
+			weapon->pos = npos; weapon->pos.y -= 8;
+			weapon->pos.x += 2*flip;
+		} 
+		else {
+			m_Weapon->Update(0.0f);
+			weapon->pos = m_Weapon->GetStatus().pos;
+			weapon->angle.z = m_Weapon->rot_dAngle;
+		}
+		
 		legs->pos = npos; legs->pos.y += 3;
 		torso->pos = npos; torso->pos.y += 3;
 
@@ -367,7 +411,7 @@ private:
 	float angle2cursor; //zangle relative to cursor position
 	float angleR; //angle to cursor in radians
 	bool shoot;
-
+		
 private:
 	////////////////////////////////////////////////////////////
 	///Jet flames handling data
@@ -377,6 +421,14 @@ private:
 	std::vector<glm::vec3> jflame_pos;
 	size_t	jflame_count;
 	float jflame_eraser;
+
+private:
+	////////////////////////////////////////////////////////////
+	/// Weapon data
+	////////////////////////////////////////////////////////////	
+	int m_WeaponID;
+	object::Weapon *m_Weapon;
+	bool m_hasWeapon;
 };
 
 typedef Player<Merc> MercPlayer;

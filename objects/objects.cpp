@@ -19,6 +19,7 @@
 
 #include "objects.h"
 #include "merc.h"
+#include "types.h"
 
 static Merc::Creator _soldiercreator;
 static object::Weapon::Creator _weaponcreator;
@@ -27,24 +28,37 @@ using namespace object;
 
 GameObject::Status& Weapon::Update(float unused)
 {
-	myStatus.pos = m_phBody.GetLocation();	
-    rot_dAngle = m_phBody.GetBodyDef().a;	
+	myStatus.pos = m_phBody->GetLocation();	
+    rot_dAngle = R2D(m_phBody->GetBodyDef().a);	
+	
+	return myStatus;
 }
 
 void Weapon::Initialize(void)
 {
-	m_phBody.BuildRect(15.0f, 5.0f, 1.0f, myStatus.pos.x, myStatus.pos.y);
-	m_phBody.SetGroup(0x01);
-	m_phBody.SetCollisionType(WEAPONOBJECT_TYPE);
-	
-	myStatus.val = GameObject::Status::Active;
+	m_phBody = NULL;
 }
 
 void Weapon::Spawn(glm::vec3 p_Pos)
 {
-	m_phBody.Spawn(p_Pos);
-	m_phBody.SetShapeData(&myStatus);
+	delete m_phBody;
+	m_phBody = NULL;
+	
+	m_phBody = new physics::Rectangle;
+	m_phBody->BuildRect(15.0f, 5.0f, 0.01f, myStatus.pos.x, myStatus.pos.y);
+	myStatus.val = GameObject::Status::Active;
+	m_phBody->Spawn(p_Pos);
+	m_phBody->SetShapeData(this);
+	m_phBody->SetGroup(0x02);
+	m_phBody->SetCollisionType(WEAPONOBJECT_TYPE);
 }
 
+void Weapon::Impulse(glm::vec3 p_Imp)
+{
+	cpBodyApplyImpulse(&m_phBody->GetBodyDef(), cpv(p_Imp.x,p_Imp.y), cpv(1,1));	
+}
 
-
+void Weapon::Impulse(glm::vec3 p_Imp, float p_x, float p_y)
+{
+	cpBodyApplyImpulse(&m_phBody->GetBodyDef(), cpv(p_Imp.x, p_Imp.y), cpv(p_x, p_y));
+}

@@ -28,6 +28,8 @@
 
 #include "messages.h"
 
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 template<class Super>
 class InputHandlerMixin : public Super
 {
@@ -46,7 +48,8 @@ public:
         //this->_static_key[Super::Key::W] = &InputHandlerMixin::_handle_K_w;
 		this->_key_handler[Super::Key::D] = &InputHandlerMixin::_handle_K_d;
 		this->_key_handler[Super::Key::A] = &InputHandlerMixin::_handle_K_a;
-
+		this->_key_handler[Super::Key::F] = &InputHandlerMixin::_handle_K_f;
+		
         Super::mState.StaticKey[Super::Key::W] = false;
         Super::mState.StaticKey[Super::Key::D] = false;
         Super::mState.StaticKey[Super::Key::A] = false;
@@ -86,6 +89,8 @@ public:
           //  mMessages->Push(message::GMSG_JUMPBEGIN);
 	}
 
+	////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////
 	void HandleMouse()
 	{
 		if(Super::IsMouseButtonDown(Super::Mouse::Middle))
@@ -103,6 +108,9 @@ public:
 	}
 
 protected:
+////////////////////////////////////////////////////////////
+/// Keyboard handlers
+////////////////////////////////////////////////////////////
 	void _handle_K_q(bool down){
 		if(down)
 			mMessages->Push(message::GMSG_QUITGAME);
@@ -126,6 +134,14 @@ protected:
 		else {
 			mMessages->Push(message::GMSG_JUMPFINISH);
 		}
+	}
+	
+	////////////////////////////////////////////////////////////
+	/// Throw weapon, flag, throwing weapon
+	////////////////////////////////////////////////////////////
+	void _handle_K_f(bool down){
+		if(down)
+			mMessages->Push(message::GMSG_THROW);
 	}
 
 private:

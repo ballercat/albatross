@@ -53,6 +53,7 @@ public:
 	void Run(void);
 
 	static int BeginCollision(cpArbiter *arb,cpSpace *space,void *unused);
+	static cpBool w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client);
 
 public:
 	////////////////////////////////////////////////////////////
@@ -60,6 +61,8 @@ public:
 	////////////////////////////////////////////////////////////
 	struct GameInfo
 	{
+		bool debug;
+		
 		std::string mapfile;	//bgmf file path
 		std::string cursorfile;	//cursor .png file path
 
@@ -98,6 +101,11 @@ private:
 	/// Load settings
 	////////////////////////////////////////////////////////////
 	void _loadGameSettings(void);
+	
+	////////////////////////////////////////////////////////////		
+	/// Set up Collision handlers	
+	////////////////////////////////////////////////////////////	
+	void _initCollisionHandlers(cpSpace *space);
 
 private:
 		///Private functions

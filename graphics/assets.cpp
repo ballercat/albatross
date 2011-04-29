@@ -126,6 +126,7 @@ void LoadTexturesFromData(std::vector<std::string> *tname, GLuint* Texture, GLui
 	}
 }
 
+#ifdef SHADER_PIPELINE
 ////////////////////////////////////////////////////////////
 GLuint CreateShader(const char *fpath, GLuint type)
 {
@@ -197,7 +198,7 @@ glm::vec3* gTransform()
 	return _glbl_transform;
 }
 
-#ifdef SHADER_PIPELINE
+
 ////////////////////////////////////////////////////////////
 void VertexArray::Init(GLuint texid, GLuint size, GLuint program)
 {

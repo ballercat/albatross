@@ -124,7 +124,8 @@ void MainClient::Run(void)
 			display->cursor.Draw();
 			glPopMatrix();
 
-			//DebugDrawPhysics();
+			if(info.debug)
+				DebugDrawPhysics();
 
 			//Draw fps
 			display->drawFPS();
@@ -181,6 +182,9 @@ bool MainClient::_handleMessages(void)
 				mPlayer->Shoot();
                 break;
             }
+			case message::GMSG_THROW:
+				mPlayer->Throw();
+				break;
         }
         mMessageQueue.Pop();
         }

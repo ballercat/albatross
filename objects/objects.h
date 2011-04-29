@@ -28,6 +28,7 @@
 #define MAPCOLLISION_TYPE	0x00
 #define BULLETOBJECT_TYPE	0x01
 #define MERCOBJECT_TYPE		0x02
+#define PLAYEROBJECT_TYPE	0x02
 #define WEAPONOBJECT_TYPE	0x03
 
 ////////////////////////////////////////////////////////////
@@ -209,7 +210,8 @@ namespace object
 	
 		inline void Kill(void)
 		{
-			m_phBody.Kill();
+			delete m_phBody;
+			m_phBody = NULL;
 		}
 
 	public:
@@ -223,12 +225,19 @@ namespace object
 		////////////////////////////////////////////////////////////
 		// Apply Impulse		
 		////////////////////////////////////////////////////////////		
-		virtual void Impulse(glm::vec3 p_Imp)
-		{
-		}
+		virtual void Impulse(glm::vec3 p_Imp);
+		void Impulse(glm::vec3 p_Imp, float p_x, float p_y);
+		
+	public:
+		////////////////////////////////////////////////////////////	
+		/// Public data	
+		////////////////////////////////////////////////////////////		
+		float pDamage;
+		float pSpeed;
+		float pRate;
 
 	private:
-		physics::Rectangle m_phBody;	
+		physics::Rectangle *m_phBody;	
 	};
 }
 
