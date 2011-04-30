@@ -53,7 +53,7 @@ void PhysicsSimulator::Step(float TimeStep)
 /// Add Begin Collision Handler
 ////////////////////////////////////////////////////////////
 void 
-PhysicsSimulator::BCollisionAdd(int p_One, int p_Two,
+PhysicsSimulator::BCollision(int p_One, int p_Two,
 								cpCollisionBeginFunc p_Func,
 								void *p_Data )
 {

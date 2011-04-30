@@ -24,11 +24,6 @@
 #include "physics.h"
 #include "sprite.h"
 
-//bullet to world begin
-cpBool b2w_begin(cpArbiter *arb, cpSpace *space, void *ignore);
-cpBool exp2w_begin(cpArbiter *arb, cpSpace *space, void *ignore);
-cpBool aoa2o_begin(cpArbiter *arb, cpSpace *space, void *ignore);
-
 class Bullet
 {
 public:

@@ -25,55 +25,6 @@
 
 sf::Clock   gclock;
 
-//bullet to world
-cpBool b2w_begin(cpArbiter *arb,cpSpace *space,void *data)
-{
-    CP_ARBITER_GET_SHAPES(arb, a, b);
-    Bullet *bullet = (Bullet*)b->data;
-    //mark the bullet as dead
-    bullet->status = Bullet::Status::Dead;
-
-    return cpTrue;
-}
-
-//explosive to world collision
-cpBool exp2w_begin(cpArbiter *arb, cpSpace *space, void *data)
-{
-	CP_ARBITER_GET_SHAPES(arb, a, b);
-	Explosive *explosive = (Explosive*)a->data;
-
-	explosive->Explode();
-
-	return cpTrue;
-}
-
-cpBool aoa2o_begin(cpArbiter *arb, cpSpace *space, void *data)
-{
-	//void
-	CP_ARBITER_GET_SHAPES(arb, a, b);
-	Explosive *explosive = (Explosive*)a->data;
-	GameObject *object = (GameObject*)b->data;
-
-	glm::vec3 p_obj = object->GetStatus().pos;
-	glm::vec3 p_aoa = explosive->pos;
-	
-	float dx = p_aoa.x - p_obj.x;
-	float dy = p_aoa.y - p_obj.y;
-	
-	cpContactPointSet cnt = cpArbiterGetContactPointSet(arb);
-	
-	cpVect bloc;
-	
-	bloc.x = cnt.points[0].point.x - p_obj.x;
-	bloc.y = cnt.points[0].point.y - p_obj.y;
-		
-	object->Impulse(glm::vec3((-dx),(-dy), 0), bloc.x, bloc.y );
-
-	explosive->status = Bullet::Status::Dead;
-
-	return cpFalse;
-}
-
 Bullet9mm::Bullet9mm(GLuint *Texture)
 {
     myDamage = 10.0f;

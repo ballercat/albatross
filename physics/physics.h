@@ -27,6 +27,8 @@
 #include<chipmunk/chipmunk.h>
 #include<vector>
 #include<glm/glm.hpp>
+#include<cassert>
+
 // TODO : Finish adding comments
 
 ////////////////////////////////////////////////////////////
@@ -86,7 +88,7 @@ public:
 	////////////////////////////////////////////////////////////	  
 	/// Helper functions	
 	////////////////////////////////////////////////////////////	
-	static void BCollisionAdd(	int p_One, int p_Two, 
+	static void BCollision(		int p_One, int p_Two, 
 								cpCollisionBeginFunc p_Func, 
 								void *p_Data);
 
@@ -191,7 +193,6 @@ protected:
     cpSpace*    mWorldPtr; ///Physics World pointer
 	bool		m_Spawn; //is object added to the space
 };
-
 
 ////////////////////////////////////////////////////////////
 /// Mixin class to create a circle shaped physics object

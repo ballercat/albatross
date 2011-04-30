@@ -20,6 +20,7 @@
 
 #include "gameclient.h"
 #include "assets.h"
+#include "collision.h"
 #include <cstdio>
 #include <glm/gtc/type_ptr.hpp>
 #include "SimpleIni.h"
@@ -173,15 +174,11 @@ int MainClient::Connect(std::string server_ip)
 ////////////////////////////////////////////////////////////
 void MainClient::_initCollisionHandlers(cpSpace *space)
 {	
-	mPhysics->BCollisionAdd(MAPPOLYGON, BULLET, b2w_begin, this);
-	mPhysics->BCollisionAdd(WEAPON, PLAYER, w2p_beginCollision, this);
-	mPhysics->BCollisionAdd(EXPLOSIVE, MAPPOLYGON, exp2w_begin, this);
-	mPhysics->BCollisionAdd(EXPLOSION, PLAYER, aoa2o_begin, this);
+	mPhysics->BCollision(MAPPOLYGON, BULLET, collision::Begin::BulletWorld, this);
+	mPhysics->BCollision(EXPLOSIVE, MAPPOLYGON, collision::Begin::ExplosiveWorld, this);
+	mPhysics->BCollision(EXPLOSION, PLAYER, collision::Begin::ExplosionObject, this);
 
-	/*BCOLLISIONADD(MAPPOLYGON, BULLET, b2w_begin, this);
-	BCOLLISIONADD(WEAPON, PLAYER, w2p_beginCollision, this);
-	BCOLLISIONADD(EXPLOSIVE, MAPPOLYGON, exp2w_begin, this);
-	BCOLLISIONADD(EXPLOSION, PLAYER, aoa2o_begin, this);*/
+	mPhysics->BCollision(WEAPON, PLAYER, w2p_beginCollision, this);	
 }
 
 cpBool MainClient::w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client)
