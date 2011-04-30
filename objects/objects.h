@@ -25,11 +25,13 @@
 #include<cstdio>
 #include<glm/glm.hpp>
 
-#define MAPCOLLISION_TYPE	0x00
-#define BULLETOBJECT_TYPE	0x01
-#define MERCOBJECT_TYPE		0x02
-#define PLAYEROBJECT_TYPE	0x02
-#define WEAPONOBJECT_TYPE	0x03
+#define MAPPOLYGON	0x00
+#define BULLET		0x01
+#define MERC		0x02
+#define PLAYER		0x02
+#define WEAPON		0x03
+#define EXPLOSIVE	0x04
+#define EXPLOSION	0x05
 
 ////////////////////////////////////////////////////////////
 /// Most basic object in the game
@@ -146,8 +148,8 @@ public:
 
 public:
     virtual void Move(glm::vec3 pos,float time) = 0;
-    virtual void Impulse(glm::vec3 i) = 0;
-
+	virtual void Impulse(glm::vec3 p_Imp, float p_x, float p_y) =0;
+	
     inline int& CurrentAction(void)
     {
         return mAction;
@@ -156,7 +158,8 @@ public:
 	float rot_dAngle; //rotation angle(degrees)
     bool Airborne;
     unsigned int id;
-
+	GameObject::Status      myStatus;///< Internal object status
+	
 protected:
     static inline std::map<int,ObjectCreator*>& CreatorsMap()
     {
@@ -166,7 +169,6 @@ protected:
     ////////////////////////////////////////////////////////////
     // Member Data
     ////////////////////////////////////////////////////////////
-    GameObject::Status      myStatus;///< Internal object status
     float                   mySleepTimer;       ///< Sleep in seconds
     int mAction;
 };
@@ -184,7 +186,7 @@ namespace object
 		{
 			Creator()
 			{
-				GameObject::CreatorsMap()[WEAPONOBJECT_TYPE] = this;
+				GameObject::CreatorsMap()[WEAPON] = this;
 			}
 			virtual inline Weapon* Create(void) const
 			{
@@ -225,8 +227,8 @@ namespace object
 		////////////////////////////////////////////////////////////
 		// Apply Impulse		
 		////////////////////////////////////////////////////////////		
-		virtual void Impulse(glm::vec3 p_Imp);
-		void Impulse(glm::vec3 p_Imp, float p_x, float p_y);
+		void Impulse(glm::vec3 p_Imp);
+		virtual void Impulse(glm::vec3 p_Imp, float p_x, float p_y);
 		
 	public:
 		////////////////////////////////////////////////////////////	
