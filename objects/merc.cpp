@@ -42,7 +42,7 @@ cpBool
 begin(cpArbiter *arb, cpSpace *space, void *ignore)
 {
     CP_ARBITER_GET_SHAPES(arb, a, b);
-    GameObject::Status *player = (GameObject::Status*)a->data;
+    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
 
     cpVect n = cpvneg(cpArbiterGetNormal(arb,0));
     if(n.y > 0.0f){
@@ -56,7 +56,7 @@ cpBool
 preSolve(cpArbiter *arb, cpSpace *space, void *ignore)
 {
     CP_ARBITER_GET_SHAPES(arb, a, b);
-    GameObject::Status *player = (GameObject::Status*)a->data;
+    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
     if(cpArbiterIsFirstContact(arb)){
         a->u = player->u;
 
@@ -78,7 +78,7 @@ void
 separate(cpArbiter *arb, cpSpace *space, void *ignore)
 {
     CP_ARBITER_GET_SHAPES(arb, a, b);
-    GameObject::Status *player = (GameObject::Status*)a->data;
+    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
 
     cpArrayDeleteObj(player->groundShapes, b);
 
@@ -96,12 +96,12 @@ void Merc::Initialize(void)
 {
     direction = 0;
     lastdirection = 0;
-    myBody.BuildCircle(20.0f,10.0f,myStatus.pos.x,myStatus.pos.y);
+    myBody.BuildCircle(20.0f,1.0f,myStatus.pos.x,myStatus.pos.y);
     myBody.Spawn(myStatus.pos);
 	//myBody.BuildRect(50,50,1.0f,myStatus.pos.x,myStatus.pos.y);
     myBody.SetGroup(0x01);
-    myBody.SetCollisionType(MERCOBJECT_TYPE);
-    myBody.SetShapeData(&myStatus);
+    myBody.SetCollisionType(MERC);
+    myBody.SetShapeData(this);
     myBody.GetBodyDef().velocity_func = mercUpdateVelocity;
 
     myStatus.shape = myBody.__dbg_get_shape();
@@ -118,8 +118,8 @@ void Merc::Initialize(void)
     id = 2;
     myStatus.groundShapes = cpArrayNew(0);
     cpSpaceAddCollisionHandler(	myBody.__dbg_get_space(),
-								MERCOBJECT_TYPE,
-								MAPCOLLISION_TYPE,
+								MERC,
+								MAPPOLYGON,
 								begin,preSolve,
 								NULL,
 								separate,
@@ -222,12 +222,9 @@ void Merc::Move(glm::vec3 pos,float time)
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-void Merc::Impulse(glm::vec3 i)
+void Merc::Impulse(glm::vec3 i, float p_x, float p_y)
 {
-    deprecated::GenVec3d v = myBody.GetVelocity();
-
-    if(std::abs(v.x) < max_v::x)
-        cpBodyApplyImpulse(&myBody.GetBodyDef(), cpv(i.x,0),cpv(0,0));
+	cpBodyApplyImpulse(&myBody.GetBodyDef(), cpv(i.x,i.y),cpv(p_x,p_y));
 }
 
 ////////////////////////////////////////////////////////////

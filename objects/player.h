@@ -311,7 +311,7 @@ public:
 		sparktimer = Time;
 		sparkcounter = 0.35f;
 	
-		Bullet9mm *bullet = new Bullet9mm(m_pTexture);
+		Bullet *bullet = new Explosive(m_pTexture);
 		bullet->pos = barrel;
 		bullet->des = barrel + p_Dest;		
 		bullet->Initialize();

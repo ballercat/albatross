@@ -49,7 +49,18 @@ void PhysicsSimulator::Step(float TimeStep)
     cpSpaceStep(mySpace, TimeStep);
 }
 
-
+////////////////////////////////////////////////////////////
+/// Add Begin Collision Handler
+////////////////////////////////////////////////////////////
+void 
+PhysicsSimulator::BCollisionAdd(int p_One, int p_Two,
+								cpCollisionBeginFunc p_Func,
+								void *p_Data )
+{
+	cpSpaceAddCollisionHandler( Simulator::Instance().GetWorldHandle(),
+								p_One, p_Two, p_Func,
+								NULL, NULL, NULL, p_Data );
+}
 
 ////////////////////////////////////////////////////////////
 /// Physics Object Impl

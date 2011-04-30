@@ -50,7 +50,7 @@ void Weapon::Spawn(glm::vec3 p_Pos)
 	m_phBody->Spawn(p_Pos);
 	m_phBody->SetShapeData(this);
 	m_phBody->SetGroup(0x02);
-	m_phBody->SetCollisionType(WEAPONOBJECT_TYPE);
+	m_phBody->SetCollisionType(WEAPON);
 }
 
 void Weapon::Impulse(glm::vec3 p_Imp)

@@ -44,7 +44,7 @@ public:
 
     enum
     {
-        Type = MERCOBJECT_TYPE
+        Type = MERC
     };
 
     struct Action{
@@ -60,7 +60,7 @@ public:
 
     //Movement & Velocity
     virtual void Move(glm::vec3 pos,float time);
-    virtual void Impulse(glm::vec3 i);
+    virtual void Impulse(glm::vec3 i, float p_x, float p_y);
     virtual void Jump(float);
     virtual void Right();
     virtual void Left();

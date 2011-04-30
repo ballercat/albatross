@@ -21,9 +21,11 @@
 #include"assets.h"
 #include<SFML/Graphics.hpp>
 #include<cstdlib>
+#include<iostream>
 
 sf::Clock   gclock;
 
+//bullet to world
 cpBool b2w_begin(cpArbiter *arb,cpSpace *space,void *data)
 {
     CP_ARBITER_GET_SHAPES(arb, a, b);
@@ -32,6 +34,44 @@ cpBool b2w_begin(cpArbiter *arb,cpSpace *space,void *data)
     bullet->status = Bullet::Status::Dead;
 
     return cpTrue;
+}
+
+//explosive to world collision
+cpBool exp2w_begin(cpArbiter *arb, cpSpace *space, void *data)
+{
+	CP_ARBITER_GET_SHAPES(arb, a, b);
+	Explosive *explosive = (Explosive*)a->data;
+
+	explosive->Explode();
+
+	return cpTrue;
+}
+
+cpBool aoa2o_begin(cpArbiter *arb, cpSpace *space, void *data)
+{
+	//void
+	CP_ARBITER_GET_SHAPES(arb, a, b);
+	Explosive *explosive = (Explosive*)a->data;
+	GameObject *object = (GameObject*)b->data;
+
+	glm::vec3 p_obj = object->GetStatus().pos;
+	glm::vec3 p_aoa = explosive->pos;
+	
+	float dx = p_aoa.x - p_obj.x;
+	float dy = p_aoa.y - p_obj.y;
+	
+	cpContactPointSet cnt = cpArbiterGetContactPointSet(arb);
+	
+	cpVect bloc;
+	
+	bloc.x = cnt.points[0].point.x - p_obj.x;
+	bloc.y = cnt.points[0].point.y - p_obj.y;
+		
+	object->Impulse(glm::vec3((-dx),(-dy), 0), bloc.x, bloc.y );
+
+	explosive->status = Bullet::Status::Dead;
+
+	return cpFalse;
 }
 
 Bullet9mm::Bullet9mm(GLuint *Texture)
@@ -53,7 +93,7 @@ void Bullet9mm::Initialize(void)
 	myBody->Spawn(pos);
     myBody->SetShapeData(this);
     myBody->SetGroup(0x01);
-    myBody->SetCollisionType(BULLETOBJECT_TYPE);
+    myBody->SetCollisionType(BULLET);
 
     cpVect s = cpv(pos.x,pos.y);
     cpVect e = cpv(des.x,des.y);
@@ -92,3 +132,78 @@ const Bullet::Status& Bullet9mm::Update(void)
     sprite->pos = pos;
     return myStatus;
 }
+
+Explosive::Explosive(GLuint *Texture)
+{
+	myDamage = 100.0f;
+	myDuration = 5.0f;
+	mySpeed = 350.0f;
+
+	m_isExploded = false;
+
+	m_phProjectile = NULL;
+	m_phAOA = NULL;
+
+	m_phProjectile = new physics::Rectangle;
+	sprite = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
+	status = Bullet::Status::Active;
+}
+
+Explosive::~Explosive(void)
+{
+	delete m_phProjectile;
+	delete m_phAOA;
+	delete sprite;
+}
+
+void Explosive::Initialize(void)
+{
+	m_phProjectile->BuildRect(3.0f, 3.0f, 10.0f, pos);
+	m_phProjectile->Spawn(pos);
+	m_phProjectile->SetShapeData(this);
+	m_phProjectile->SetGroup(0x01);
+	m_phProjectile->SetCollisionType(EXPLOSIVE);
+
+	cpVect s = cpv(pos.x, pos.y);
+	cpVect e = cpv(des.x, des.y);
+	cpFloat d = cpvdist(s, e);
+	cpFloat t = d/mySpeed;
+
+	m_phProjectile->Move(des, t);
+
+	myStatus.val = Bullet::Status::Active;
+
+	myStatus.lastup = gclock.GetElapsedTime();
+	lastpos = pos;
+	
+}
+
+const Bullet::Status& Explosive::Update(void)
+{
+	pos = m_phProjectile->GetLocation();
+	
+	//if exploded kill self
+	if(m_isExploded){
+		//status = Bullet::Status::Dead;
+		return myStatus;
+	}
+	sprite->pos = pos;
+
+	return myStatus;
+}
+
+void Explosive::Explode(void)
+{
+	if(m_isExploded)
+		return;
+	m_phAOA = new physics::Circle;
+
+	m_phAOA->BuildCircle(50.0f, 10.0f, pos.x, pos.y);
+	m_phAOA->Spawn(pos);
+	m_phAOA->SetShapeData(this);
+	m_phAOA->SetGroup(0x02);
+	m_phAOA->SetCollisionType(EXPLOSION);
+	
+	m_isExploded = true;
+}
+

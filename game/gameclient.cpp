@@ -101,13 +101,13 @@ MainClient::MainClient(void) :
         	//Add map polygon to physics world
         	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v0.x,v0.y),cpv(v1.x,v1.y),0.0f));
         	shape->e = 1.0f; shape->u = 1.0f;
-        	shape->collision_type = MAPCOLLISION_TYPE;
+        	shape->collision_type = MAPPOLYGON;
         	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v1.x,v1.y),cpv(v2.x,v2.y),0.0f));
         	shape->e = 1.0f; shape->u = 1.0f;
-       		shape->collision_type = MAPCOLLISION_TYPE;
+       		shape->collision_type = MAPPOLYGON;
         	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v2.x,v2.y),cpv(v0.x,v0.y),0.0f));
         	shape->e = 1.0f; shape->u = 1.0f;
-        	shape->collision_type = MAPCOLLISION_TYPE;
+        	shape->collision_type = MAPPOLYGON;
     	}
 
 		//Bind bullet collision handlers
@@ -172,24 +172,16 @@ int MainClient::Connect(std::string server_ip)
 /// Collision handlers
 ////////////////////////////////////////////////////////////
 void MainClient::_initCollisionHandlers(cpSpace *space)
-{
-	cpSpaceAddCollisionHandler(	space, 
-								MAPCOLLISION_TYPE,
-								BULLETOBJECT_TYPE,
-								b2w_begin,
-								NULL,
-								NULL,
-								NULL,
-								this );
+{	
+	mPhysics->BCollisionAdd(MAPPOLYGON, BULLET, b2w_begin, this);
+	mPhysics->BCollisionAdd(WEAPON, PLAYER, w2p_beginCollision, this);
+	mPhysics->BCollisionAdd(EXPLOSIVE, MAPPOLYGON, exp2w_begin, this);
+	mPhysics->BCollisionAdd(EXPLOSION, PLAYER, aoa2o_begin, this);
 
-	cpSpaceAddCollisionHandler( space,
-								WEAPONOBJECT_TYPE,
-								PLAYEROBJECT_TYPE,
-								w2p_beginCollision,
-								NULL,
-								NULL,
-								NULL,
-								this );
+	/*BCOLLISIONADD(MAPPOLYGON, BULLET, b2w_begin, this);
+	BCOLLISIONADD(WEAPON, PLAYER, w2p_beginCollision, this);
+	BCOLLISIONADD(EXPLOSIVE, MAPPOLYGON, exp2w_begin, this);
+	BCOLLISIONADD(EXPLOSION, PLAYER, aoa2o_begin, this);*/
 }
 
 cpBool MainClient::w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client)

@@ -28,6 +28,14 @@
 #include<vector>
 #include<glm/glm.hpp>
 // TODO : Finish adding comments
+
+////////////////////////////////////////////////////////////
+/// Helper macros to declare collision handlers
+////////////////////////////////////////////////////////////
+#define BCOLLISIONADD( one, two, func, data) \
+	cpSpaceAddCollisionHandler( physics::Simulator::Instance().GetWorldHandle(), \
+								(one), (two), (func), NULL, NULL, NULL, (data) )
+
 namespace physics
 {
 ////////////////////////////////////////////////////////////
@@ -75,12 +83,12 @@ public:
         return mySpace;
     };
 
-    ////////////////////////////////////////////////////////////
-    /// Set the gravity of the physics world
-    /// \param Gravity: new gravity value
-    ///
-    ////////////////////////////////////////////////////////////
-	//void setGravity(float pg);
+	////////////////////////////////////////////////////////////	  
+	/// Helper functions	
+	////////////////////////////////////////////////////////////	
+	static void BCollisionAdd(	int p_One, int p_Two, 
+								cpCollisionBeginFunc p_Func, 
+								void *p_Data);
 
 private:
     ////////////////////////////////////////////////////////////
@@ -201,9 +209,9 @@ public:
     ////////////////////////////////////////////////////////////
     void BuildCircle(float radius, float mass, int x, int y)
     { //I think having Build<shape type> name makes for easier to understand final code
-        Obj::myMass = INFINITY;
+        Obj::myMass = mass;//INFINITY;
         m_Radius = radius;
-        Obj::myBodyDef = cpBodyNew(mass, INFINITY);//cpMomentForCircle(mass, 0.0f, radius,cpvzero));
+        Obj::myBodyDef = cpBodyNew(mass, cpMomentForCircle(mass, 0.0f, radius,cpvzero));
         Obj::myBodyDef->p = cpv(x,y);
         //Obj::myBodyDef->v = cpv(0,0);
 		cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef);
