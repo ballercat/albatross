@@ -1,3 +1,22 @@
+/*
+    ********************************************
+    *   Albatross - A 2D multiplayer shooter   *
+    ********************************************
+    Copyright (C) 2011  Arthur Buldauskas
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "collision.h"
 #include "bullets.h"
 
@@ -35,7 +54,7 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 	GameObject *object = (GameObject*)b->data;
 
 	glm::vec3 p_obj = object->GetStatus().pos;
-	glm::vec3 p_aoa = explosive->pos;
+	glm::vec3 p_aoa = explosive->explosion_pos;
 	
 	float dx = p_aoa.x - p_obj.x;
 	float dy = p_aoa.y - p_obj.y;
@@ -47,7 +66,7 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 	bloc.x = cnt.points[0].point.x - p_obj.x;
 	bloc.y = cnt.points[0].point.y - p_obj.y;
 		
-	object->Impulse(glm::vec3((-dx),(-dy), 0), bloc.x, bloc.y );
+	object->Impulse(glm::vec3((-dx*10),(-dy*10), 0), bloc.x, bloc.y );
 
 	explosive->status = Bullet::Status::Dead;
 

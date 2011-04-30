@@ -34,9 +34,6 @@
 ////////////////////////////////////////////////////////////
 /// Helper macros to declare collision handlers
 ////////////////////////////////////////////////////////////
-#define BCOLLISIONADD( one, two, func, data) \
-	cpSpaceAddCollisionHandler( physics::Simulator::Instance().GetWorldHandle(), \
-								(one), (two), (func), NULL, NULL, NULL, (data) )
 
 namespace physics
 {
@@ -88,7 +85,7 @@ public:
 public:
 	////////////////////////////////////////////////////////////
 	/// Add collision handler: 
-	/// HandleCollision(type1, type2); <-- clear all handlers
+	/// AddCollision(type1, type2); <-- clear all handlers
 	////////////////////////////////////////////////////////////		
 	static void AddCollision(	int p_One, 
 								int p_Two, 
@@ -102,6 +99,84 @@ private:
     // Member Data
     ////////////////////////////////////////////////////////////
     cpSpace     *mySpace;
+};
+
+////////////////////////////////////////////////////////////
+/// Static objects
+////////////////////////////////////////////////////////////
+struct Static
+{
+public:
+	struct Object
+	{
+		public:
+		////////////////////////////////////////////////////////////
+		/// Constructor
+		////////////////////////////////////////////////////////////
+		Object(void) : m_phShape(NULL) 
+		{
+			pos = glm::vec3(0,0,0);
+		}
+
+		public:
+		////////////////////////////////////////////////////////////
+		/// Destructor
+		////////////////////////////////////////////////////////////
+		virtual ~Object(void)
+		{
+			assert(m_phShape!=NULL);
+			cpSpace *space = Simulator::Instance().GetWorldHandle();
+			cpSpaceRemoveShape(space,m_phShape);
+			cpShapeFree(m_phShape);
+		}
+		
+		public:
+		inline void SetShapeData(void *p_Data)
+		{
+			assert(m_phShape!=NULL);
+
+			m_phShape->data = p_Data;
+		}
+
+		inline void SetCollisionType(int p_Type)
+		{
+			assert(m_phShape!=NULL);
+
+			m_phShape->collision_type = p_Type;
+		}
+
+		inline void SetGroup(int p_Group)
+		{
+			assert(m_phShape!=NULL);
+
+			m_phShape->group = p_Group;
+		}
+
+		public:
+		////////////////////////////////////////////////////////////
+		/// Static circle
+		////////////////////////////////////////////////////////////
+		static Object* Circle(glm::vec3 p_Pos, float p_Radius)
+		{
+			cpSpace *space = Simulator::Instance().GetWorldHandle();
+			cpBody *body = &space->staticBody;
+
+			Object *shape = new Object;
+			shape->m_phShape = cpSpaceAddShape(space, 
+											   cpCircleShapeNew(body, 
+																p_Radius, 
+																cpv(p_Pos.x,p_Pos.y)));
+			shape->m_phShape->e = 1.0f; shape->m_phShape->u = 1.0f;
+			
+			return shape;	
+		}
+
+		public:
+		glm::vec3 pos;
+
+		//Don't modify manualy
+		cpShape *m_phShape;
+	};
 };
 
 ////////////////////////////////////////////////////////////

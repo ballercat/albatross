@@ -146,12 +146,16 @@ public:
 	virtual const Bullet::Status& Update(void);
 
 	void Explode(void);
+
+public:
+	glm::vec3 explosion_pos;
+	
 private:
 	////////////////////////////////////////////////////////////	
 	/// Physics body	
 	////////////////////////////////////////////////////////////
 	physics::Rectangle *m_phProjectile; //Projectile object
-	physics::Circle		*m_phAOA; //Area of effect
+	physics::Static::Object		*m_phExplosion; //Explosion
 
 	//Explosion state
 	bool m_isExploded;

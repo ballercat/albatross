@@ -93,17 +93,19 @@ Explosive::Explosive(GLuint *Texture)
 	m_isExploded = false;
 
 	m_phProjectile = NULL;
-	m_phAOA = NULL;
+	m_phExplosion = NULL;
 
 	m_phProjectile = new physics::Rectangle;
 	sprite = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
 	status = Bullet::Status::Active;
+
+	explosion_pos = glm::vec3(0,0,0);
 }
 
 Explosive::~Explosive(void)
 {
 	delete m_phProjectile;
-	delete m_phAOA;
+	delete m_phExplosion;
 	delete sprite;
 }
 
@@ -135,7 +137,7 @@ const Bullet::Status& Explosive::Update(void)
 	
 	//if exploded kill self
 	if(m_isExploded){
-		//status = Bullet::Status::Dead;
+		status = Bullet::Status::Dead;
 		return myStatus;
 	}
 	sprite->pos = pos;
@@ -147,14 +149,22 @@ void Explosive::Explode(void)
 {
 	if(m_isExploded)
 		return;
-	m_phAOA = new physics::Circle;
+	
 
+	m_phExplosion = physics::Static::Object::Circle(pos, 50.0f);
+	m_phExplosion->SetShapeData(this);
+	m_phExplosion->SetCollisionType(EXPLOSION);
+	m_phExplosion->SetGroup(0x02);
+
+	/*
 	m_phAOA->BuildCircle(50.0f, 10.0f, pos.x, pos.y);
 	m_phAOA->Spawn(pos);
 	m_phAOA->SetShapeData(this);
 	m_phAOA->SetGroup(0x02);
 	m_phAOA->SetCollisionType(EXPLOSION);
-	
+	*/
+
+	explosion_pos = pos;
 	m_isExploded = true;
 }
 
