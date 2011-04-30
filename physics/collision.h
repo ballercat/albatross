@@ -9,6 +9,7 @@
 
 namespace collision
 {
+
 	//Begin collision handlers
 	struct Begin
 	{
@@ -16,7 +17,11 @@ namespace collision
 		static cpBool BulletWorld(BEGINVARS);
 		static cpBool ExplosiveWorld(BEGINVARS);
 		static cpBool ExplosionObject(BEGINVARS);
-	
+
+		//Weapon
+		static cpBool WeaponWorld(BEGINVARS);
+		static cpBool WeaponPlayer(BEGINVARS);
+
 		//Player
 		static cpBool PlayerWorld(BEGINVARS);
 	};

@@ -50,16 +50,19 @@ void PhysicsSimulator::Step(float TimeStep)
 }
 
 ////////////////////////////////////////////////////////////
-/// Add Begin Collision Handler
+/// Add Collision Handlers
 ////////////////////////////////////////////////////////////
-void 
-PhysicsSimulator::BCollision(int p_One, int p_Two,
-								cpCollisionBeginFunc p_Func,
-								void *p_Data )
+void PhysicsSimulator::AddCollision(int p_One, 
+									int p_Two, 
+									void *p_Data,
+									cpCollisionBeginFunc p_Begin, 
+									cpCollisionPreSolveFunc p_Pre,
+									cpCollisionSeparateFunc p_Sep)
 {
-	cpSpaceAddCollisionHandler( Simulator::Instance().GetWorldHandle(),
-								p_One, p_Two, p_Func,
-								NULL, NULL, NULL, p_Data );
+	cpSpace *space = Simulator::Instance().GetWorldHandle();
+			
+	cpSpaceAddCollisionHandler(	space,p_One, p_Two, 
+								p_Begin, p_Pre, NULL, p_Sep, p_Data);	
 }
 
 ////////////////////////////////////////////////////////////

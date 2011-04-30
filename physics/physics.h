@@ -85,12 +85,17 @@ public:
         return mySpace;
     };
 
-	////////////////////////////////////////////////////////////	  
-	/// Helper functions	
-	////////////////////////////////////////////////////////////	
-	static void BCollision(		int p_One, int p_Two, 
-								cpCollisionBeginFunc p_Func, 
-								void *p_Data);
+public:
+	////////////////////////////////////////////////////////////
+	/// Add collision handler: 
+	/// HandleCollision(type1, type2); <-- clear all handlers
+	////////////////////////////////////////////////////////////		
+	static void AddCollision(	int p_One, 
+								int p_Two, 
+								void *p_Data=NULL,
+								cpCollisionBeginFunc p_Begin=NULL, 
+								cpCollisionPreSolveFunc p_Pre=NULL,
+								cpCollisionSeparateFunc p_Sep=NULL);
 
 private:
     ////////////////////////////////////////////////////////////

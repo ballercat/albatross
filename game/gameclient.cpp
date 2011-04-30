@@ -174,11 +174,11 @@ int MainClient::Connect(std::string server_ip)
 ////////////////////////////////////////////////////////////
 void MainClient::_initCollisionHandlers(cpSpace *space)
 {	
-	mPhysics->BCollision(MAPPOLYGON, BULLET, collision::Begin::BulletWorld, this);
-	mPhysics->BCollision(EXPLOSIVE, MAPPOLYGON, collision::Begin::ExplosiveWorld, this);
-	mPhysics->BCollision(EXPLOSION, PLAYER, collision::Begin::ExplosionObject, this);
+	mPhysics->AddCollision(MAPPOLYGON, BULLET, this, collision::Begin::BulletWorld);
+	mPhysics->AddCollision(EXPLOSIVE, MAPPOLYGON, this, collision::Begin::ExplosiveWorld);
+	mPhysics->AddCollision(EXPLOSION, PLAYER, this, collision::Begin::ExplosionObject);
 
-	mPhysics->BCollision(WEAPON, PLAYER, w2p_beginCollision, this);	
+	mPhysics->AddCollision(WEAPON, PLAYER, this, w2p_beginCollision);	
 }
 
 cpBool MainClient::w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client)
