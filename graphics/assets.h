@@ -34,9 +34,13 @@ enum TextureID
 	AK47_FIRE,
 	JET_FLAME,
 	TREE_PLAIN,
+	EXPL,
     GAME_CURSOR = 0xFF,
     TEXTUREID_COUNT
 };
+
+//Helper macross
+#define EXPLOSIONSPRITE Sprite("assets/explosions/default.sprh", display->Texture[EXPL])
 
 extern void LoadTextures(const char *fpath, GLuint* texture);
 extern GLuint CreateShader(const char *fpath, GLuint type);

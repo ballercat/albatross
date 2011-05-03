@@ -19,6 +19,9 @@
 
 #include "collision.h"
 #include "bullets.h"
+#include <SFML/Graphics.hpp>
+
+static sf::Clock _cTimer;
 
 using namespace collision;
 
@@ -33,6 +36,10 @@ cpBool Begin::BulletWorld(BEGINVARS)
 	//mark the bullet object as dead
 	bullet->status = Bullet::Status::Dead;
 
+	bullet->Hit = Bullet::HitSpot( bullet->pos,
+							_cTimer.GetElapsedTime(),
+							bullet->Type );
+
 	return cpTrue;
 }
 
@@ -42,6 +49,9 @@ cpBool Begin::ExplosiveWorld(BEGINVARS)
 
 	Explosive *explosive = (Explosive*)a->data;
 
+	explosive->Hit = Bullet::HitSpot( explosive->pos ,
+							  _cTimer.GetElapsedTime(),
+							  explosive->Type );
 	explosive->Explode();
 
 	return cpTrue;

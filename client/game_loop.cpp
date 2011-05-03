@@ -39,6 +39,7 @@ static sf::Clock Time;
 void MainClient::Run(void)
 {
 	//Timing
+	static int steps = 0;
 	float curtime = Time.GetElapsedTime();
 	float oldtime = curtime;
 
@@ -63,6 +64,11 @@ void MainClient::Run(void)
 			for(Bullets.Begin();Bullets.Spot() != Bullets.End();Bullets.Fetch()){
 				bullet = Bullets.Get();
 				if(bullet->status == Bullet::Status::Dead){
+					if(bullet->Type == EXPLOSIVE){
+						Sprite hit = EXPLOSIONSPRITE;
+						hit.pos = bullet->Hit.Pos;
+						bulletHits.push_back(hit);
+					}
 					Bullets.Delete();
 				}
 				else{
@@ -121,6 +127,9 @@ void MainClient::Run(void)
 			
 			//Draw the player with interpolate
 			mPlayer->Draw((curtime - oldtime));
+
+			//Draw bullet Hits
+			_drawHits();
 
 			//Draw the cursor
 			glPushMatrix();

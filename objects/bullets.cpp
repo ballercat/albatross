@@ -27,6 +27,7 @@ sf::Clock   gclock;
 
 Bullet9mm::Bullet9mm(GLuint *Texture)
 {
+	Type = BULLET;
     myDamage = 10.0f;
     myDuration = 5.0f;
     mySpeed = 700.0f;
@@ -86,9 +87,10 @@ const Bullet::Status& Bullet9mm::Update(void)
 
 Explosive::Explosive(GLuint *Texture)
 {
+	Type = EXPLOSIVE;
 	myDamage = 100.0f;
 	myDuration = 5.0f;
-	mySpeed = 350.0f;
+	mySpeed = 410.0f;
 
 	m_isExploded = false;
 

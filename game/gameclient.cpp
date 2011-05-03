@@ -125,6 +125,8 @@ MainClient::MainClient(void) :
 		//Sprite hack
 		Tree = new Sprite("assets/sprite/tree/tree1.sprh",Texture[TREE_PLAIN]);
 		Tree->pos = glm::vec3(200,300,0);
+
+		Explosion = new Sprite("assets/explosions/default.sprh", Texture[EXPL]);
 	}
 
 	//Fatal error handling
@@ -167,6 +169,41 @@ int MainClient::Connect(std::string server_ip)
     }
 
     return 0;
+}
+
+////////////////////////////////////////////////////////////
+/// Draw Hits
+////////////////////////////////////////////////////////////
+void MainClient::_drawHits(void)
+{
+	if(!bulletHits.empty()){
+		//Draw hits
+		std::list<Sprite>::iterator iter;
+		Sprite *hit;
+		std::vector< std::list<Sprite>::iterator> eraser;
+
+		for(iter = bulletHits.begin(); iter != bulletHits.end(); ++iter){
+			hit = &(*iter);
+
+			if(hit->mPosition == hit->mLength){
+				//No looping so remove the hit spot
+				eraser.push_back(iter);
+			}
+			else {
+				hit->Step();
+				hit->Draw();
+			}
+
+
+		}
+
+		//Remove 'finished' animations
+		if(!eraser.empty()){
+			for(size_t k = 0; k < eraser.size();k++){
+				bulletHits.erase(eraser[k]);
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////

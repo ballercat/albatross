@@ -89,6 +89,7 @@ public:
     size_t  mLength;
     float   mSpeed;
     size_t  mPosition;
+	float   mLastUpdate;
     GLuint  textureid;
 
 	glm::vec2 texdata[6];
@@ -102,7 +103,7 @@ protected:
 
 protected:
 	///Data
-    float   mLastUpdate;
+
 	sf::Clock mTimer;
 #ifdef SHADER_PIPELINE
 	glm::vec2 texcoord[6];

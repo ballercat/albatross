@@ -87,7 +87,8 @@ void LoadTextures(const char *fpath, GLuint* Texture)
 	texpath = texini.GetValue("AK", "fire");
 	LoadTex(Texture[AK47_FIRE], texpath.c_str());
 
-	LoadTex(Texture[TREE_PLAIN], texini.GetValue("Sprite","tree"));	
+	LoadTex(Texture[TREE_PLAIN], texini.GetValue("Sprite","tree"));
+	LoadTex(Texture[EXPL], texini.GetValue("Explosion", "default"));
 /*
     while(!feof(fp)) {
         if(fscanf(fp, "%s", texpath) != 1){

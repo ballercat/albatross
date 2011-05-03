@@ -56,6 +56,7 @@ Sprite::Sprite(const char *fpath, GLuint texid)
 	_parseInfo(fpath);
 
 	textureid = texid;
+	mLastUpdate = mTimer.GetElapsedTime();
 	Build();
 }
 
@@ -172,11 +173,13 @@ void Sprite::Build()
 void Sprite::Step(void)
 {
     float t = mTimer.GetElapsedTime();
-    if((t - mLastUpdate) >= mSpeed )
+	float dt = t - mLastUpdate;
+	if( dt >= mSpeed )
     {
-        mPosition++;
-        if(mPosition > mLength)
-            mPosition = 0;
+        mPosition+=int(dt/mSpeed);
+        if(mPosition > mLength){
+			mPosition = 0;
+		}
         mLastUpdate = t;
 
         off.x = xstart + (mPosition*width);

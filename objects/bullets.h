@@ -90,12 +90,50 @@ public:
         TBlank = 0,
         T9mm
     };
+public:
+	////////////////////////////////////////////////////////////
+	/// Hit position of the bullet
+	////////////////////////////////////////////////////////////
+	struct HitSpot{
+	public:
+		////////////////////////////////////////////////////////////
+		/// Constructor
+		////////////////////////////////////////////////////////////
+		HitSpot(){
+			Pos = glm::vec3();
+			Timestamp = 0.0f;
+			Drawstamp = 0.0f;
+		}
 
+		HitSpot(glm::vec3& p_Pos, float p_Time, int& p_Type)
+		{
+			Pos = p_Pos;
+			Timestamp = p_Time;
+			Drawstamp = p_Time;
+			Type = p_Type;
+		}
+
+		//Data
+		glm::vec3 	Pos;
+		float		Timestamp;
+		float 		Drawstamp;
+		int			Type;
+	};
+
+	//Hit position
+	HitSpot Hit;
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Data
+	////////////////////////////////////////////////////////////
     glm::vec3 pos;
     glm::vec3 lastpos;
     glm::vec3 des;
     glm::vec3 damage;
     int       status;
+	int 		Type;
+
 protected:
     Bullet::Status  myStatus;
     float       myDuration;
