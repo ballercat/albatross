@@ -133,10 +133,7 @@ GameObject::Status& Merc::Update(float dt)
 {
     myStatus.pos = myBody.GetLocation();
 	//TODO: get rid of the old Generic Vector template
-    deprecated::GenVec3d v = myBody.GetVelocity();
-	myStatus.v.x = v.x;
-	myStatus.v.y = v.y;
-	myStatus.v.z = 0.0f;
+	myStatus.v = myBody.GetVelocity();
 
     cpBody *body = &myBody.GetBodyDef();
     cpVect groundNormal = myStatus.groundNormal;
@@ -215,7 +212,7 @@ GameObject::Status& Merc::Update(float dt)
 ////////////////////////////////////////////////////////////
 void Merc::Move(glm::vec3 pos,float time)
 {
-    deprecated::GenVec3d v = myBody.GetVelocity();
+    glm::vec3 v = myBody.GetVelocity();
     if(v.x < max_v::x && v.y < max_v::y )
         myBody.Move(pos,time);
 }

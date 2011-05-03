@@ -55,7 +55,7 @@ public:
     virtual const Bullet::Status& Update(void) = 0;
     virtual void Draw(void)
     {
-        sprite->Draw();
+        bSprite->Draw();
     }
 
     void Spawn(int parent,int x, int y, glm::vec3 d)
@@ -131,15 +131,16 @@ public:
     glm::vec3 lastpos;
     glm::vec3 des;
     glm::vec3 damage;
+	glm::vec3 Velocity;
     int       status;
 	int 		Type;
+	Sprite*     bSprite;
 
 protected:
     Bullet::Status  myStatus;
     float       myDuration;
     float       mySpeed;
     float       myDamage;
-    Sprite*     sprite;
 };
 
 class Bullet9mm :

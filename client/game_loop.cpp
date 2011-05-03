@@ -40,6 +40,7 @@ void MainClient::Run(void)
 {
 	//Timing
 	static int steps = 0;
+	static float delta = 0.0f;
 	float curtime = Time.GetElapsedTime();
 	float oldtime = curtime;
 
@@ -103,6 +104,8 @@ void MainClient::Run(void)
 		display->cursor.pos = dmp + mPlayer->ipos;
 		//display->cursor.pos /= display->zoom;
 
+		delta = curtime - oldtime;
+
 		//Draw everything
 		display->beginScene();{
 			if(map){
@@ -119,14 +122,14 @@ void MainClient::Run(void)
 			//Draw all the bullets
 			for(Bullets.Begin();Bullets.Spot() != Bullets.End();Bullets.Fetch()){
 				bullet = Bullets.Get();
-				bullet->Draw();
+				drawSpriteInter(bullet->bSprite,bullet->pos,delta,bullet->Velocity);
 			}
 
 			if(info.debug)
 				DebugDrawPhysics();
 			
 			//Draw the player with interpolate
-			mPlayer->Draw((curtime - oldtime));
+			mPlayer->Draw(delta);
 
 			//Draw bullet Hits
 			_drawHits();

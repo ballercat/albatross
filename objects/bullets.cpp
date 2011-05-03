@@ -32,7 +32,7 @@ Bullet9mm::Bullet9mm(GLuint *Texture)
     myDuration = 5.0f;
     mySpeed = 700.0f;
     myBody = new physics::Rectangle;
-    sprite = new Sprite("assets/sprite/ak47/ak47_bullet.sprh",Texture[AK47_BULLET]);
+    bSprite = new Sprite("assets/sprite/ak47/ak47_bullet.sprh",Texture[AK47_BULLET]);
     status = Bullet::Status::Active;
 }
 Bullet9mm::~Bullet9mm(void)
@@ -60,7 +60,7 @@ void Bullet9mm::Initialize(void)
 
     myStatus.lastup = gclock.GetElapsedTime();
     lastpos = pos;
-	sprite->pos = pos;
+	bSprite->pos = pos;
 }
 const Bullet::Status& Bullet9mm::Update(void)
 {
@@ -71,6 +71,7 @@ const Bullet::Status& Bullet9mm::Update(void)
     }
     myStatus.lastup = t;
     pos = myBody->GetLocation();
+	Velocity = myBody->GetVelocity();
 
     float a;
     glm::vec3 dn;
@@ -79,9 +80,9 @@ const Bullet::Status& Bullet9mm::Update(void)
     pos.x -= 2;
     pos.y += 5;
 
-    sprite->angle.z = -a;
+    bSprite->angle.z = -a;
 
-    sprite->pos = pos;
+    bSprite->pos = pos;
     return myStatus;
 }
 
@@ -98,7 +99,7 @@ Explosive::Explosive(GLuint *Texture)
 	m_phExplosion = NULL;
 
 	m_phProjectile = new physics::Rectangle;
-	sprite = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
+	bSprite = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
 	status = Bullet::Status::Active;
 
 	explosion_pos = glm::vec3(0,0,0);
@@ -108,7 +109,7 @@ Explosive::~Explosive(void)
 {
 	delete m_phProjectile;
 	delete m_phExplosion;
-	delete sprite;
+	delete bSprite;
 }
 
 void Explosive::Initialize(void)
@@ -130,7 +131,7 @@ void Explosive::Initialize(void)
 
 	myStatus.lastup = gclock.GetElapsedTime();
 	lastpos = pos;
-	
+	bSprite->pos = pos;
 }
 
 const Bullet::Status& Explosive::Update(void)
@@ -142,7 +143,8 @@ const Bullet::Status& Explosive::Update(void)
 		status = Bullet::Status::Dead;
 		return myStatus;
 	}
-	sprite->pos = pos;
+	bSprite->pos = pos;
+	Velocity = m_phProjectile->GetVelocity();
 
 	return myStatus;
 }
