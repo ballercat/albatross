@@ -43,6 +43,7 @@ enum TextureID
 #define EXPLOSIONSPRITE Sprite("assets/explosions/default.sprh", display->Texture[EXPL])
 
 extern void LoadTextures(const char *fpath, GLuint* texture);
+extern bool LoadTex(GLuint texid, const char *fpath);
 extern GLuint CreateShader(const char *fpath, GLuint type);
 extern GLuint* GlobalShader();
 extern glm::mat4* gMatrix();

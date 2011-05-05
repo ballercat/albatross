@@ -25,7 +25,7 @@
 #include "SimpleIni.h"
 
 ////////////////////////////////////////////////////////////
-static bool LoadTex(GLuint texid, const char *fpath)
+bool LoadTex(GLuint texid, const char *fpath)
 {
     sf::Image rawimage;
     if(!rawimage.LoadFromFile(fpath)){

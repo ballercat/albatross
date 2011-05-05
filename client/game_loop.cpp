@@ -64,7 +64,7 @@ void MainClient::Run(void)
 
 			for(Bullets.Begin();Bullets.Spot() != Bullets.End();Bullets.Fetch()){
 				bullet = Bullets.Get();
-				if(bullet->status == Bullet::Status::Dead){
+				if(bullet->Status == BulletStatus::Dead){
 					if(bullet->Type == EXPLOSIVE){
 						Sprite hit = EXPLOSIONSPRITE;
 						hit.pos = bullet->Hit.Pos;
@@ -120,10 +120,7 @@ void MainClient::Run(void)
 			Tree->Draw();
 
 			//Draw all the bullets
-			for(Bullets.Begin();Bullets.Spot() != Bullets.End();Bullets.Fetch()){
-				bullet = Bullets.Get();
-				drawSpriteInter(bullet->bSprite,bullet->pos,delta,bullet->Velocity);
-			}
+			_drawBullets(delta);
 
 			if(info.debug)
 				DebugDrawPhysics();
@@ -195,7 +192,16 @@ bool MainClient::_handleMessages(void)
 			case message::GMSG_THROW:
 				mPlayer->Throw();
 				break;
-        }
+			case message::GMSG_PICKW0:
+			case message::GMSG_PICKW1:
+			{
+				int i = msgType - message::GMSG_PICKW0;
+				std::string weapon = WeaponList[i] + "/weapon.ini";
+				mPlayer->PickWeapon(weapon, i);
+				break;
+			}
+
+		}
         mMessageQueue.Pop();
         }
     }

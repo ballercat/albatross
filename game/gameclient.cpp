@@ -23,34 +23,9 @@
 #include "collision.h"
 #include <cstdio>
 #include <glm/gtc/type_ptr.hpp>
-#include "SimpleIni.h"
 #include <iostream>
 
 static sf::Clock g_timer;
-
-////////////////////////////////////////////////////////////
-/// Load & apply some settings
-////////////////////////////////////////////////////////////
-void MainClient::_loadGameSettings(void)
-{
-	CSimpleIniA ini;
-	if(	ini.LoadFile("settings.ini") < 0 ){
-		throw "Could not open the settings file!";
-	}
-	
-	//Input .ini file settings
-	info.debug			= ini.GetBoolValue("Settings", "debug");	
-	info.mapfile 		= ini.GetValue("Settings", "map");
-
-	info.fullscreen 	= ini.GetBoolValue("Window", "fullscreen");
-	info.window_width	= ini.GetLongValue("Window", "width");
-	info.window_height	= ini.GetLongValue("Window", "height");
-	info.cursorfile 	= ini.GetValue("Window", "cursor");
-
-	info.fpslimit 		= ini.GetLongValue("Graphics", "fpslimit");
-	info.frameskip 		= ini.GetLongValue("Graphics", "frameskip");
-
-} //void MainClient::_loadGameSettings(void)
 
 ////////////////////////////////////////////////////////////
 ///Constructor
@@ -80,6 +55,7 @@ MainClient::MainClient(void) :
 
     	//Quick and dirty texture loading
     	LoadTextures("textures.ini", Texture);
+		_populateSprites();
 
 		//Display settings
 		display->setCursor(info.cursorfile.c_str());
@@ -116,7 +92,8 @@ MainClient::MainClient(void) :
 		
     	//Create a player object
     	mPlayer = new MercPlayer(glm::vec3(500,200,0),Texture);
-		
+		mPlayer->PickWeapon((WeaponList[0]+"/weapon.ini").c_str(),0);
+
 		//Timing(NOTE: improve/move this)
     	lastupdate = g_timer.GetElapsedTime();
     	lastbullet = lastupdate;
@@ -207,6 +184,23 @@ void MainClient::_drawHits(void)
 }
 
 ////////////////////////////////////////////////////////////
+/// Draw bullets
+////////////////////////////////////////////////////////////
+void MainClient::_drawBullets(float& delta)
+{
+	static Bullet* bullet = NULL;
+	static Sprite* spr = NULL;
+
+	for(Bullets.Begin();Bullets.Spot() != Bullets.End();Bullets.Fetch()){
+		bullet = Bullets.Get();
+		spr = &mBulletSprite[bullet->pID];
+		spr->angle.z = bullet->pAngle;
+		spr->pos = bullet->pos;
+		drawSpriteInter(spr, bullet->pos, delta, bullet->pVelocity);
+	}
+}
+
+////////////////////////////////////////////////////////////
 /// Collision handlers
 ////////////////////////////////////////////////////////////
 void MainClient::_initCollisionHandlers(cpSpace *space)
@@ -214,6 +208,7 @@ void MainClient::_initCollisionHandlers(cpSpace *space)
 	mPhysics->AddCollision(MAPPOLYGON, BULLET, this, collision::Begin::BulletWorld);
 	mPhysics->AddCollision(EXPLOSIVE, MAPPOLYGON, this, collision::Begin::ExplosiveWorld);
 	mPhysics->AddCollision(EXPLOSION, PLAYER, this, collision::Begin::ExplosionObject);
+	mPhysics->AddCollision(EXPLOSIVE, PLAYER, this, collision::Begin::ExplosiveObject);
 
 	mPhysics->AddCollision(WEAPON, PLAYER, this, w2p_beginCollision);	
 }

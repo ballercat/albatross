@@ -1,11 +1,11 @@
 [Sprite]
-width=50
-height=50
+width=7
+height=1
 animated=0
 
 [Image]
-width=50
-height=50
+width=21
+height=3
 
 [Offset]
 x=0

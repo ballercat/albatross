@@ -181,7 +181,9 @@ GameObject::Status& Merc::Update(float dt)
 		if((groundNormal.y > 0.0f)){
 			//Ground velocity is accumulated
 			cpVect r = cpvmult(cpvperp(groundNormal), MERC_HORIZONTALSURFACEMAG*direction);
-			myStatus.shape->surface_v = myStatus.shape->surface_v + r;
+			cpVect v = myStatus.shape->surface_v + r;
+			v.x = cpfclamp(v.x, -400, 400);
+			myStatus.shape->surface_v = v;
 			body->v = -myStatus.shape->surface_v;
 		}
 		else{

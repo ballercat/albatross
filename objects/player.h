@@ -23,6 +23,7 @@
 #include "merc.h"
 #include "bullets.h"
 #include "assets.h"
+#include "weapon.h"
 #include <vector>
 #include <iostream>
 
@@ -50,7 +51,7 @@ public:
 		rawsprite.push_back(new Sprite("assets/sprite/merc/still.sprh",Texture[PLAYER_TORSO]));
 		rawsprite.push_back(new Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]));
 		rawsprite.push_back(new Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]));
-		rawsprite.push_back(new Sprite("assets/sprite/ak47/ak47.sprh", Texture[AK47]));
+		rawsprite.push_back(new Sprite("assets/sprite/m203/m203.sprh", Texture[AK47]));
 
 		jetflame = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
 
@@ -152,6 +153,9 @@ public:
 				jumpstate = false;
 			}
 		}
+
+		barrel.x = 23.0f*(glm::cos(-angleR)) + ps.x;
+		barrel.y = 23.0f*(glm::sin(-angleR)) + ps.y;
 	}
 
 	////////////////////////////////////////////////////////////
@@ -294,7 +298,7 @@ public:
 	void jumpEnd()
 	{
 		if(jumpstate){
-			if((Time - jumptime) >= 0.050f){
+			if((Time - jumptime) >= 0.030f){
 				T::Jump( (Time - jumptime) * 1000.0f );
 			}
 		}
@@ -311,9 +315,11 @@ public:
 		sparktimer = Time;
 		sparkcounter = 0.35f;
 	
-		Bullet *bullet = new Explosive(m_pTexture);
+		Bullet *bullet = m_Weapon->Shoot();
 		bullet->pos = barrel;
-		bullet->des = barrel + p_Dest;		
+		bullet->des = barrel + p_Dest;
+		bullet->startV = mVelocity;
+		bullet->pID = WeaponID;
 		bullet->Initialize();
 		
 		return bullet;	
@@ -346,6 +352,19 @@ public:
 
 public:
 	////////////////////////////////////////////////////////////
+	/// Pick a weapon
+	////////////////////////////////////////////////////////////
+	inline void PickWeapon(std::string weapondef, int p_ID)
+	{
+		delete m_Weapon;
+		m_Weapon = NULL;
+
+		WeaponID = p_ID;
+		m_Weapon = new object::Weapon(weapondef.c_str());
+	}
+
+public:
+	////////////////////////////////////////////////////////////
 	///Sprite Data
 	////////////////////////////////////////////////////////////
 	Sprite *torso;
@@ -364,6 +383,13 @@ public:
 	glm::vec3 ps;
 	glm::vec3 ipos;
 	bool running;
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Weapon data
+	////////////////////////////////////////////////////////////
+	int WeaponID;
+	object::Weapon	*Weapon;
 
 private:
 	////////////////////////////////////////////////////////////
@@ -384,9 +410,6 @@ private:
 		
 		legs->pos = npos; legs->pos.y += 3;
 		torso->pos = npos; torso->pos.y += 3;
-
-		barrel.x = 21*(glm::cos(-angleR)) + npos.x;// + 4*flip;
-		barrel.y = 21*(glm::sin(-angleR)) + npos.y - 10;
 
 		sparks->pos = barrel;
 	}

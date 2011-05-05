@@ -49,7 +49,11 @@ public:
 		this->_key_handler[Super::Key::D] = &InputHandlerMixin::_handle_K_d;
 		this->_key_handler[Super::Key::A] = &InputHandlerMixin::_handle_K_a;
 		this->_key_handler[Super::Key::F] = &InputHandlerMixin::_handle_K_f;
-		
+
+		//Choose weapon
+		this->_key_handler[Super::Key::Num1] = &InputHandlerMixin::_handle_K_1;
+		this->_key_handler[Super::Key::Num2] = &InputHandlerMixin::_handle_K_2;
+
         Super::mState.StaticKey[Super::Key::W] = false;
         Super::mState.StaticKey[Super::Key::D] = false;
         Super::mState.StaticKey[Super::Key::A] = false;
@@ -142,6 +146,18 @@ protected:
 	void _handle_K_f(bool down){
 		if(down)
 			mMessages->Push(message::GMSG_THROW);
+	}
+
+	////////////////////////////////////////////////////////////
+	/// Choose weapon
+	////////////////////////////////////////////////////////////
+	void _handle_K_1(bool down){
+		if(down)
+			mMessages->Push(message::GMSG_PICKW0);
+	}
+	void _handle_K_2(bool down){
+		if(down)
+			mMessages->Push(message::GMSG_PICKW1);
 	}
 
 private:

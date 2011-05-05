@@ -1,6 +1,7 @@
 [Sprite]
 width=50
 height=50
+animated=1
 
 [Image]
 width=300

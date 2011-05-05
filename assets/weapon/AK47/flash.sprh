@@ -1,11 +1,11 @@
 [Sprite]
-width=50
-height=50
+width=5
+height=5
 animated=0
 
 [Image]
-width=50
-height=50
+width=5
+height=5
 
 [Offset]
 x=0
@@ -22,11 +22,11 @@ blue=1.0
 alpha=1.0
 
 [Scale]
-x=1.0
-y=1.0
-z=1.0
+x=1
+y=1
+z=1
 
 [Animation]
 xstart=0
 length=0
-speed=0
+speed=0.2

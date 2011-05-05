@@ -19,27 +19,32 @@
 
 #include"bullets.h"
 #include"assets.h"
+#include"types.h"
 #include<SFML/Graphics.hpp>
 #include<cstdlib>
 #include<iostream>
 
 sf::Clock   gclock;
 
-Bullet9mm::Bullet9mm(GLuint *Texture)
-{
-	Type = BULLET;
-    myDamage = 10.0f;
-    myDuration = 5.0f;
-    mySpeed = 700.0f;
-    myBody = new physics::Rectangle;
-    bSprite = new Sprite("assets/sprite/ak47/ak47_bullet.sprh",Texture[AK47_BULLET]);
-    status = Bullet::Status::Active;
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+BulletPlain::BulletPlain()
+{	
+    Type = BULLET;
+	myBody = new physics::Rectangle;
+    Status = BulletStatus::Active;
 }
-Bullet9mm::~Bullet9mm(void)
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+BulletPlain::~BulletPlain(void)
 {
     delete myBody;
 }
-void Bullet9mm::Initialize(void)
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+void BulletPlain::Initialize(void)
 {
     myBody->BuildRect(1.0f,1.0f,1.0f,pos);
 	myBody->Spawn(pos);
@@ -50,29 +55,34 @@ void Bullet9mm::Initialize(void)
     cpVect s = cpv(pos.x,pos.y);
     cpVect e = cpv(des.x,des.y);
     cpFloat d = cpvdist(s,e);
-    cpFloat t = d/mySpeed;
+    cpFloat t = d/pSpeed;
 
-    //cpBodyApplyForce(&myBody.GetBodyDef(),cpv(0,0),v*10000.0f);
-
+	cpBodySetVel(&myBody->GetBodyDef(), cpv(startV.x,startV.y));
     myBody->Move(des, t);
 
-    myStatus.val = Bullet::Status::Active;
+    myStatus.val = BulletStatus::Active;
 
     myStatus.lastup = gclock.GetElapsedTime();
     lastpos = pos;
-	bSprite->pos = pos;
+
 }
-const Bullet::Status& Bullet9mm::Update(void)
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+const BulletStatus& BulletPlain::Update(void)
 {
     float t = gclock.GetElapsedTime();
     myDuration -= t - myStatus.lastup;
     if(myDuration < 0){
-        myStatus.val = Bullet::Status::Dead;
+        myStatus.val = BulletStatus::Dead;
     }
     myStatus.lastup = t;
     pos = myBody->GetLocation();
-	Velocity = myBody->GetVelocity();
+	cpVect vel;
 
+	pVelocity = myBody->GetVelocity();
+
+	pVelocity = startV + pVelocity;
     float a;
     glm::vec3 dn;
     dn = pos - lastpos;
@@ -80,75 +90,86 @@ const Bullet::Status& Bullet9mm::Update(void)
     pos.x -= 2;
     pos.y += 5;
 
-    bSprite->angle.z = -a;
+	pAngle = -a;
 
-    bSprite->pos = pos;
     return myStatus;
 }
 
-Explosive::Explosive(GLuint *Texture)
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+Explosive::Explosive(void)
 {
 	Type = EXPLOSIVE;
-	myDamage = 100.0f;
-	myDuration = 5.0f;
-	mySpeed = 410.0f;
-
 	m_isExploded = false;
 
 	m_phProjectile = NULL;
 	m_phExplosion = NULL;
 
 	m_phProjectile = new physics::Rectangle;
-	bSprite = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
-	status = Bullet::Status::Active;
+
+	Status = BulletStatus::Active;
 
 	explosion_pos = glm::vec3(0,0,0);
 }
 
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 Explosive::~Explosive(void)
 {
 	delete m_phProjectile;
 	delete m_phExplosion;
-	delete bSprite;
 }
 
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 void Explosive::Initialize(void)
 {
-	m_phProjectile->BuildRect(3.0f, 3.0f, 10.0f, pos);
+	m_phProjectile->BuildRect(3.0f, 3.0f, 1000.0f, pos);
 	m_phProjectile->Spawn(pos);
 	m_phProjectile->SetShapeData(this);
-	m_phProjectile->SetGroup(0x01);
+	m_phProjectile->SetGroup(0x03);
 	m_phProjectile->SetCollisionType(EXPLOSIVE);
 
 	cpVect s = cpv(pos.x, pos.y);
 	cpVect e = cpv(des.x, des.y);
 	cpFloat d = cpvdist(s, e);
-	cpFloat t = d/mySpeed;
+	cpFloat t = d/pSpeed;
 
+	glm::vec3 im = des - pos;
+
+	cpBodySetVel(&m_phProjectile->GetBodyDef(), cpv(startV.x,startV.y));
 	m_phProjectile->Move(des, t);
 
-	myStatus.val = Bullet::Status::Active;
+	myStatus.val = BulletStatus::Active;
 
 	myStatus.lastup = gclock.GetElapsedTime();
 	lastpos = pos;
-	bSprite->pos = pos;
 }
 
-const Bullet::Status& Explosive::Update(void)
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+const BulletStatus& Explosive::Update(void)
 {
 	pos = m_phProjectile->GetLocation();
 	
 	//if exploded kill self
 	if(m_isExploded){
-		status = Bullet::Status::Dead;
+		Status = BulletStatus::Dead;
 		return myStatus;
 	}
-	bSprite->pos = pos;
-	Velocity = m_phProjectile->GetVelocity();
+
+	pVelocity = m_phProjectile->GetVelocity();
+
+
+	cpBodySetVel(&m_phProjectile->GetBodyDef(), cpv(pVelocity.x, pVelocity.y));
+
+	pAngle = R2D(m_phProjectile->GetBodyDef().a);
 
 	return myStatus;
 }
 
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 void Explosive::Explode(void)
 {
 	if(m_isExploded)
@@ -159,14 +180,6 @@ void Explosive::Explode(void)
 	m_phExplosion->SetShapeData(this);
 	m_phExplosion->SetCollisionType(EXPLOSION);
 	m_phExplosion->SetGroup(0x02);
-
-	/*
-	m_phAOA->BuildCircle(50.0f, 10.0f, pos.x, pos.y);
-	m_phAOA->Spawn(pos);
-	m_phAOA->SetShapeData(this);
-	m_phAOA->SetGroup(0x02);
-	m_phAOA->SetCollisionType(EXPLOSION);
-	*/
 
 	explosion_pos = pos;
 	m_isExploded = true;

@@ -17,47 +17,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef COLLISION_HEADER_GUARD
-#define COLLISION_HEADER_GUARD
 
-#include "physics.h"
+#include "gameclient.h"
+#include "server.h"
+#include <cstdio>
 
-#define BEGINVARS	cpArbiter *arb, cpSpace *space, void *data
-#define PRESOLVEVARS BEGINVARS
-#define SEPARATEVARS BEGINVARS
-
-namespace collision
+int main(int argc, char** argv)
 {
+    LocalHost  GameServer;
+    MainClient GameClient;
 
-	//Begin collision handlers
-	struct Begin
-	{
-		//Projectiles
-		static cpBool BulletWorld(BEGINVARS);
-		static cpBool ExplosiveWorld(BEGINVARS);
-		static cpBool ExplosionObject(BEGINVARS);
-		static cpBool ExplosiveObject(BEGINVARS);
+    printf("%s\n",GameServer.GetServerName().c_str());
 
-		//Weapon
-		static cpBool WeaponWorld(BEGINVARS);
-		static cpBool WeaponPlayer(BEGINVARS);
+    GameClient.Run();
 
-		//Player
-		static cpBool PlayerWorld(BEGINVARS);
-	};
-	
-	struct PreSolve
-	{
-		//Player
-		static cpBool PlayerWorld(PRESOLVEVARS);
-	};
+    return 0;
+}
 
-	struct Separate
-	{	
-		//Player
-		static void PlayerWorld(SEPARATEVARS);
-	};
-
-} //namespace collision
-
-#endif //COLLISION_HEADER_GUARD

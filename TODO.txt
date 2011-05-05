@@ -1,2 +1,4 @@
 -Add more TODO notes!
 -Add exceptions!
+-Fix bullet handling
+-Fix/Improve asset handling especially sprites

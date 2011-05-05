@@ -24,72 +24,64 @@
 #include "physics.h"
 #include "sprite.h"
 
+////////////////////////////////////////////////////////////
+/// Status
+////////////////////////////////////////////////////////////
+struct BulletStatus
+{
+public:
+	////////////////////////////////////////////////////////////
+	///Default constructor
+	////////////////////////////////////////////////////////////
+	BulletStatus(void)
+	{
+		val = Unknown;
+	}
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Data
+	////////////////////////////////////////////////////////////
+	enum
+	{
+		Unknown = 0,
+		Active,
+		Inactive,
+		Dead
+	};
+	glm::vec3   des; ///> destination
+	glm::vec3   pos; ///> postion
+	int         val; ///> status value
+	int         parentid;
+	float       lastup;
+};
+
 class Bullet
 {
 public:
-    struct Status
-    {
-        enum
-        {
-            Unknown = 0,
-            Active,
-            Inactive,
-            Dead
-        };
-        glm::vec3   des; ///> destination
-        glm::vec3   pos; ///> postion
-        int         val; ///> status value
-        int         parentid;
-
-        ///Default constructor
-        Status(void)
-        {
-            val = Unknown;
-        }
-
-        float       lastup;
-    };
-
+	////////////////////////////////////////////////////////////
+	/// Destructor
+	////////////////////////////////////////////////////////////
     virtual ~Bullet() {};
-    virtual void Initialize(void) = 0;
-    virtual const Bullet::Status& Update(void) = 0;
-    virtual void Draw(void)
-    {
-        bSprite->Draw();
-    }
 
-    void Spawn(int parent,int x, int y, glm::vec3 d)
-    {
-        myStatus.pos = glm::vec3(x,y,0);
-        myStatus.des = d;
-        myStatus.parentid = parent;
-    }
+public:
+	virtual const BulletStatus& Update(void) = 0;
 
+public:
+	////////////////////////////////////////////////////////////
+	/// Init
+	////////////////////////////////////////////////////////////
+	virtual void Initialize(void) = 0;
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Getteers & setters
+	////////////////////////////////////////////////////////////
     inline void SetStatusValue(int status)
     {
         myStatus.val = status;
     }
 
-    inline void SetPosition(int x,int y)
-    {
-        myStatus.pos = glm::vec3(x,y,0);
-    }
-    inline void SetPosition(glm::vec3 ps)
-    {
-        myStatus.pos = ps;
-    }
-    const glm::vec3& GetPosition(void) const
-    {
-        return myStatus.pos;
-    }
-
-    /* Bullet Types */
-    //TODO: replace static types with dynamic instantiation
-    enum
-    {
-        TBlank = 0,
-        T9mm
-    };
 public:
 	////////////////////////////////////////////////////////////
 	/// Hit position of the bullet
@@ -125,32 +117,52 @@ public:
 
 public:
 	////////////////////////////////////////////////////////////
-	/// Data
+	/// Position Data
 	////////////////////////////////////////////////////////////
     glm::vec3 pos;
     glm::vec3 lastpos;
     glm::vec3 des;
-    glm::vec3 damage;
-	glm::vec3 Velocity;
-    int       status;
+	glm::vec3 pVelocity;
+	glm::vec3 startV;
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Bullet data
+	////////////////////////////////////////////////////////////
+	float 		pAngle;
+    float		pDamage;
+	float       pSpeed;
+	int       	Status;
 	int 		Type;
-	Sprite*     bSprite;
+	int			pID;
 
 protected:
-    Bullet::Status  myStatus;
-    float       myDuration;
-    float       mySpeed;
+    BulletStatus myStatus;
+	float       myDuration;
     float       myDamage;
 };
 
-class Bullet9mm :
+////////////////////////////////////////////////////////////
+/// Plain non-explosive Bullet
+////////////////////////////////////////////////////////////
+class BulletPlain :
     public Bullet
 {
 public:
-    Bullet9mm(GLuint *Texture);
-    virtual ~Bullet9mm(void);
+	////////////////////////////////////////////////////////////
+	/// Constructor
+	////////////////////////////////////////////////////////////
+    BulletPlain();
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Destructor
+	////////////////////////////////////////////////////////////
+    virtual ~BulletPlain(void);
+
+public:
     virtual void Initialize(void);
-    virtual const Bullet::Status& Update(void);
+    virtual const BulletStatus& Update(void);
 
 private:
     physics::Rectangle  *myBody;
@@ -162,10 +174,10 @@ private:
 class Explosive : public Bullet
 {
 public:
-	////////////////////////////////////////////////////////////	
-	/// Constructor 			
-	////////////////////////////////////////////////////////////		
-	Explosive(GLuint *Texture);
+	////////////////////////////////////////////////////////////
+	/// Constructor
+	////////////////////////////////////////////////////////////
+	Explosive();
 
 public:
 	////////////////////////////////////////////////////////////	
@@ -182,7 +194,7 @@ public:
 	////////////////////////////////////////////////////////////	
 	/// Update function
 	////////////////////////////////////////////////////////////	
-	virtual const Bullet::Status& Update(void);
+	virtual const BulletStatus& Update(void);
 
 	void Explode(void);
 

@@ -46,6 +46,8 @@ enum Code
     GMSG_MOVE_JETS,
     GMSG_FIRE,
 	GMSG_THROW,
+	GMSG_PICKW0,
+	GMSG_PICKW1,
     COUNT
 };
 

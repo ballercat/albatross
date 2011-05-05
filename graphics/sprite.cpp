@@ -64,42 +64,20 @@ Sprite::Sprite(const char *fpath, GLuint texid)
 ////////////////////////////////////////////////////////////
 Sprite::~Sprite(void){}
 
+////////////////////////////////////////////////////////////
+/// Parse a .sprh file(Sprite header)
+////////////////////////////////////////////////////////////
 void Sprite::_parseInfo(const char *fpath)
 {
-	/*
-    FILE *fp;
-    
-    fp = fopen(fpath, "r");
-    if(fp == NULL){
-        fprintf(stderr, "Can't open sprite header file: %s\n", fpath);
-        return;
-    }
-    
-    //No need to loop trough this or anything 
-    //too fancy, the variables are always the same
-    fscanf(fp, "width = %i\n", &width);
-    fscanf(fp, "height = %i\n", &height);
-    fscanf(fp, "imgd = %f, %f\n", &imgd.x, &imgd.y);
-    fscanf(fp, "off = %f, %f, %f\n", &off.x, &off.y, &off.z);
-	fscanf(fp, "pivot = %f, %f\n", &pivot.x, &pivot.y);
-    fscanf(fp, "color = %f, %f, %f, %f\n", &color.r, &color.g, &color.b, &color.a);
-	fscanf(fp, "scale = %f, %f, %f\n", &scale.x, &scale.y, &scale.z);
-    fscanf(fp, "xstart = %f\n", &xstart);
-    fscanf(fp, "length = %i\n", &mLength);
-    fscanf(fp, "speed = %f\n", &mSpeed);
-
-	fclose(fp); */
-
 	CSimpleIniA sprh;
 	if(sprh.LoadFile(fpath) < 0){
 		std::cerr << "Error reading " << fpath << " sprite header\n";
 	}
 
+	bool animated = sprh.GetBoolValue("Sprite", "animated");
+
 	width = sprh.GetDoubleValue("Sprite", "width");
 	height = sprh.GetDoubleValue("Sprite", "height");
-
-	imgd.x = sprh.GetDoubleValue("Image", "width");
-	imgd.y = sprh.GetDoubleValue("Image", "height");
 
 	off.x = sprh.GetDoubleValue("Offset", "x");
 	off.y = sprh.GetDoubleValue("Offset", "y");
@@ -116,8 +94,15 @@ void Sprite::_parseInfo(const char *fpath)
 	scale.y = sprh.GetDoubleValue("Scale", "y");
 	scale.z = sprh.GetDoubleValue("Scale", "z");
 
-	mLength = sprh.GetLongValue("Animation","length");
-	if(mLength){
+	imgd = glm::vec2(width, height);
+	mLength = 0;
+	mSpeed = 0;
+	xstart = 0;
+
+	if(animated){
+		imgd.x = sprh.GetDoubleValue("Image", "width");
+		imgd.y = sprh.GetDoubleValue("Image", "height");
+		mLength = sprh.GetLongValue("Animation","length");
 		mSpeed = sprh.GetDoubleValue("Animation","speed");
 		xstart = sprh.GetDoubleValue("Animation","xstart");
 	}

@@ -20,6 +20,7 @@
 #include "collision.h"
 #include "bullets.h"
 #include <SFML/Graphics.hpp>
+#include <iostream>
 
 static sf::Clock _cTimer;
 
@@ -34,7 +35,7 @@ cpBool Begin::BulletWorld(BEGINVARS)
 
 	Bullet *bullet = (Bullet*)b->data;
 	//mark the bullet object as dead
-	bullet->status = Bullet::Status::Dead;
+	bullet->Status = BulletStatus::Dead;
 
 	bullet->Hit = Bullet::HitSpot( bullet->pos,
 							_cTimer.GetElapsedTime(),
@@ -43,6 +44,8 @@ cpBool Begin::BulletWorld(BEGINVARS)
 	return cpTrue;
 }
 
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 cpBool Begin::ExplosiveWorld(BEGINVARS)
 {
 	CP_ARBITER_GET_SHAPES(arb, a, b);
@@ -57,6 +60,22 @@ cpBool Begin::ExplosiveWorld(BEGINVARS)
 	return cpTrue;
 }
 
+cpBool Begin::ExplosiveObject(BEGINVARS)
+{
+	CP_ARBITER_GET_SHAPES(arb, a, b);
+
+	Explosive *explosive = (Explosive*)a->data;
+
+	explosive->Hit = Bullet::HitSpot( explosive->pos,
+									  _cTimer.GetElapsedTime(),
+									  explosive->Type );
+	explosive->Explode();
+
+	return cpFalse;
+}
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 cpBool Begin::ExplosionObject(BEGINVARS)
 {
 	CP_ARBITER_GET_SHAPES(arb, a, b);
@@ -65,20 +84,28 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 
 	glm::vec3 p_obj = object->GetStatus().pos;
 	glm::vec3 p_aoa = explosive->explosion_pos;
-	
-	float dx = p_aoa.x - p_obj.x;
-	float dy = p_aoa.y - p_obj.y;
-	
+
 	cpContactPointSet cnt = cpArbiterGetContactPointSet(arb);
-	
+
 	cpVect bloc;
-	
+
 	bloc.x = cnt.points[0].point.x - p_obj.x;
 	bloc.y = cnt.points[0].point.y - p_obj.y;
-		
-	object->Impulse(glm::vec3((-dx*10),(-dy*10), 0), bloc.x, bloc.y );
 
-	explosive->status = Bullet::Status::Dead;
+	float dx = cnt.points[0].point.x - p_aoa.x ;
+	float dy = cnt.points[0].point.y - p_aoa.y ;
+
+	if(glm::abs(dx) > 40.0f)
+		dx = (glm::abs(dx)/dx * 52.0f) - dx;
+
+	if(glm::abs(dy) > 40.0f)
+		dy = (glm::abs(dy)/dy * 52.0f) - dy;
+	else
+		dy *= 2.0f;
+
+	object->Impulse(glm::vec3((dx*10),(dy*10), 0), bloc.x, bloc.y );
+
+	explosive->Status = BulletStatus::Dead;
 
 	return cpFalse;
 }
