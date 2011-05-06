@@ -40,12 +40,10 @@ class GameObject;
 struct ObjectCreator
 {
     virtual GameObject* Create() const =0;
-    virtual ~ObjectCreator() {};
 };
 
 
-class GameObject :
-    public NonCopyable
+class GameObject
 {
 public:
 	////////////////////////////////////////////////////////////
@@ -92,11 +90,6 @@ public:
     {
         return (*GameObject::CreatorsMap()[type]).Create();
     }
-
-	////////////////////////////////////////////////////////////
-	/// Destructor
-	////////////////////////////////////////////////////////////
-    virtual ~GameObject(void){}
 
 public:
 	////////////////////////////////////////////////////////////

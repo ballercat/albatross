@@ -30,17 +30,9 @@ Weapon::Weapon()
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-Weapon::Weapon(const char *fpath)
+Weapon::Weapon(const Weapon::Info& p_Info)
 {
-	CSimpleIniA config;
-	config.LoadFile(fpath);
-
-	pDamage = config.GetLongValue("Weapon", "damage");
-	pSpeed = config.GetLongValue("Weapon", "speed");
-	pRate = config.GetLongValue("Weapon", "rate");
-	pIsExplosive = config.GetBoolValue("Weapon", "explosive");
-
-	m_phBody = NULL;
+	pInfo = p_Info;
 }
 
 ////////////////////////////////////////////////////////////
@@ -95,15 +87,15 @@ void Weapon::Impulse(glm::vec3 p_Imp, float p_x, float p_y)
 Bullet*	Weapon::Shoot(void)
 {
 	Bullet *bullet = NULL;
-	if(!pIsExplosive){
+	if(!pInfo.Explosive){
 		bullet = new BulletPlain();
 	}
 	else{
 		bullet = new Explosive();
 	}
 
-	bullet->pDamage = pDamage;
-	bullet->pSpeed = pSpeed;
+	bullet->pDamage = pInfo.Dmg;
+	bullet->pSpeed = pInfo.Speed;
 
 
 	return bullet;

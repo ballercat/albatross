@@ -29,9 +29,22 @@
 #include "network.h"
 #include "player.h"
 #include "bullets.h"
+#include "weapon.h"
 #include "map.h"
 #include <vector>
 #include <list>
+
+struct GameSprites{
+	//Sprites used in-game
+	std::vector<Sprite>	Bullet;
+	std::vector<Sprite>	Weapon;
+	std::vector<Sprite>	Expl;
+
+	//Underlying OpenGL textures
+	std::vector<GLuint>	bulletTex;
+	std::vector<GLuint>	weaponTex;
+	std::vector<GLuint> explTex;
+};
 
 ////////////////////////////////////////////////////////////
 ///Main game Client
@@ -80,7 +93,7 @@ private:
 	///Member Data
 	InputHandlerMixin<Input>*       mInput;
 	gfx::FixedPipeline*    			display;
-	MercPlayer*                     mPlayer;
+	Player*		                    mPlayer;
 	physics::PhysicsSimulator*      mPhysics;
 	GenericHeap<Bullet>             Bullets;
 	bgmf    *map;
@@ -94,20 +107,23 @@ private:
 	Sprite* Explosion;
 	bool	expld;
 
+	GameSprites		gs; //THE ALMIGHTY GAME SPRITE
 private:
 	////////////////////////////////////////////////////////////
 	/// Weapons
 	////////////////////////////////////////////////////////////
+	void _drawWeapons(void);
+
 	std::vector<std::string> WeaponList;
+
+	//Weapon definitions
+	std::vector<object::Weapon::Info> WeaponInfo;
 
 private:
 	////////////////////////////////////////////////////////////
 	/// Bullet drawing
 	////////////////////////////////////////////////////////////
 	void _drawBullets(float& delta);
-
-	//Bullet sprites
-	std::vector<Sprite>	mBulletSprite;
 
 	//Bullet Textures
 	std::vector<GLuint>	mBulletTex;

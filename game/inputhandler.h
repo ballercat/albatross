@@ -58,7 +58,6 @@ public:
         Super::mState.StaticKey[Super::Key::D] = false;
         Super::mState.StaticKey[Super::Key::A] = false;
 	}
-	virtual ~InputHandlerMixin(){}
 
 	void HandleKeyboard(){
 		//Handle Key input

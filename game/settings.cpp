@@ -31,38 +31,65 @@ void MainClient::_loadGameSettings(void)
 	CSimpleIniA::TNamesDepend keys;
 	weaponlist.GetAllKeys("Weapons", keys);
 
+	//Build Weapon definitions
 	CSimpleIniA::TNamesDepend::const_iterator i;
 	for(i = keys.begin(); i != keys.end(); ++i){
 		//corresponds to the weapon select menu
 		WeaponList.push_back(weaponlist.GetValue("Weapons", i->pItem));
+
+		{
+			//Push back a weapon info
+			object::Weapon::Info winfo;
+			std::string	path = WeaponList.back() + "/weapon.ini";
+
+			object::Weapon::Info::Load(path.c_str(), &winfo);
+
+			WeaponInfo.push_back(winfo);
+		}
 	}
 
 } //void MainClient::_loadGameSettings(void)
 
 ////////////////////////////////////////////////////////////
+/// Populate all the required game sprites
 ////////////////////////////////////////////////////////////
 void MainClient::_populateSprites(void)
 {
-	CSimpleIniA bullet;
-	CSimpleIniA weapon;
-	std::string path;
+	//Weapon loading
+	{
+		std::string path;
 
-	size_t sz = WeaponList.size();
+		size_t sz = WeaponList.size();
 
-	mBulletTex.resize(sz);
+		//resize texture vectors
+		gs.bulletTex.resize(sz);
+		gs.weaponTex.resize(sz);
 
-	//Generate Textures
-	glGenTextures(sz, &mBulletTex[0]);
+		//Generate Textures
+		glGenTextures(sz, &gs.bulletTex[0]);
+		glGenTextures(sz, &gs.weaponTex[0]);
 
-	//Populate bullet sprites
-	for(size_t k = 0; k < sz; k++){
-		//Load weapons.ini
-		weapon.LoadFile(WeaponList[k].c_str());
+		//Populate sprites
+		for(size_t k = 0; k < sz; k++){
+			//Bullet
+			{
+				path = WeaponList[k] + "/bullet.png";
+				if(!LoadTex(gs.bulletTex[k], path.c_str()))
+					throw "Could not load bullet texture...";
 
-		path = WeaponList[k] + "/bullet.png";
-		LoadTex(mBulletTex[k], path.c_str());
+				path = WeaponList[k] + "/bullet.sprh";
+				gs.Bullet.push_back(Sprite(path.c_str(), gs.bulletTex[k]));
+			}
 
-		path = WeaponList[k] + "/bullet.sprh";
-		mBulletSprite.push_back(Sprite(path.c_str(), mBulletTex[k]));
+			//Weapon
+			{
+				path = WeaponList[k] + "/weapon.png";
+				if(!LoadTex(gs.weaponTex[k], path.c_str()))
+					throw "Could not load weapon texture...";
+
+				path = WeaponList[k] + "/weapon.sprh";
+				gs.Weapon.push_back(Sprite(path.c_str(), gs.weaponTex[k]));
+			}
+		}
 	}
 }

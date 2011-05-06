@@ -91,8 +91,8 @@ MainClient::MainClient(void) :
 		_initCollisionHandlers(space);
 		
     	//Create a player object
-    	mPlayer = new MercPlayer(glm::vec3(500,200,0),Texture);
-		mPlayer->PickWeapon((WeaponList[0]+"/weapon.ini").c_str(),0);
+    	mPlayer = new Player(glm::vec3(500,200,0),Texture);
+		mPlayer->PickWeapon(WeaponInfo[0],0);
 
 		//Timing(NOTE: improve/move this)
     	lastupdate = g_timer.GetElapsedTime();
@@ -148,6 +148,17 @@ int MainClient::Connect(std::string server_ip)
     return 0;
 }
 
+void MainClient::_drawWeapons()
+{
+	if(mPlayer->pHasWeapon){
+		Sprite* weapon = &gs.Weapon[mPlayer->WeaponID];
+		weapon->pos = mPlayer->wps;
+		weapon->angle = mPlayer->angle;
+
+		weapon->Draw();
+	}
+}
+
 ////////////////////////////////////////////////////////////
 /// Draw Hits
 ////////////////////////////////////////////////////////////
@@ -193,7 +204,7 @@ void MainClient::_drawBullets(float& delta)
 
 	for(Bullets.Begin();Bullets.Spot() != Bullets.End();Bullets.Fetch()){
 		bullet = Bullets.Get();
-		spr = &mBulletSprite[bullet->pID];
+		spr = &gs.Bullet[bullet->pID];
 		spr->angle.z = bullet->pAngle;
 		spr->pos = bullet->pos;
 		drawSpriteInter(spr, bullet->pos, delta, bullet->pVelocity);

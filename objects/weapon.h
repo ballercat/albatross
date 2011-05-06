@@ -40,6 +40,7 @@ namespace object
 				this->Speed 	= p_Copy.Speed;
 				this->Dmg 		= p_Copy.Dmg;
 				this->Explosive = p_Copy.Explosive;
+				this->Type 		= p_Copy.Type;
 
 				return *this;
 			}
@@ -54,7 +55,7 @@ namespace object
 			bool 		Explosive;
 
 			//Sprite info
-			GLuint		sprite;
+			int			Type;
 		};
 
 	public:
@@ -62,7 +63,7 @@ namespace object
 		/// Constructor
 		////////////////////////////////////////////////////////////
 		Weapon(void);
-		Weapon(const char* fpath);
+		Weapon(const Info& p_Info);
 
 	public:
 		////////////////////////////////////////////////////////////
@@ -110,11 +111,6 @@ namespace object
 		////////////////////////////////////////////////////////////
 		/// Public data
 		////////////////////////////////////////////////////////////
-		float 	pDamage;
-		float 	pSpeed;
-		float 	pRate;
-		bool	pIsExplosive;
-
 		Weapon::Info	pInfo;
 
 	private:

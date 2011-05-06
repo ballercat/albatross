@@ -27,6 +27,87 @@
 #include <vector>
 #include <iostream>
 
+class Player
+{
+public:
+    Player(glm::vec3 p_Pos, GLuint* p_Texture);
+
+public:
+    void Step(glm::vec3& cursor, float& p_Time);
+
+public:
+    void Draw(float interpolate);
+
+public:
+    void Jet(void);
+    void Left(void);
+    void Right(void);
+    void jumpBegin();
+    void jumpEnd();
+    Bullet* Shoot(glm::vec3& p_Dest);
+    void Throw();
+	void Pickup(object::Weapon* weapon);
+    void PickWeapon(object::Weapon::Info& p_Info, int p_ID);
+
+private:
+    void _updatePositions(glm::vec3& npos);
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Timing
+	////////////////////////////////////////////////////////////
+
+public:
+    Sprite *torso;
+    Sprite *legs;
+    Sprite *weapon;
+    Sprite *sparks;
+
+    std::vector<Sprite*> rawsprite;
+
+    //Physical data
+    glm::vec3 wps;
+    glm::vec3 barrel;
+    glm::vec3 angle;
+    glm::vec3 ps;
+    glm::vec3 ipos;
+    bool      running;
+
+    //Weapon
+    int     WeaponID;
+    object::Weapon  *Weapon;
+    bool        pHasWeapon;
+
+private:
+	Merc	MercObject;
+    float   Time;
+    float   flametimer;
+    float   movetimer;
+    float   jettimer;
+    float   sparktimer;
+    float   sparkcounter;
+
+    //jumps
+    float   jumptimer;
+    float   jumptime;
+    float   jumpcounter;
+    float   jumpstate;
+
+    int     flip;
+    glm::vec3   mVelocity;
+    float   angle2cursor;
+    float   angleR;
+    bool    shoot;
+
+    Sprite*     jetflame;
+    std::vector<float>  jflame_alpha;
+    std::vector<glm::vec3>  jflame_pos;
+    size_t  jflame_count;
+    float   jflame_eraser;
+
+    object::Weapon *m_Weapon;
+};
+/*
 ////////////////////////////////////////////////////////////
 ///Player handler template-class
 /// @param : <class T> can be any controllable object
@@ -83,7 +164,29 @@ public:
 		jumptimer = Time;
 		jumptime = Time;
 		jumpstate = false;
+		wps = glm::vec3(0,0,0);
 	}
+
+	Player(const Player& p_Player)
+	{
+		torso     = p_Player.torso;
+		legs      = p_Player.legs;
+		weapon    = p_Player.weapon;
+		sparks    = p_Player.sparks;
+		rawsprite = p_Player.rawsprite;
+
+		wps         = p_Player.wps;
+		barrel      = p_Player.barrel;
+		angle       = p_Player.angle;
+		ps          = p_Player.ps;
+		ipos        = p_Player.ipos;
+		running     = p_Player.running;
+
+		WeaponID    = p_Player.WeaponID;
+		Weapon      = p_Player.Weapon;
+		m_hasWeapon = p_Player.m_hasWeapon;
+	}
+
 	////////////////////////////////////////////////////////////
 	///Destructor
 	////////////////////////////////////////////////////////////
@@ -199,7 +302,7 @@ public:
 			torso->Draw();
 		}
 
-		weapon->Draw();
+		//weapon->Draw();
 		torso->Step();
 
 		if(sparkcounter > 0.0f){
@@ -354,13 +457,13 @@ public:
 	////////////////////////////////////////////////////////////
 	/// Pick a weapon
 	////////////////////////////////////////////////////////////
-	inline void PickWeapon(std::string weapondef, int p_ID)
+	inline void PickWeapon(object::Weapon::Info& p_Info, int p_ID)
 	{
-		delete m_Weapon;
-		m_Weapon = NULL;
-
 		WeaponID = p_ID;
-		m_Weapon = new object::Weapon(weapondef.c_str());
+
+		m_Weapon->pInfo = p_Info;
+
+		m_hasWeapon = true;
 	}
 
 public:
@@ -378,7 +481,9 @@ public:
 	////////////////////////////////////////////////////////////
 	///Physical Data
 	////////////////////////////////////////////////////////////
+	glm::vec3 wps;
 	glm::vec3 barrel; //gun barrel
+
 	glm::vec3 angle;
 	glm::vec3 ps;
 	glm::vec3 ipos;
@@ -390,6 +495,7 @@ public:
 	////////////////////////////////////////////////////////////
 	int WeaponID;
 	object::Weapon	*Weapon;
+	bool m_hasWeapon;
 
 private:
 	////////////////////////////////////////////////////////////
@@ -399,8 +505,7 @@ private:
 	{
 		//Adjust position
 		if(m_hasWeapon){
-			weapon->pos = npos; weapon->pos.y -= 8;
-			weapon->pos.x += 2*flip;
+			wps = npos + (glm::vec3(2*flip,-8,0));
 		} 
 		else {
 			m_Weapon->Update(0.0f);
@@ -460,11 +565,11 @@ private:
 	////////////////////////////////////////////////////////////
 	/// Weapon data
 	////////////////////////////////////////////////////////////	
-	int m_WeaponID;
 	object::Weapon *m_Weapon;
-	bool m_hasWeapon;
+	int useless;
 };
 
 typedef Player<Merc> MercPlayer;
 //typedef Player MercPlayer;
+*/
 #endif //PLAYER_HEADER_GUARD

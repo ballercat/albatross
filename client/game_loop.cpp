@@ -78,7 +78,7 @@ void MainClient::Run(void)
 			}
 			Bullets.Flush();
 
-			mPlayer->Step(dmp);
+			mPlayer->Step(dmp, curtime);
 
 			ps = mPlayer->ps;
 
@@ -127,6 +127,8 @@ void MainClient::Run(void)
 			
 			//Draw the player with interpolate
 			mPlayer->Draw(delta);
+
+			_drawWeapons();
 
 			//Draw bullet Hits
 			_drawHits();
@@ -196,8 +198,7 @@ bool MainClient::_handleMessages(void)
 			case message::GMSG_PICKW1:
 			{
 				int i = msgType - message::GMSG_PICKW0;
-				std::string weapon = WeaponList[i] + "/weapon.ini";
-				mPlayer->PickWeapon(weapon, i);
+				mPlayer->PickWeapon(WeaponInfo[i], i);
 				break;
 			}
 

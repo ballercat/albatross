@@ -23,6 +23,7 @@
 #include "assets.h"
 #include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
+#include <cstring>
 
 ////////////////////////////////////////////////////////////
 ///Sprite class
@@ -39,6 +40,58 @@ public:
 	///Default constructor
 	////////////////////////////////////////////////////////////
 	Sprite();
+
+	////////////////////////////////////////////////////////////
+	/// Copy Constructor
+	////////////////////////////////////////////////////////////
+	Sprite(const Sprite& p_Copy) :
+		height(p_Copy.height),
+		width(p_Copy.width),
+		imgd(p_Copy.imgd),
+		angle(p_Copy.angle),
+		pos(p_Copy.pos),
+		pivot(p_Copy.pivot),
+		off(p_Copy.off),
+		scale(p_Copy.scale),
+		xstart(p_Copy.xstart),
+		color(p_Copy.color),
+		mLength(p_Copy.mLength),
+		mSpeed(p_Copy.mSpeed),
+		mPosition(p_Copy.mPosition),
+		mLastUpdate(p_Copy.mLastUpdate),
+		textureid(p_Copy.textureid),
+		texdata(p_Copy.texdata),
+		vertdata(p_Copy.vertdata)
+		{
+
+		}
+
+	////////////////////////////////////////////////////////////
+	/// Asignment operator
+	////////////////////////////////////////////////////////////
+	inline Sprite& operator=(const Sprite& p_Copy)
+	{
+		this->height 		= p_Copy.height;
+		this->width 		= p_Copy.width;
+		this->imgd			= p_Copy.imgd;
+		this->angle			= p_Copy.angle;
+		this->pos			= p_Copy.pos;
+		this->pivot			= p_Copy.pivot;
+		this->off			= p_Copy.off;
+		this->scale			= p_Copy.scale;
+		this->xstart		= p_Copy.xstart;
+		this->color			= p_Copy.color;
+		this->mLength		= p_Copy.mLength;
+		this->mSpeed		= p_Copy.mSpeed;
+		this->mPosition		= p_Copy.mPosition;
+		this->mLastUpdate	= p_Copy.mLastUpdate;
+		this->textureid		= p_Copy.textureid;
+
+		memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
+		memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec2)*6);
+
+		return *this;
+	}
 
 	////////////////////////////////////////////////////////////
 	///Destructor
