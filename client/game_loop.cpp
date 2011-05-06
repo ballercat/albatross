@@ -39,7 +39,6 @@ static sf::Clock Time;
 void MainClient::Run(void)
 {
 	//Timing
-	static int steps = 0;
 	static float delta = 0.0f;
 	float curtime = Time.GetElapsedTime();
 	float oldtime = curtime;

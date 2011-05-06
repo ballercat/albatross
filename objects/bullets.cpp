@@ -78,7 +78,6 @@ const BulletStatus& BulletPlain::Update(void)
     }
     myStatus.lastup = t;
     pos = myBody->GetLocation();
-	cpVect vel;
 
 	pVelocity = myBody->GetVelocity();
 

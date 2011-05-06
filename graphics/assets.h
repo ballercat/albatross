@@ -29,8 +29,6 @@ enum TextureID
     PLAYER_LEGS,
     PLAYER_JETS,
     WORLD_PLAIN,
-    AK47,
-    AK47_BULLET,
 	AK47_FIRE,
 	JET_FLAME,
 	TREE_PLAIN,

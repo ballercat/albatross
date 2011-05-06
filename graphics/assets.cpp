@@ -80,13 +80,6 @@ void LoadTextures(const char *fpath, GLuint* Texture)
 	texpath = texini.GetValue("Map", "plain");
 	LoadTex(Texture[WORLD_PLAIN], texpath.c_str());
 
-	texpath = texini.GetValue("AK", "main");
-	LoadTex(Texture[AK47], texpath.c_str());
-	texpath = texini.GetValue("AK", "bullet");
-	LoadTex(Texture[AK47_BULLET], texpath.c_str());
-	texpath = texini.GetValue("AK", "fire");
-	LoadTex(Texture[AK47_FIRE], texpath.c_str());
-
 	LoadTex(Texture[TREE_PLAIN], texini.GetValue("Sprite","tree"));
 	LoadTex(Texture[EXPL], texini.GetValue("Explosion", "default"));
 /*

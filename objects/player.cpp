@@ -12,7 +12,6 @@ Player::Player(glm::vec3 loc,GLuint *Texture)
 	rawsprite.push_back(new Sprite("assets/sprite/merc/still.sprh",Texture[PLAYER_TORSO]));
 	rawsprite.push_back(new Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]));
 	rawsprite.push_back(new Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]));
-	rawsprite.push_back(new Sprite("assets/sprite/m203/m203.sprh", Texture[AK47]));
 
 	jetflame = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
 
@@ -20,7 +19,6 @@ Player::Player(glm::vec3 loc,GLuint *Texture)
 
 	torso = rawsprite[0];
 	legs = rawsprite[1];
-	weapon = rawsprite[3];
 
 	shoot = false;
 	running = false;
@@ -83,11 +81,6 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 	legs->angle.x = angle.x;
 	torso->angle.x = angle.x;
 
-	if(pHasWeapon){
-		weapon->angle.x = angle.x;
-		weapon->angle.z = angle.z;
-	}
-
 	ps.x = int(ps.x);
 	ps.y = int(ps.y);
 
@@ -147,7 +140,6 @@ void Player::Draw(float interpolate)
 		torso->Draw();
 	}
 
-	//weapon->Draw();
 	torso->Step();
 
 	if(sparkcounter > 0.0f){
@@ -322,8 +314,6 @@ void Player::_updatePositions(glm::vec3& npos)
 	}
 	else {
 		m_Weapon->Update(0.0f);
-		weapon->pos = m_Weapon->GetStatus().pos;
-		weapon->angle.z = m_Weapon->rot_dAngle;
 	}
 
 	legs->pos = npos; legs->pos.y += 3;
