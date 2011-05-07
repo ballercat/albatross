@@ -32,7 +32,7 @@ struct Sprite
 {
 public:
 	////////////////////////////////////////////////////////////
-	///Constructor, from .spr file
+	///Constructor, from .sprh file and a texture id
 	////////////////////////////////////////////////////////////
     Sprite(const char *fpath, GLuint texid);
 
@@ -41,6 +41,11 @@ public:
 	////////////////////////////////////////////////////////////
 	Sprite();
 
+	////////////////////////////////////////////////////////////
+	/// ctor with only a .sprh file
+	////////////////////////////////////////////////////////////		
+	Sprite(const char *p_SPRH);
+	
 	////////////////////////////////////////////////////////////
 	/// Copy Constructor
 	////////////////////////////////////////////////////////////
@@ -88,7 +93,7 @@ public:
 		this->textureid		= p_Copy.textureid;
 
 		memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
-		memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec2)*6);
+		memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
 
 		return *this;
 	}
@@ -143,7 +148,7 @@ public:
     float   mSpeed;
     size_t  mPosition;
 	float   mLastUpdate;
-    GLuint  textureid;
+    int		textureid;
 
 	glm::vec2 texdata[6];
 	glm::vec3 vertdata[6];

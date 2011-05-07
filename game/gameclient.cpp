@@ -151,9 +151,9 @@ int MainClient::Connect(std::string server_ip)
 void MainClient::_drawWeapons()
 {
 	if(mPlayer->pHasWeapon){
-		Sprite* weapon = &gs.Weapon[mPlayer->WeaponID];
-		weapon->pos = mPlayer->wps;
-		weapon->angle = mPlayer->angle;
+		Sprite* weapon = &gs.Weapon[mPlayer->pWeaponID];
+		weapon->pos = mPlayer->pWeaponPos;
+		weapon->angle = mPlayer->pAngle;
 
 		weapon->Draw();
 	}
@@ -230,7 +230,7 @@ cpBool MainClient::w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Cl
 	object::Weapon *weapon = (object::Weapon*)(a->data);
 	MainClient *client = (MainClient*)(p_Client);
 
-	client->mPlayer->Pickup(weapon);
+	client->mPlayer->Pickup(*weapon);
 
 	return cpFalse;
 }

@@ -63,8 +63,18 @@ namespace object
 		/// Constructor
 		////////////////////////////////////////////////////////////
 		Weapon(void);
+		
+		
 		Weapon(const Info& p_Info);
 
+		inline Weapon&	operator=(const Weapon& p_Copy)
+		{
+			pInfo = p_Copy.pInfo;
+			m_phBody = p_Copy.m_phBody;
+			
+			return *this;
+		}
+		
 	public:
 		////////////////////////////////////////////////////////////
 		// Update state

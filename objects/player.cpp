@@ -1,10 +1,106 @@
+/*
+    ********************************************
+    *   Albatross - A 2D multiplayer shooter   *
+    ********************************************
+    Copyright (C) 2011  Arthur Buldauskas
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "player.h"
+
+////////////////////////////////////////////////////////////
+/// Default ctor
+////////////////////////////////////////////////////////////
+Player::Player()
+{
+	pTime.Current	= 0.0f;
+	pTime.Jump		= ATimer();
+	pTime.Move		= ATimer();
+	pTime.Jet		= ATimer();
+	pTime.Shoot		= ATimer();
+
+	mRunningSprite	= Sprite("assets/sprite/merc/run.sprh");
+	mIdleSprite		= Sprite("assets/sprite/merc/still.sprh");
+	mJetSprite		= Sprite("assets/sprite/merc/jet.sprh");	
+	mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh");
+
+	mBody			= NULL;
+	mSparks			= NULL;
+
+	pWeaponPos = pBarrelPos = pAngle = pPos = pIPos = glm::vec3(0.f,0.f,0.f);
+
+	pWeaponID		= 0;
+	pWeapon			= object::Weapon();
+	pHasWeapon		= false;
+
+	mFlip			= 1;
+	mVelocity		= glm::vec3(0.f,0.f,0.f);
+	mAngleCursor	= 0.0f;
+	mAngleR			= 0.0f;
+
+	mShoot			= false;
+	mJumpState		= false;
+	mRunning		= false;
+}
 
 ////////////////////////////////////////////////////////////
 ///Constructor
 ////////////////////////////////////////////////////////////
-Player::Player(glm::vec3 loc,GLuint *Texture)
+Player::Player(glm::vec3 p_Location, GLuint *Texture)
 {
+	pTime.Current	= 0.0f;
+	pTime.Jump		= ATimer();
+	pTime.Move		= ATimer();
+	pTime.Jet		= ATimer();
+	pTime.Shoot		= ATimer();
+
+	mRunningSprite	= Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]);
+	mIdleSprite		= Sprite("assets/sprite/merc/still.sprh", Texture[PLAYER_TORSO]);
+	mJetSprite		= Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]);	
+	mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
+
+	jetflame		= &mJetFlameSprite;
+	mBody			= &mIdleSprite;
+	mSparks			= &mJetFlameSprite;
+
+	pWeaponPos		= p_Location;
+	pBarrelPos		= p_Location; 
+	pAngle			= glm::vec3(0.f,0.f,0.f); 
+	pPos			= p_Location; 
+	pIPos			= p_Location;
+
+	pWeaponID		= 0;
+	pWeapon			= object::Weapon();
+	pHasWeapon		= false;
+
+	mFlip			= 1;
+	mVelocity		= glm::vec3(0.f,0.f,0.f);
+	mAngleCursor	= 0.0f;
+	mAngleR			= 0.0f;
+
+	mShoot			= false;
+	mJumpState		= false;
+	mRunning		= false;
+	
+	jflame_alpha.assign(10,0.0f);
+	jflame_pos.assign(10,glm::vec3());
+	jflame_count = 0;
+	
+	MercObject.Spawn(p_Location);
+	MercObject.Initialize();
+	MercObject.id = 2;
+	/*
 	MercObject.Spawn(loc);
 	MercObject.Initialize();
 	MercObject.id = 2;
@@ -43,6 +139,7 @@ Player::Player(glm::vec3 loc,GLuint *Texture)
 	jumptime = Time;
 	jumpstate = false;
 	wps = glm::vec3(0,0,0);
+*/	
 }
 
 ////////////////////////////////////////////////////////////
@@ -52,51 +149,49 @@ Player::Player(glm::vec3 loc,GLuint *Texture)
 void Player::Step(glm::vec3& cursor, float& p_Time)
 {
 	// Update internal state, get position
-	GameObject::Status stat = MercObject.Update(p_Time - Time);
-	ps = stat.pos;
-	ps.z = 0;
+	GameObject::Status stat = MercObject.Update(p_Time - pTime.Current);
+	pPos = stat.pos;
+	pPos.z = 0;
 	mVelocity = stat.v;
 
 	// Adjust sprite angles
-	angle = glm::vec3(0,0,0);
+	pAngle = glm::vec3(0,0,0);
 
 	// The player is drawn at 0,0(ALWAYS) so its pretty
 	// easy to get the angle here
-	angle.z = -glm::atan(cursor.y,cursor.x);
-	angleR = angle.z;
+	pAngle.z = -glm::atan(cursor.y,cursor.x);
+	mAngleR = pAngle.z;
 
-	angle.z  = glm::degrees(angle.z);
+	pAngle.z  = glm::degrees(pAngle.z);
 	// Flip flags, adjust angle depending on flip
 	if(cursor.x > 0){
-		angle.x = 180;
-		flip = -1;
+		pAngle.x = 180;
+		mFlip = -1;
 	} else {
-		flip = 1;
+		mFlip = 1;
 		//float x = cursor.x + d*2;
-		angle.z = 180-angle.z;//(glm::degrees(-glm::atan(cursor.y,x)));
+		pAngle.z = 180-pAngle.z;//(glm::degrees(-glm::atan(cursor.y,x)));
 	}
 
-	angle2cursor = angle.z;
-
-	legs->angle.x = angle.x;
-	torso->angle.x = angle.x;
-
-	ps.x = int(ps.x);
-	ps.y = int(ps.y);
+	mAngleCursor = pAngle.z;
 
 	//Timer updates, and flag updates
-	Time = p_Time;
-	shoot = false;
+	pTime.Current = p_Time;
+	mShoot = false;
 
-	if(jumpstate){
-		if((Time - jumptime) >= 0.45f){
-			MercObject.Jump( (Time - jumptime) * 1500.0f );
-			jumpstate = false;
+	if(mJumpState){
+		if((pTime.Current - pTime.Jump.Stamp) >= 0.45f){
+			MercObject.Jump( (pTime.Current - pTime.Jump.Stamp) * 1500.0f );
+			mJumpState = false;
 		}
 	}
 
-	barrel.x = 23.0f*(glm::cos(-angleR)) + ps.x;
-	barrel.y = 23.0f*(glm::sin(-angleR)) + ps.y;
+	if(stat.v.x == 0.0f){
+		mRunning = false;
+	}
+
+	pBarrelPos.x = 23.0f*(glm::cos(-mAngleR)) + pPos.x;
+	pBarrelPos.y = 23.0f*(glm::sin(-mAngleR)) + pPos.y;
 }
 
 ////////////////////////////////////////////////////////////
@@ -105,8 +200,9 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 ////////////////////////////////////////////////////////////
 void Player::Draw(float interpolate)
 {
-	float dt = Time - jflame_eraser;
-	jflame_eraser = Time;
+	
+	float dt = pTime.Current - jflame_eraser;
+	jflame_eraser = pTime.Current;
 
 	for(size_t k = 0; k < 10; k++){
 		if(jflame_alpha[k] > 0.0f){
@@ -115,7 +211,7 @@ void Player::Draw(float interpolate)
 			jetflame->angle.z += dt*80.0f;
 			jetflame->Draw();
 
-			jetflame->pos.x += 3*flip;
+			jetflame->pos.x += 3*mFlip;
 			jetflame->pos.y += 8.0f;
 			jetflame->Draw();
 
@@ -123,43 +219,37 @@ void Player::Draw(float interpolate)
 			jflame_pos[k].y -= dt*50;
 		}
 	}
-
+	
+	
 	//Interpolate
 	if(interpolate > 0.0f){
-		ipos = ps + (mVelocity * interpolate);
-		_updatePositions(ipos);
+		pIPos = pPos + (mVelocity * interpolate);
+		_updatePositions(pIPos);
 	}
 	else {
-		_updatePositions(ps);
+		_updatePositions(pPos);
 	}
 
-	if(running){
-		legs->Draw();
+	switch(pAction()){
+		case ActState::IDLE:
+			mBody = &mIdleSprite;
+			break;
+		case ActState::RUNNING:
+		{
+			mBody = &mRunningSprite;
+			float r = (MercObject.myStatus.v.x > 0) ? 1 : -1;
+			mBody->mSpeed = (r * 15.0f)/(MercObject.myStatus.v.x);
+			break;
+		}
+		case ActState::JETTING:
+			mBody = &mJetSprite;
+			break;
 	}
-	else{
-		torso->Draw();
-	}
-
-	torso->Step();
-
-	if(sparkcounter > 0.0f){
-		sparks->Draw();
-		sparkcounter -= Time - sparktimer;
-	}
-
-	//Reset sprite pointers
-	rawsprite[1]->pos = legs->pos;
-	legs = rawsprite[1];
-
-	if(MercObject.myStatus.v.x == 0){
-		running = false;
-
-	}
-	else{
-		float r = (MercObject.myStatus.v.x > 0) ? 1 : -1;
-		legs->mSpeed = (r * 15.0f)/(MercObject.myStatus.v.x);
-		legs->Step();
-	}
+	
+	mBody->pos = pIPos;
+	mBody->angle.x = pAngle.x;
+	mBody->Step();
+	mBody->Draw();
 }
 
 ////////////////////////////////////////////////////////////
@@ -167,25 +257,26 @@ void Player::Draw(float interpolate)
 ////////////////////////////////////////////////////////////
 void Player::Jet(void)
 {
-	rawsprite[2]->pos = legs->pos;
-	legs = rawsprite[2];
-	legs->Step();
-	running = true;
-
-	if(Time - jettimer > 0.001){
+	mJetSprite.Step();
+	mBody = &mJetSprite;	
+	pAction[ActState::JETTING] = true;
+	
+	// Apply jets if timer allows it 
+	if(pTime.Current - pTime.Jet.Stamp > 0.001){
 		MercObject.Jet();
-		jettimer = Time;
+		pTime.Jet.Stamp = pTime.Current;
 	}
 
-	if(Time - flametimer > 0.03){
+	// Jet flame counter
+	if(pTime.Current - flametimer > 0.03){
 		jflame_count++;
 		if(jflame_count > 10){
 			jflame_count = 1;
 		}
 		jflame_alpha[jflame_count-1] = 1.0f;
-		jflame_pos[jflame_count-1] = glm::vec3(ps.x+(12*flip),ps.y-15,0.0f);
+		jflame_pos[jflame_count-1] = glm::vec3(pPos.x+(12*mFlip),pPos.y-15,0.0f);
 
-		flametimer = Time;
+		flametimer = pTime.Current;
 	}
 }
 
@@ -194,12 +285,14 @@ void Player::Jet(void)
 ////////////////////////////////////////////////////////////
 void Player::Right(void)
 {
-	legs->Step();
-	running = true;
+	mRunningSprite.Step();
+	mBody = &mRunningSprite;
+	pAction[ActState::RUNNING] = true;
+	mRunning = true;
 
-	if(Time - movetimer > 0.001f){
+	if(pTime.Diff(pTime.Move.Stamp) > 0.001f){
 		MercObject.Right();
-		movetimer = Time;
+		pTime.Move.Stamp = pTime.Current;
 	}
 }
 
@@ -208,12 +301,14 @@ void Player::Right(void)
 ////////////////////////////////////////////////////////////
 void Player::Left(void)
 {
-	legs->Step();
-	running = true;
-
-	if(Time - movetimer > 0.001f){
+	mRunningSprite.Step();
+	mBody = &mRunningSprite;	
+	mRunning = true;
+	pAction[ActState::RUNNING] = true;
+	
+	if(pTime.Diff(pTime.Move.Stamp) > 0.001f){
 		MercObject.Left();
-		movetimer = Time;
+		pTime.Move.Stamp = pTime.Current;
 	}
 }
 
@@ -222,14 +317,14 @@ void Player::Left(void)
 ////////////////////////////////////////////////////////////
 void Player::jumpBegin()
 {
-	if((Time - jumptimer) >= 0.001f){
-		if(!jumpstate){
-			jumpstate = true;
-			jumptime = Time;
+	if((pTime.Current - pTime.Jump.Timer) >= 0.001f){
+		if(!mJumpState){
+			mJumpState = true;
+			pTime.Jump.Stamp = pTime.Current;
 		}
 	}
 
-	jumptimer = Time;
+	pTime.Jump.Timer = pTime.Current;
 }
 
 ////////////////////////////////////////////////////////////
@@ -237,13 +332,13 @@ void Player::jumpBegin()
 ////////////////////////////////////////////////////////////
 void Player::jumpEnd()
 {
-	if(jumpstate){
-		if((Time - jumptime) >= 0.030f){
-			MercObject.Jump( (Time - jumptime) * 1000.0f );
+	if(mJumpState){
+		if((pTime.Diff(pTime.Jump.Stamp)) >= 0.030f){
+			MercObject.Jump((pTime.Diff(pTime.Jump.Stamp)) * 1000.0f );
 		}
 	}
 
-	jumpstate = false;
+	mJumpState = false;
 }
 ////////////////////////////////////////////////////////////
 ///
@@ -252,14 +347,14 @@ Bullet* Player::Shoot(glm::vec3& p_Dest)
 {
 	if(!pHasWeapon)
 		return NULL;
-	sparktimer = Time;
-	sparkcounter = 0.35f;
+	//sparktimer = pTime.Current;
+	//sparkcounter = 0.35f;
 
-	Bullet *bullet = m_Weapon->Shoot();
-	bullet->pos = barrel;
-	bullet->des = barrel + p_Dest;
+	Bullet *bullet = pWeapon.Shoot();
+	bullet->pos = pBarrelPos;
+	bullet->des = pBarrelPos + p_Dest;
 	bullet->startV = mVelocity;
-	bullet->pID = WeaponID;
+	bullet->pID = pWeaponID;
 	bullet->Initialize();
 
 	return bullet;
@@ -272,23 +367,25 @@ void Player::Throw(void)
 {
 	if(!pHasWeapon)
 		return;
-	glm::vec3 spawn = ipos + glm::vec3(-30*flip,30,0);
-	m_Weapon->Spawn(spawn);
-	glm::vec3 impulse(-1*flip, 1, 0);
-	if(flip < 0)
-		m_Weapon->Impulse(impulse/4.0f,15,5);
+	glm::vec3 spawn = pIPos + glm::vec3(-30*mFlip,30,0);
+	pWeapon.Spawn(spawn);
+	glm::vec3 impulse(-1*mFlip, 1, 0);
+	if(mFlip < 0)
+		pWeapon.Impulse(impulse/4.0f,15,5);
 	else
-		m_Weapon->Impulse(impulse,1*flip,1*flip);
+		pWeapon.Impulse(impulse,1*mFlip,1*mFlip);
+		
 	pHasWeapon = false;
 }
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-void Player::Pickup(object::Weapon *weapon)
+void Player::Pickup(object::Weapon weapon)
 {
 	if(pHasWeapon)
 		return;
-	m_Weapon = weapon;
+		
+	pWeapon.pInfo = weapon.pInfo;
 	pHasWeapon = true;
 }
 
@@ -297,9 +394,9 @@ void Player::Pickup(object::Weapon *weapon)
 ////////////////////////////////////////////////////////////
 void Player::PickWeapon(object::Weapon::Info& p_Info, int p_ID)
 {
-	WeaponID = p_ID;
+	pWeaponID = p_ID;
 
-	m_Weapon->pInfo = p_Info;
+	pWeapon.pInfo = p_Info;
 
 	pHasWeapon = true;
 }
@@ -308,16 +405,6 @@ void Player::PickWeapon(object::Weapon::Info& p_Info, int p_ID)
 ////////////////////////////////////////////////////////////
 void Player::_updatePositions(glm::vec3& npos)
 {
-	//Adjust position
-	if(pHasWeapon){
-		wps = npos + (glm::vec3(2*flip,-8,0));
-	}
-	else {
-		m_Weapon->Update(0.0f);
-	}
-
-	legs->pos = npos; legs->pos.y += 3;
-	torso->pos = npos; torso->pos.y += 3;
-
-	sparks->pos = barrel;
+	//Adjust position	
+	pWeaponPos = npos + (glm::vec3(2*mFlip,-8,0));
 }

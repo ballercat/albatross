@@ -79,7 +79,7 @@ void MainClient::Run(void)
 
 			mPlayer->Step(dmp, curtime);
 
-			ps = mPlayer->ps;
+			ps = mPlayer->pPos;
 
 			oldtime += FRAME_TIME;
 			updated = true;
@@ -98,9 +98,9 @@ void MainClient::Run(void)
 
 		//NOTE: camera position is INTERPOLATED position of player
 		//NOT physical position
-		display->camera = mPlayer->ipos;
+		display->camera = mPlayer->pIPos;
 
-		display->cursor.pos = dmp + mPlayer->ipos;
+		display->cursor.pos = dmp + mPlayer->pIPos;
 		//display->cursor.pos /= display->zoom;
 
 		delta = curtime - oldtime;

@@ -30,7 +30,15 @@
 class Player
 {
 public:
-    Player(glm::vec3 p_Pos, GLuint* p_Texture);
+    ////////////////////////////////////////////////////////////
+	/// Default ctor
+	////////////////////////////////////////////////////////////			
+	Player();
+
+	////////////////////////////////////////////////////////////
+	/// ctor with location and texture pointer
+	////////////////////////////////////////////////////////////		
+	Player(glm::vec3 p_Pos, GLuint* p_Texture);
 
 public:
     void Step(glm::vec3& cursor, float& p_Time);
@@ -46,7 +54,7 @@ public:
     void jumpEnd();
     Bullet* Shoot(glm::vec3& p_Dest);
     void Throw();
-	void Pickup(object::Weapon* weapon);
+	void Pickup(object::Weapon weapon);
     void PickWeapon(object::Weapon::Info& p_Info, int p_ID);
 
 private:
@@ -54,9 +62,134 @@ private:
 
 public:
 	////////////////////////////////////////////////////////////
-	/// Timing
+	/// Player Timing
 	////////////////////////////////////////////////////////////
+	
+	//Action timer
+	struct ATimer{
+		ATimer() : Stamp(0.0f), Timer(0.0f) {}
+		float Stamp; //timestamp
+		float Timer;
+	};
 
+	//Timing struct
+	struct Timing{
+		float	Current; //current time
+		ATimer	Jump;
+		ATimer	Move;
+		ATimer	Jet;
+		ATimer	Shoot;
+
+		inline float Diff(float& p_Timer)
+		{
+			return (Current - p_Timer);
+		}
+	};
+
+	//Global Timing
+	Timing	pTime;
+
+public:
+	glm::vec3	pWeaponPos;
+	glm::vec3	pBarrelPos;
+	glm::vec3	pAngle;
+	glm::vec3	pPos;
+	glm::vec3	pIPos;
+
+	int				pWeaponID;
+	object::Weapon	pWeapon;
+	bool			pHasWeapon;
+
+private:
+	int			mFlip;
+	glm::vec3	mVelocity;
+	float		mAngleCursor;
+	float		mAngleR;
+	
+	//flags
+	struct ActState{
+		
+		enum ID{
+			IDLE,
+			RUNNING,
+			JUMPING,
+			JETTING,
+			SHOOTING,
+			STATECOUNT
+		};
+		
+		ActState()
+		{
+			Current	= IDLE;
+			mStateData[ActState::IDLE] 		= true;
+			mStateData[ActState::RUNNING]	= false;
+			mStateData[ActState::JUMPING]	= false;
+			mStateData[ActState::JETTING]	= false;
+			mStateData[ActState::SHOOTING]	= false;
+		}
+			
+		inline int& operator()(void)
+		{
+			Current = ActState::IDLE;
+			
+			if(mStateData[ActState::RUNNING]){
+				Current = ActState::RUNNING;
+			}
+			else if(mStateData[ActState::JETTING]){
+				Current = ActState::JETTING;
+			}
+			
+			mStateData[ActState::RUNNING] 	= false;
+			mStateData[ActState::JETTING]	= false;
+			
+			Swap = Current;
+			Current = ActState::IDLE;
+			
+			return Swap;
+		}
+		
+		inline bool& operator[](int& p_ID)
+		{
+			return mStateData[p_ID];
+		}
+		
+		inline bool& operator[](ActState::ID p_ID)
+		{
+			return mStateData[p_ID];
+		}
+		
+		int		Current;
+		int		Swap;
+		bool	mStateData[ActState::STATECOUNT];
+	};
+	
+	ActState	pAction;
+	bool		mShoot;
+	bool		mJumpState;
+	bool		mRunning;
+
+private:
+	Sprite		mRunningSprite;
+	Sprite		mIdleSprite;
+	Sprite		mJetSprite;
+	Sprite		mJetFlameSprite;
+
+	Sprite*		mBody;
+	Sprite*		mSparks;
+
+private:
+	Merc		MercObject;
+
+	Sprite*     jetflame;
+	std::vector<float>  jflame_alpha;
+	std::vector<glm::vec3>  jflame_pos;
+	size_t  jflame_count;
+	float   jflame_eraser;
+    float   sparktimer;
+    float   sparkcounter;
+	float 	flametimer;
+
+/*
 public:
     Sprite *torso;
     Sprite *legs;
@@ -106,470 +239,7 @@ private:
     float   jflame_eraser;
 
     object::Weapon *m_Weapon;
-};
-/*
-////////////////////////////////////////////////////////////
-///Player handler template-class
-/// @param : <class T> can be any controllable object
-////////////////////////////////////////////////////////////
-template <class T>
-class Player :
-    public T
-{
-
-public:
-	////////////////////////////////////////////////////////////
-	///Constructor
-	////////////////////////////////////////////////////////////	
-	Player(glm::vec3 loc,GLuint *Texture)
-	{
-		T::Spawn(loc);
-		T::Initialize();
-		T::id = 2;
-		
-		m_pTexture = Texture;
-
-		rawsprite.push_back(new Sprite("assets/sprite/merc/still.sprh",Texture[PLAYER_TORSO]));
-		rawsprite.push_back(new Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]));
-		rawsprite.push_back(new Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]));
-		rawsprite.push_back(new Sprite("assets/sprite/m203/m203.sprh", Texture[AK47]));
-
-		jetflame = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
-
-		sparks = new Sprite("assets/sprite/ak47/ak47fire.sprh", Texture[AK47_FIRE]);
-
-		torso = rawsprite[0];
-		legs = rawsprite[1];
-		weapon = rawsprite[3];
-
-		shoot = false;
-		running = false;
-		flip = 0;
-
-		m_Weapon = new object::Weapon();
-		m_Weapon->Initialize();
-		
-		m_hasWeapon = true;
-
-		//Jet flames
-		jflame_alpha.assign(10,0.0f);
-		jflame_pos.assign(10,glm::vec3());
-		jflame_count = 0;
-		
-		//Timing
-		Time = timer.GetElapsedTime();
-		jflame_eraser = Time;
-		jettimer = Time;
-		flametimer = Time;
-		jumptimer = Time;
-		jumptime = Time;
-		jumpstate = false;
-		wps = glm::vec3(0,0,0);
-	}
-
-	Player(const Player& p_Player)
-	{
-		torso     = p_Player.torso;
-		legs      = p_Player.legs;
-		weapon    = p_Player.weapon;
-		sparks    = p_Player.sparks;
-		rawsprite = p_Player.rawsprite;
-
-		wps         = p_Player.wps;
-		barrel      = p_Player.barrel;
-		angle       = p_Player.angle;
-		ps          = p_Player.ps;
-		ipos        = p_Player.ipos;
-		running     = p_Player.running;
-
-		WeaponID    = p_Player.WeaponID;
-		Weapon      = p_Player.Weapon;
-		m_hasWeapon = p_Player.m_hasWeapon;
-	}
-
-	////////////////////////////////////////////////////////////
-	///Destructor
-	////////////////////////////////////////////////////////////
-	~Player()
-	{
-		if(rawsprite.size())
-		{
-			for(size_t k;k < rawsprite.size();k++){
-				delete rawsprite[k];
-				rawsprite[k] = NULL;
-			}
-		}
-	}
-public:
-	////////////////////////////////////////////////////////////
-	///Step
-	/// @param cursor : vec3 location of the cursor on screen
-	////////////////////////////////////////////////////////////
-	void Step(glm::vec3& cursor)
-	{
-		float t = timer.GetElapsedTime();
-		// Update internal state, get position
-		GameObject::Status stat = T::Update(t - Time);
-		ps = stat.pos;
-		ps.z = 0;
-		mVelocity = stat.v;
-
-		// Adjust sprite angles
-		angle = glm::vec3(0,0,0);
-
-		// The player is drawn at 0,0(ALWAYS) so its pretty
-		// easy to get the angle here
-		angle.z = -glm::atan(cursor.y,cursor.x);
-		angleR = angle.z;
-
-		angle.z  = glm::degrees(angle.z);
-		// Flip flags, adjust angle depending on flip
-		if(cursor.x > 0){
-			angle.x = 180;
-			flip = -1;
-		} else {
-			flip = 1;
-			//float x = cursor.x + d*2;
-			angle.z = 180-angle.z;//(glm::degrees(-glm::atan(cursor.y,x)));
-		}
-
-		angle2cursor = angle.z;
-
-		legs->angle.x = angle.x;
-		torso->angle.x = angle.x;
-		
-		if(m_hasWeapon){
-			weapon->angle.x = angle.x;
-			weapon->angle.z = angle.z;
-		}
-		
-		ps.x = int(ps.x);
-		ps.y = int(ps.y);
-
-		//Timer updates, and flag updates
-		Time = t;
-		shoot = false;
-
-		if(jumpstate){
-			if((Time - jumptime) >= 0.45f){
-				T::Jump( (Time - jumptime) * 1500.0f );
-				jumpstate = false;
-			}
-		}
-
-		barrel.x = 23.0f*(glm::cos(-angleR)) + ps.x;
-		barrel.y = 23.0f*(glm::sin(-angleR)) + ps.y;
-	}
-
-	////////////////////////////////////////////////////////////
-	///Draw self
-	/// @param interpolate: float, time to interpolate
-	////////////////////////////////////////////////////////////
-	void Draw(float interpolate)
-	{
-		float dt = Time - jflame_eraser;
-		jflame_eraser = Time;
-
-		for(size_t k = 0; k < 10; k++){
-			if(jflame_alpha[k] > 0.0f){
-				jetflame->color.a = jflame_alpha[k];
-				jetflame->pos = jflame_pos[k];
-				jetflame->angle.z += dt*80.0f;
-				jetflame->Draw();
-
-				jetflame->pos.x += 3*flip;
-				jetflame->pos.y += 8.0f;
-				jetflame->Draw();
-
-				jflame_alpha[k] -= dt;
-				jflame_pos[k].y -= dt*50;
-			}
-		}
-
-		//Interpolate
-		if(interpolate > 0.0f){
-			ipos = ps + (mVelocity * interpolate);
-			_updatePositions(ipos);
-		}
-		else {
-			_updatePositions(ps);
-		}
-
-		if(running){
-			legs->Draw();		
-		}
-		else{
-			torso->Draw();
-		}
-
-		//weapon->Draw();
-		torso->Step();
-
-		if(sparkcounter > 0.0f){
-			sparks->Draw();
-			sparkcounter -= Time - sparktimer;
-		}
-
-		//Reset sprite pointers
-		rawsprite[1]->pos = legs->pos;
-		legs = rawsprite[1];
-
-		if(T::myStatus.v.x == 0){
-			running = false;
-
-		}
-		else{
-			float r = (T::myStatus.v.x > 0) ? 1 : -1;
-			legs->mSpeed = (r * 15.0f)/(T::myStatus.v.x);
-			legs->Step();
-		}
-	}
-public:
-	////////////////////////////////////////////////////////////
-	///Jets pass trough
-	////////////////////////////////////////////////////////////
-	virtual void Jet(void)
-	{
-		rawsprite[2]->pos = legs->pos;
-		legs = rawsprite[2];
-		legs->Step();
-		running = true;
-
-		if(Time - jettimer > 0.001){
-			T::Jet();
-			jettimer = Time;
-		}
-
-		if(Time - flametimer > 0.03){
-			jflame_count++;
-			if(jflame_count > 10){
-				jflame_count = 1;
-			}
-			jflame_alpha[jflame_count-1] = 1.0f;
-			jflame_pos[jflame_count-1] = glm::vec3(ps.x+(12*flip),ps.y-15,0.0f);
-
-			flametimer = Time;
-		}
-	}
-
-	////////////////////////////////////////////////////////////
-	///Right move pass trough
-	////////////////////////////////////////////////////////////
-	virtual void Right(void)
-	{
-		legs->Step();
-		running = true;
-
-		if(Time - movetimer > 0.001f){
-			T::Right();
-			movetimer = Time;
-		}
-	}
-
-	////////////////////////////////////////////////////////////
-	///Left move pass trough
-	////////////////////////////////////////////////////////////
-	virtual void Left(void)
-	{
-		legs->Step();
-		running = true;
-
-		if(Time - movetimer > 0.001f){
-			T::Left();
-			movetimer = Time;
-		}
-	}
-
-	////////////////////////////////////////////////////////////
-	///Jump
-	////////////////////////////////////////////////////////////
-	void jumpBegin()
-	{
-		if((Time - jumptimer) >= 0.001f){
-			if(!jumpstate){
-				jumpstate = true;
-				jumptime = Time;
-			}
-		}
-
-		jumptimer = Time;
-	}
-
-	////////////////////////////////////////////////////////////
-	///
-	////////////////////////////////////////////////////////////
-	void jumpEnd()
-	{
-		if(jumpstate){
-			if((Time - jumptime) >= 0.030f){
-				T::Jump( (Time - jumptime) * 1000.0f );
-			}
-		}
-
-		jumpstate = false;
-	}
-	////////////////////////////////////////////////////////////
-	///
-	////////////////////////////////////////////////////////////
-	Bullet* Shoot(glm::vec3 p_Dest)
-	{
-		if(!m_hasWeapon)
-			return NULL;
-		sparktimer = Time;
-		sparkcounter = 0.35f;
-	
-		Bullet *bullet = m_Weapon->Shoot();
-		bullet->pos = barrel;
-		bullet->des = barrel + p_Dest;
-		bullet->startV = mVelocity;
-		bullet->pID = WeaponID;
-		bullet->Initialize();
-		
-		return bullet;	
-	}
-
-	////////////////////////////////////////////////////////////
-	/// Throw whats in your hands
-	////////////////////////////////////////////////////////////
-	inline void Throw(void)
-	{
-		if(!m_hasWeapon)
-			return;
-		glm::vec3 spawn = ipos + glm::vec3(-30*flip,30,0);
-		m_Weapon->Spawn(spawn);
-		glm::vec3 impulse(-1*flip, 1, 0);
-		if(flip < 0)
-			m_Weapon->Impulse(impulse/4.0f,15,5);
-		else
-			m_Weapon->Impulse(impulse,1*flip,1*flip);	
-		m_hasWeapon = false;
-	}
-
-	inline void Pickup(object::Weapon *weapon)
-	{
-		if(m_hasWeapon)
-			return;
-		m_Weapon = weapon;
-		m_hasWeapon = true;
-	}
-
-public:
-	////////////////////////////////////////////////////////////
-	/// Pick a weapon
-	////////////////////////////////////////////////////////////
-	inline void PickWeapon(object::Weapon::Info& p_Info, int p_ID)
-	{
-		WeaponID = p_ID;
-
-		m_Weapon->pInfo = p_Info;
-
-		m_hasWeapon = true;
-	}
-
-public:
-	////////////////////////////////////////////////////////////
-	///Sprite Data
-	////////////////////////////////////////////////////////////
-	Sprite *torso;
-	Sprite *legs;
-	Sprite *weapon;
-	Sprite *sparks;
-
-	std::vector<Sprite*> rawsprite;
-
-public:
-	////////////////////////////////////////////////////////////
-	///Physical Data
-	////////////////////////////////////////////////////////////
-	glm::vec3 wps;
-	glm::vec3 barrel; //gun barrel
-
-	glm::vec3 angle;
-	glm::vec3 ps;
-	glm::vec3 ipos;
-	bool running;
-
-public:
-	////////////////////////////////////////////////////////////
-	/// Weapon data
-	////////////////////////////////////////////////////////////
-	int WeaponID;
-	object::Weapon	*Weapon;
-	bool m_hasWeapon;
-
-private:
-	////////////////////////////////////////////////////////////
-	///Update sprite positions
-	////////////////////////////////////////////////////////////
-	void _updatePositions(glm::vec3& npos)
-	{
-		//Adjust position
-		if(m_hasWeapon){
-			wps = npos + (glm::vec3(2*flip,-8,0));
-		} 
-		else {
-			m_Weapon->Update(0.0f);
-			weapon->pos = m_Weapon->GetStatus().pos;
-			weapon->angle.z = m_Weapon->rot_dAngle;
-		}
-		
-		legs->pos = npos; legs->pos.y += 3;
-		torso->pos = npos; torso->pos.y += 3;
-
-		sparks->pos = barrel;
-	}
-
-private:
-	////////////////////////////////////////////////////////////
-	///Timing
-	////////////////////////////////////////////////////////////
-	sf::Clock timer;
-	float Time;
-	float flametimer;
-	float movetimer;
-	float jettimer;
-	float sparktimer;
-	float sparkcounter;
-
-private:
-	////////////////////////////////////////////////////////////
-	///Jump handling
-	////////////////////////////////////////////////////////////
-	float 	jumptimer;
-	float 	jumptime;
-	float	jumpcounter;
-	bool	jumpstate;
-
-private:
-	////////////////////////////////////////////////////////////
-	///Data
-	////////////////////////////////////////////////////////////
-	int flip;
-	glm::vec3 mVelocity;
-	float angle2cursor; //zangle relative to cursor position
-	float angleR; //angle to cursor in radians
-	bool shoot;
-	GLuint*	m_pTexture;
-	
-private:
-	////////////////////////////////////////////////////////////
-	///Jet flames handling data
-	////////////////////////////////////////////////////////////
-	Sprite *jetflame;
-	std::vector<float> jflame_alpha;
-	std::vector<glm::vec3> jflame_pos;
-	size_t	jflame_count;
-	float jflame_eraser;
-
-private:
-	////////////////////////////////////////////////////////////
-	/// Weapon data
-	////////////////////////////////////////////////////////////	
-	object::Weapon *m_Weapon;
-	int useless;
-};
-
-typedef Player<Merc> MercPlayer;
-//typedef Player MercPlayer;
 */
+};
+
 #endif //PLAYER_HEADER_GUARD

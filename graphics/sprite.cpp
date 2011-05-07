@@ -27,6 +27,7 @@
 #include "SimpleIni.h"
 #include <iostream>
 #include <ostream>
+#include <cassert>
 
 Sprite::Sprite()
 {
@@ -37,11 +38,26 @@ Sprite::Sprite()
     angle = glm::vec3(0,0,0);
     scale = glm::vec3(1,1,1);
     color = glm::vec4(1,1,1,1);
-
-    mSpeed = 0.10f;
+	textureid = -1;
+    
+	mSpeed = 0.10f;
     mPosition = 0;
     mLength = 0;
     mLastUpdate = mTimer.GetElapsedTime();
+}
+
+////////////////////////////////////////////////////////////
+/// ctor with only a .sprh header
+////////////////////////////////////////////////////////////
+Sprite::Sprite(const char *p_SPRH)
+{
+	textureid = -1; //This sprite is invalid at the moment
+
+	//Parese sprh file	
+	_parseInfo(p_SPRH);
+
+	//Build it even though you can use it
+	Build();
 }
 
 ////////////////////////////////////////////////////////////
@@ -205,6 +221,7 @@ void Sprite::Draw()
 	glUniformMatrix4fv(_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 	_quad.Draw();
 #endif
+	assert(textureid != -1);
 
 	glEnable(GL_TEXTURE_2D);{
 		glBindTexture(GL_TEXTURE_2D, textureid);
