@@ -93,7 +93,7 @@ namespace gfx
 		glm::mat4	View;
 		glm::mat4	Model;
 
-		sf::Clock	_timer;
+		sf::Clock*	_timer;
 		float		_draw_time;
 		unsigned 	_skip_frames_counter;
 

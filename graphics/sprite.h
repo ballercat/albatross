@@ -21,6 +21,7 @@
 #ifndef SPRITE_HEADER_GUARD
 #define SPRITE_HEADER_GUARD
 #include "assets.h"
+#include "timing.h"
 #include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
 #include <cstring>
@@ -66,7 +67,8 @@ public:
 		mLastUpdate(p_Copy.mLastUpdate),
 		textureid(p_Copy.textureid),
 		texdata(p_Copy.texdata),
-		vertdata(p_Copy.vertdata)
+		vertdata(p_Copy.vertdata),
+		mTime(&timing::GlobalTime::Instance())
 		{
 
 		}
@@ -91,17 +93,13 @@ public:
 		this->mPosition		= p_Copy.mPosition;
 		this->mLastUpdate	= p_Copy.mLastUpdate;
 		this->textureid		= p_Copy.textureid;
+		this->mTime			= &timing::GlobalTime::Instance();
 
 		memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
 		memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
 
 		return *this;
 	}
-
-	////////////////////////////////////////////////////////////
-	///Destructor
-	////////////////////////////////////////////////////////////
-    virtual ~Sprite();
 
     inline const void* getPixelpointer(void)
     {
@@ -117,7 +115,7 @@ public:
 	////////////////////////////////////////////////////////////
 	///Step trough frames
 	////////////////////////////////////////////////////////////
-	virtual void Step();
+	virtual void Step(void);
 
 	////////////////////////////////////////////////////////////
 	///Draw
@@ -161,8 +159,7 @@ protected:
 
 protected:
 	///Data
-
-	sf::Clock mTimer;
+	sf::Clock*	mTime;
 #ifdef SHADER_PIPELINE
 	glm::vec2 texcoord[6];
 	glm::vec3 vcoord[6];

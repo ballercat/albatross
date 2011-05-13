@@ -31,6 +31,8 @@
 #include "bullets.h"
 #include "weapon.h"
 #include "map.h"
+#include "demo.h"
+#include "timing.h"
 #include <vector>
 #include <list>
 
@@ -63,7 +65,8 @@ public:
 	//int Execute(void);
 
 	///Main game loop
-	void Run(void);
+	void Run(const char *p_DemoFile = NULL);
+	void MainMenu();
 
 	static int BeginCollision(cpArbiter *arb,cpSpace *space,void *unused);
 	static cpBool w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client);
@@ -78,6 +81,9 @@ public:
 		
 		std::string mapfile;	//bgmf file path
 		std::string cursorfile;	//cursor .png file path
+		std::string	demoFile;	//bgdf file path
+		bool		demoPlay;
+		bool		demoRecord;
 
 		int			fpslimit;	//Frame Rate Limit(0 to disable)
 		int			frameskip;	//Number skipping(0 to disable)
@@ -91,11 +97,13 @@ public:
 
 private:
 	///Member Data
+	GameDemo						Demo;
 	InputHandlerMixin<Input>*       mInput;
 	gfx::FixedPipeline*    			display;
 	Player*		                    mPlayer;
 	physics::PhysicsSimulator*      mPhysics;
 	GenericHeap<Bullet>             Bullets;
+	sf::Clock*						mTime;
 	bgmf    *map;
 
 	float lastupdate;
@@ -107,6 +115,7 @@ private:
 	Sprite* Explosion;
 	bool	expld;
 
+	float	currentTime;
 	GameSprites		gs; //THE ALMIGHTY GAME SPRITE
 private:
 	////////////////////////////////////////////////////////////

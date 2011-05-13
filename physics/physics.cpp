@@ -63,12 +63,13 @@ void PhysicsSimulator::AddCollision(int p_One,
 									void *p_Data,
 									cpCollisionBeginFunc p_Begin, 
 									cpCollisionPreSolveFunc p_Pre,
+									cpCollisionPostSolveFunc p_Post,
 									cpCollisionSeparateFunc p_Sep)
 {
 	cpSpace *space = Simulator::Instance().GetWorldHandle();
 			
 	cpSpaceAddCollisionHandler(	space,p_One, p_Two, 
-								p_Begin, p_Pre, NULL, p_Sep, p_Data);	
+								p_Begin, p_Pre, p_Post, p_Sep, p_Data);
 }
 
 ////////////////////////////////////////////////////////////

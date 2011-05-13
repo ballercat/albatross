@@ -29,6 +29,9 @@
 #include <ostream>
 #include <cassert>
 
+////////////////////////////////////////////////////////////
+/// Default ctor
+////////////////////////////////////////////////////////////
 Sprite::Sprite()
 {
     width = 50; height = 50;
@@ -43,7 +46,8 @@ Sprite::Sprite()
 	mSpeed = 0.10f;
     mPosition = 0;
     mLength = 0;
-    mLastUpdate = mTimer.GetElapsedTime();
+	mTime	= &timing::GlobalTime::Instance();
+    mLastUpdate = mTime->GetElapsedTime();
 }
 
 ////////////////////////////////////////////////////////////
@@ -72,13 +76,11 @@ Sprite::Sprite(const char *fpath, GLuint texid)
 	_parseInfo(fpath);
 
 	textureid = texid;
-	mLastUpdate = mTimer.GetElapsedTime();
+
+	mTime		= &timing::GlobalTime::Instance();
+	mLastUpdate = mTime->GetElapsedTime();
 	Build();
 }
-
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-Sprite::~Sprite(void){}
 
 ////////////////////////////////////////////////////////////
 /// Parse a .sprh file(Sprite header)
@@ -171,10 +173,17 @@ void Sprite::Build()
 #endif
 }
 
+////////////////////////////////////////////////////////////
+/// Step trough the frames
+////////////////////////////////////////////////////////////
 void Sprite::Step(void)
 {
-    float t = mTimer.GetElapsedTime();
-	float dt = t - mLastUpdate;
+	//Don't waste time with static sprites
+	if(!mLength)
+		return;
+
+	float t		= mTime->GetElapsedTime();
+	float dt 	= t - mLastUpdate;
 	if( dt >= mSpeed )
     {
         mPosition+=int(dt/mSpeed);
@@ -203,14 +212,7 @@ void Sprite::Step(void)
 }
 
 void Sprite::Draw()
-{/*
-	vcoord[0] = glm::vec3(pos.x - pivot.x * width, pos.y - pivot.y * height, 0);
-	vcoord[1] = glm::vec3(pos.x - pivot.x * width, pos.y + (1 - pivot.y) * height,0);
-	vcoord[2] = glm::vec3(pos.x + (1 - pivot.x) * width, pos.y  + (1 - pivot.y) * height,0);
-	vcoord[3] = glm::vec3(pos.x - pivot.x * width, pos.y - pivot.y * height, 0);
-	vcoord[4] = glm::vec3(pos.x + (1 - pivot.x) * width, pos.y + (1 - pivot.y) * height,0);
-	vcoord[5] = glm::vec3(pos.x + (1 - pivot.x) * width, pos.y - pivot.y * height,0);
-	_quad.VertexPointer(vcoord, 6*sizeof(glm::vec3)); */
+{
 #ifdef SHADER_PIPELINE
 	view = glm::translate(gMatrix()[3], pos);
 	view = glm::scale(view, scale);
@@ -227,16 +229,18 @@ void Sprite::Draw()
 		glBindTexture(GL_TEXTURE_2D, textureid);
 		//Translate
 		glPushMatrix();{
-			//glLoadIdentity();
+
 			glTranslated(pos.x, pos.y, 0.0f);
+
 			glScalef(scale.x, scale.y, scale.z);
+
 			glRotatef(angle.x, 0.0f, -1.0f, 0.0f);
 			glRotatef(angle.z, 0.0f, 0.0f, 1.0f);
 
 			//Color
 			glColor4f( color.x, color.y, color.z, color.a );
 
-			//vertdataexdataes
+			//Draw the triangles
 			glBegin(GL_TRIANGLES);{
 				glTexCoord2f( texdata[0].x, texdata[0].y );
 				glVertex3f( vertdata[0].x, vertdata[0].y, vertdata[0].z );

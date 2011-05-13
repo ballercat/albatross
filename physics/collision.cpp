@@ -141,13 +141,46 @@ cpBool PreSolve::PlayerWorld(PRESOLVEVARS)
 	return cpTrue;
 }
 
+void Post::BulletWorld(POSTSOLVEVARS)
+{
+	CP_ARBITER_GET_SHAPES(arb, a, b);
+
+	Bullet *bullet = (Bullet*)b->data;
+	//mark the bullet object as dead
+	cpVect imp = cpArbiterGetNormal(arb, 0);
+
+	//Get bullet vector
+	glm::vec3 h = bullet->lastpos - bullet->pos;
+	//Convert normal vector
+	glm::vec3 n = glm::vec3(imp.x, imp.y, 0);
+	//find theta of ground normal and bullet vector
+	float t = glm::degrees(glm::atan(n.y, n.x) - glm::atan(h.y, h.x));
+	//Apply state to the bullet
+	if(glm::abs(t) < 84.0f)
+		bullet->Status = BulletStatus::Dead;
+
+	bullet->Hit = Bullet::HitSpot( bullet->pos,
+							_cTimer.GetElapsedTime(),
+							bullet->Type );
+
+	cpVect i = cpArbiterTotalImpulse(arb);
+
+}
 
 ///Separate Handlers
 
 //Player
 void Separate::PlayerWorld(SEPARATEVARS)
 {
+	CP_ARBITER_GET_SHAPES(arb, a, b);
 
+	Bullet *bullet = (Bullet*)b->data;
+	//mark the bullet object as dead
+	bullet->Status = BulletStatus::Dead;
+
+	bullet->Hit = Bullet::HitSpot( bullet->pos,
+							_cTimer.GetElapsedTime(),
+							bullet->Type );
 }
 
 

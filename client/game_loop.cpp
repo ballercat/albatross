@@ -19,44 +19,99 @@
 
 
 #include "gameclient.h"
+#include <cstdio>
 
-static sf::Clock Time;
+static glm::vec3 dmp;
 
 //Timing constants
 #define FPS100			(0.01f)
 #define FPS60			(0.016666666666666666666666666666667f)
+#define FPS50			(0.02f)
 #define FPS45			(0.022222222222222222222222222222222f)
 #define FPS40			(0.025f)
 #define FPS25			(0.04f)
 #define FPS20			(0.05f)
 #define FRAME_TIME		FPS40
-#define PHYSICS_STEPS	(10)
+#define PHYSICS_STEPS	(40)
 #define PHYSICS_DELTA	FPS40
-#define PHYSICS_PERSTEP	(0.0025f)
+#define PHYSICS_PERSTEP	(0.000625f)
+#define INPUT_LATENCY	(FPS50)
 
+//#define PHYSICS_PERSTEP	(PHYSICS_DELTA/PHYSICS_STEPS)
 
 //Inplace game loop function
-void MainClient::Run(void)
+void MainClient::Run(const char *p_DemoFile)
 {
+	if(info.demoPlay)
+	{
+		Demo.ReadFile(info.demoFile.c_str());
+		printf("%i\n", Demo[Demo.PC].Tick);
+	}
 	//Timing
+	mTime->Reset();
+	mTicks = 0;
 	static float delta = 0.0f;
-	float curtime = Time.GetElapsedTime();
-	float oldtime = curtime;
+	currentTime = mTime->GetElapsedTime();
+	float oldtime = currentTime;
+	float inputlag = currentTime;
 
-	glm::vec3 dmp, mp, ps;
+	GameDemo::Command *cmd = NULL;
+
+	glm::vec3 mp, ps;
 
 	//state
 	bool quit = false;
-	bool updated = false;
 	Bullet* bullet;
 
 	//Main game loop
 	while(!quit){
 		//Update time
-		curtime = Time.GetElapsedTime();
+		currentTime = mTime->GetElapsedTime();
 
-		//game updates
-		while((curtime - oldtime) > FRAME_TIME)
+		//Input updates
+		while((currentTime - inputlag) >= INPUT_LATENCY){
+			mp = mInput->InputState().mouse.pos;
+
+			if(info.demoPlay){
+
+
+				while(Demo.PC < Demo.Data.size() && Demo[Demo.PC].Tick == mTicks)
+				{
+					cmd = &Demo[Demo.PC];
+					mMessageQueue.Push(cmd->ID);
+
+					Demo.PC++;
+				}
+
+				if(Demo.PC >= Demo.Data.size())
+				{
+					mMessageQueue.Push(message::GMSG_QUITGAME);
+				}
+
+				if(cmd){
+					dmp = cmd->Cursor;
+				}
+				else {
+					mInput->Parse();
+					dmp = display->stw(mp);
+				}
+			}
+			else{
+				//Handle Input
+				mInput->Parse();
+				mInput->HandleKeyboard();
+				mInput->HandleMouse();
+
+				dmp = display->stw(mp);
+			}
+
+			quit = _handleMessages();
+
+			inputlag += INPUT_LATENCY;
+		}
+
+		//Physics updates and world updates
+		while((currentTime - oldtime) >= FRAME_TIME)
 		{
 			for(size_t k=0;k<PHYSICS_STEPS;k++)
 				mPhysics->Step(PHYSICS_PERSTEP);
@@ -77,21 +132,13 @@ void MainClient::Run(void)
 			}
 			Bullets.Flush();
 
-			mPlayer->Step(dmp, curtime);
+			mPlayer->Step(dmp, currentTime);
 
 			ps = mPlayer->pPos;
 
 			oldtime += FRAME_TIME;
-			updated = true;
+			mTicks++;
 		}
-
-		//Handle Input
-		mInput->Parse();
-		mInput->HandleKeyboard();
-		mInput->HandleMouse();
-
-		mp = mInput->InputState().mouse.pos;
-		dmp = display->stw(mp);
 
 		display->zoom.x += mInput->InputState().mouse.wheel * 0.05f;
 		display->zoom.y += mInput->InputState().mouse.wheel * 0.05f;
@@ -103,7 +150,7 @@ void MainClient::Run(void)
 		display->cursor.pos = dmp + mPlayer->pIPos;
 		//display->cursor.pos /= display->zoom;
 
-		delta = curtime - oldtime;
+		delta = currentTime - oldtime;
 
 		//Draw everything
 		display->beginScene();{
@@ -121,9 +168,11 @@ void MainClient::Run(void)
 			//Draw all the bullets
 			_drawBullets(delta);
 
+			#ifdef NDEBUG
 			if(info.debug)
 				DebugDrawPhysics();
-			
+			#endif
+
 			//Draw the player with interpolate
 			mPlayer->Draw(delta);
 
@@ -141,9 +190,10 @@ void MainClient::Run(void)
 			display->drawFPS();
 		}display->endScene();
 
-		quit = _handleMessages();
-		updated = false;
 	}
+
+	if(info.demoRecord)
+		Demo.Save("demo.bgdf");
 }
 
 bool MainClient::_handleMessages(void)
@@ -160,6 +210,7 @@ bool MainClient::_handleMessages(void)
             case message::GMSG_SPAWNOBJECT:
                 break;
             case message::GMSG_QUITGAME:
+				mMessageQueue.Clear();
                 return true;
                 break;
             case message::GMSG_JUMPBEGIN:
@@ -179,11 +230,11 @@ bool MainClient::_handleMessages(void)
                 break;
             case message::GMSG_FIRE:
             {
-                t = Time.GetElapsedTime();
+                t = mTime->GetElapsedTime();
                 if(t - lastbullet < 0.10f)
                     break;
                 lastbullet = t;
-                glm::vec3 dest = display->stw(mInput->InputState().mouse.pos);
+                glm::vec3 dest = dmp;
                	Bullet *bullet = mPlayer->Shoot(dest);	
 				if(bullet != NULL)
 					Bullets.Add(bullet); 
@@ -201,6 +252,10 @@ bool MainClient::_handleMessages(void)
 				break;
 			}
 
+		}
+
+		if(info.demoRecord){
+			Demo.PushCommand(msgType, dmp, mTicks);
 		}
         mMessageQueue.Pop();
         }

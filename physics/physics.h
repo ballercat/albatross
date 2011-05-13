@@ -92,6 +92,7 @@ public:
 								void *p_Data=NULL,
 								cpCollisionBeginFunc p_Begin=NULL, 
 								cpCollisionPreSolveFunc p_Pre=NULL,
+								cpCollisionPostSolveFunc p_Post=NULL,
 								cpCollisionSeparateFunc p_Sep=NULL);
 
 private:

@@ -70,7 +70,6 @@ Player::Player(glm::vec3 p_Location, GLuint *Texture)
 	mJetSprite		= Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]);	
 	mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
 
-	jetflame		= &mJetFlameSprite;
 	mBody			= &mIdleSprite;
 	mSparks			= &mJetFlameSprite;
 
@@ -93,53 +92,12 @@ Player::Player(glm::vec3 p_Location, GLuint *Texture)
 	mJumpState		= false;
 	mRunning		= false;
 	
-	jflame_alpha.assign(10,0.0f);
-	jflame_pos.assign(10,glm::vec3());
-	jflame_count = 0;
-	
+	mJetFlames.assign(10, FlameData());
+	mFC = 0;
+
 	MercObject.Spawn(p_Location);
 	MercObject.Initialize();
 	MercObject.id = 2;
-	/*
-	MercObject.Spawn(loc);
-	MercObject.Initialize();
-	MercObject.id = 2;
-
-	rawsprite.push_back(new Sprite("assets/sprite/merc/still.sprh",Texture[PLAYER_TORSO]));
-	rawsprite.push_back(new Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]));
-	rawsprite.push_back(new Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]));
-
-	jetflame = new Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
-
-	sparks = new Sprite("assets/sprite/ak47/ak47fire.sprh", Texture[AK47_FIRE]);
-
-	torso = rawsprite[0];
-	legs = rawsprite[1];
-
-	shoot = false;
-	running = false;
-	flip = 0;
-
-	m_Weapon = new object::Weapon();
-	m_Weapon->Initialize();
-
-	pHasWeapon = true;
-
-	//Jet flames
-	jflame_alpha.assign(10,0.0f);
-	jflame_pos.assign(10,glm::vec3());
-	jflame_count = 0;
-
-	//Timing
-	Time = 0.0f;
-	jflame_eraser = Time;
-	jettimer = Time;
-	flametimer = Time;
-	jumptimer = Time;
-	jumptime = Time;
-	jumpstate = false;
-	wps = glm::vec3(0,0,0);
-*/	
 }
 
 ////////////////////////////////////////////////////////////
@@ -192,6 +150,24 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 
 	pBarrelPos.x = 23.0f*(glm::cos(-mAngleR)) + pPos.x;
 	pBarrelPos.y = 23.0f*(glm::sin(-mAngleR)) + pPos.y;
+
+	//Set Apropriate sprite
+	switch(pAction()){
+		case ActState::IDLE:
+			mBody = &mIdleSprite;
+			break;
+		case ActState::RUNNING:
+		{
+			mBody = &mRunningSprite;
+			//Adjust running sprite speed
+			float r = (MercObject.myStatus.v.x > 0) ? 1 : -1;
+			mBody->mSpeed = (r * 15.0f)/(MercObject.myStatus.v.x);
+			break;
+		}
+		case ActState::JETTING:
+			mBody = &mJetSprite;
+			break;
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -201,22 +177,21 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 void Player::Draw(float interpolate)
 {
 	
-	float dt = pTime.Current - jflame_eraser;
-	jflame_eraser = pTime.Current;
+	float dt = pTime() - pTime.Flame.Timer;
+	pTime.Flame.Timer = pTime();
 
 	for(size_t k = 0; k < 10; k++){
-		if(jflame_alpha[k] > 0.0f){
-			jetflame->color.a = jflame_alpha[k];
-			jetflame->pos = jflame_pos[k];
-			jetflame->angle.z += dt*80.0f;
-			jetflame->Draw();
+		if(mJetFlames[k].Alpha > 0.0f){
+			mJetFlameSprite.color.a = mJetFlames[k].Alpha;
+			mJetFlameSprite.pos 	= mJetFlames[k].Pos;
+			mJetFlameSprite.angle.z	+= dt*80.0f;
+			mJetFlameSprite.Draw();
 
-			jetflame->pos.x += 3*mFlip;
-			jetflame->pos.y += 8.0f;
-			jetflame->Draw();
+			mJetFlameSprite.pos.x += 3*mFlip;
+			mJetFlameSprite.pos.y += 8.0f;
+			mJetFlameSprite.Draw();
 
-			jflame_alpha[k] -= dt;
-			jflame_pos[k].y -= dt*50;
+			mJetFlames[k].Update(dt, dt*50.0f);
 		}
 	}
 	
@@ -230,26 +205,12 @@ void Player::Draw(float interpolate)
 		_updatePositions(pPos);
 	}
 
-	switch(pAction()){
-		case ActState::IDLE:
-			mBody = &mIdleSprite;
-			break;
-		case ActState::RUNNING:
-		{
-			mBody = &mRunningSprite;
-			float r = (MercObject.myStatus.v.x > 0) ? 1 : -1;
-			mBody->mSpeed = (r * 15.0f)/(MercObject.myStatus.v.x);
-			break;
-		}
-		case ActState::JETTING:
-			mBody = &mJetSprite;
-			break;
-	}
-	
+	//Set sprite position, angle. Draw
 	mBody->pos = pIPos;
 	mBody->angle.x = pAngle.x;
 	mBody->Step();
 	mBody->Draw();
+
 }
 
 ////////////////////////////////////////////////////////////
@@ -258,7 +219,6 @@ void Player::Draw(float interpolate)
 void Player::Jet(void)
 {
 	mJetSprite.Step();
-	mBody = &mJetSprite;	
 	pAction[ActState::JETTING] = true;
 	
 	// Apply jets if timer allows it 
@@ -267,16 +227,14 @@ void Player::Jet(void)
 		pTime.Jet.Stamp = pTime.Current;
 	}
 
-	// Jet flame counter
-	if(pTime.Current - flametimer > 0.03){
-		jflame_count++;
-		if(jflame_count > 10){
-			jflame_count = 1;
-		}
-		jflame_alpha[jflame_count-1] = 1.0f;
-		jflame_pos[jflame_count-1] = glm::vec3(pPos.x+(12*mFlip),pPos.y-15,0.0f);
+	// Jet flame timer
+	if(pTime.Current - pTime.Flame.Stamp > 0.03){
+		//Set jet position, alpha
+		mJetFlames[mFC] = FlameData(1.0f, glm::vec3(pPos.x+(12*mFlip),pPos.y-15,0.0f));
+		mFC = ((mFC+1) > 9) ? 0 : (mFC+1);
 
-		flametimer = pTime.Current;
+		//Timestamp the jetflame
+		pTime.Flame.Stamp = pTime.Current;
 	}
 }
 
@@ -286,9 +244,7 @@ void Player::Jet(void)
 void Player::Right(void)
 {
 	mRunningSprite.Step();
-	mBody = &mRunningSprite;
 	pAction[ActState::RUNNING] = true;
-	mRunning = true;
 
 	if(pTime.Diff(pTime.Move.Stamp) > 0.001f){
 		MercObject.Right();
@@ -302,8 +258,6 @@ void Player::Right(void)
 void Player::Left(void)
 {
 	mRunningSprite.Step();
-	mBody = &mRunningSprite;	
-	mRunning = true;
 	pAction[ActState::RUNNING] = true;
 	
 	if(pTime.Diff(pTime.Move.Stamp) > 0.001f){
@@ -347,8 +301,6 @@ Bullet* Player::Shoot(glm::vec3& p_Dest)
 {
 	if(!pHasWeapon)
 		return NULL;
-	//sparktimer = pTime.Current;
-	//sparkcounter = 0.35f;
 
 	Bullet *bullet = pWeapon.Shoot();
 	bullet->pos = pBarrelPos;
@@ -406,5 +358,5 @@ void Player::PickWeapon(object::Weapon::Info& p_Info, int p_ID)
 void Player::_updatePositions(glm::vec3& npos)
 {
 	//Adjust position	
-	pWeaponPos = npos + (glm::vec3(2*mFlip,-8,0));
+	pWeaponPos = npos + (glm::vec3(5*mFlip,-10,0));
 }

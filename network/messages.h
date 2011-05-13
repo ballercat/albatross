@@ -80,7 +80,9 @@ public:
 
     void inline Clear(void)
     {
-        mMessages.empty();
+		size_t length = mMessages.size();
+        for(size_t k = 0; k < length;k++)
+			mMessages.pop();
     }
 private:
     std::queue<int>    mMessages;

@@ -24,6 +24,7 @@
 #include "bullets.h"
 #include "assets.h"
 #include "weapon.h"
+#include "timing.h"
 #include <vector>
 #include <iostream>
 
@@ -78,11 +79,23 @@ public:
 		ATimer	Jump;
 		ATimer	Move;
 		ATimer	Jet;
+		ATimer	Flame;
 		ATimer	Shoot;
+		sf::Clock *pTIMER;
+
+		Timing()
+		{
+			pTIMER	= &timing::GlobalTime::Instance();
+		}
 
 		inline float Diff(float& p_Timer)
 		{
 			return (Current - p_Timer);
+		}
+
+		inline float operator()(void)
+		{
+			return pTIMER->GetElapsedTime();
 		}
 	};
 
@@ -90,12 +103,13 @@ public:
 	Timing	pTime;
 
 public:
-	glm::vec3	pWeaponPos;
-	glm::vec3	pBarrelPos;
-	glm::vec3	pAngle;
-	glm::vec3	pPos;
-	glm::vec3	pIPos;
+	glm::vec3	pWeaponPos; //weapon position
+	glm::vec3	pBarrelPos;	//gun barrel position
+	glm::vec3	pAngle;		//angle to the cursor
+	glm::vec3	pPos;		//physical position
+	glm::vec3	pIPos;		//interpolated position
 
+public:
 	int				pWeaponID;
 	object::Weapon	pWeapon;
 	bool			pHasWeapon;
@@ -117,7 +131,10 @@ private:
 			SHOOTING,
 			STATECOUNT
 		};
-		
+
+		////////////////////////////////////////////////////////////
+		/// default ctor
+		////////////////////////////////////////////////////////////
 		ActState()
 		{
 			Current	= IDLE;
@@ -127,7 +144,10 @@ private:
 			mStateData[ActState::JETTING]	= false;
 			mStateData[ActState::SHOOTING]	= false;
 		}
-			
+
+		////////////////////////////////////////////////////////////
+		/// Active state
+		////////////////////////////////////////////////////////////
 		inline int& operator()(void)
 		{
 			Current = ActState::IDLE;
@@ -147,7 +167,10 @@ private:
 			
 			return Swap;
 		}
-		
+
+		////////////////////////////////////////////////////////////
+		/// Acess
+		////////////////////////////////////////////////////////////
 		inline bool& operator[](int& p_ID)
 		{
 			return mStateData[p_ID];
@@ -180,66 +203,45 @@ private:
 private:
 	Merc		MercObject;
 
-	Sprite*     jetflame;
-	std::vector<float>  jflame_alpha;
-	std::vector<glm::vec3>  jflame_pos;
-	size_t  jflame_count;
-	float   jflame_eraser;
+	Sprite		mFlameSprite[10];
+	struct	FlameData{
+		FlameData()
+		{
+			Alpha 	= 0.0f;
+			Pos		= glm::vec3(0.f,0.f,0.f);
+		}
+
+		FlameData(float p_Alpha, glm::vec3 p_Pos)
+		{
+			Alpha = p_Alpha;
+			Pos	  = p_Pos;
+		}
+
+		inline FlameData& operator=(const FlameData& p_Copy)
+		{
+			Alpha = p_Copy.Alpha;
+			Pos	  = p_Copy.Pos;
+
+			return *this;
+		}
+
+		inline void Update(float p_AlphaDelta, float p_PosDelta)
+		{
+			Alpha 	-= p_AlphaDelta;
+			Pos.y	-= p_PosDelta;
+		}
+
+		float		Alpha;
+		glm::vec3	Pos;
+	};
+
+	std::vector<FlameData>	mJetFlames;
+	size_t	mFC; //flame counter
+
     float   sparktimer;
     float   sparkcounter;
-	float 	flametimer;
 
-/*
-public:
-    Sprite *torso;
-    Sprite *legs;
-    Sprite *weapon;
-    Sprite *sparks;
 
-    std::vector<Sprite*> rawsprite;
-
-    //Physical data
-    glm::vec3 wps;
-    glm::vec3 barrel;
-    glm::vec3 angle;
-    glm::vec3 ps;
-    glm::vec3 ipos;
-    bool      running;
-
-    //Weapon
-    int     WeaponID;
-    object::Weapon  *Weapon;
-    bool        pHasWeapon;
-
-private:
-	Merc	MercObject;
-    float   Time;
-    float   flametimer;
-    float   movetimer;
-    float   jettimer;
-    float   sparktimer;
-    float   sparkcounter;
-
-    //jumps
-    float   jumptimer;
-    float   jumptime;
-    float   jumpcounter;
-    float   jumpstate;
-
-    int     flip;
-    glm::vec3   mVelocity;
-    float   angle2cursor;
-    float   angleR;
-    bool    shoot;
-
-    Sprite*     jetflame;
-    std::vector<float>  jflame_alpha;
-    std::vector<glm::vec3>  jflame_pos;
-    size_t  jflame_count;
-    float   jflame_eraser;
-
-    object::Weapon *m_Weapon;
-*/
 };
 
 #endif //PLAYER_HEADER_GUARD

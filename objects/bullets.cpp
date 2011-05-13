@@ -62,6 +62,11 @@ void BulletPlain::Initialize(void)
 
     myStatus.val = BulletStatus::Active;
 
+	glm::vec3 dn = pos - des;
+	pAngle = -glm::degrees(-glm::atan(dn.y, dn.x));
+
+
+
     myStatus.lastup = gclock.GetElapsedTime();
     lastpos = pos;
 
@@ -76,20 +81,16 @@ const BulletStatus& BulletPlain::Update(void)
     if(myDuration < 0){
         myStatus.val = BulletStatus::Dead;
     }
-    myStatus.lastup = t;
+
+	lastpos = pos;
     pos = myBody->GetLocation();
 
 	pVelocity = myBody->GetVelocity();
 
-	pVelocity = startV + pVelocity;
-    float a;
-    glm::vec3 dn;
-    dn = pos - lastpos;
-    a = glm::degrees(-glm::atan(dn.y,dn.x));
-    pos.x -= 2;
-    pos.y += 5;
+	glm::vec3 dn = lastpos - pos;
+    pAngle = -glm::degrees(-glm::atan(dn.y, dn.x));
 
-	pAngle = -a;
+	myStatus.lastup = t;
 
     return myStatus;
 }
@@ -133,8 +134,6 @@ void Explosive::Initialize(void)
 	cpVect e = cpv(des.x, des.y);
 	cpFloat d = cpvdist(s, e);
 	cpFloat t = d/pSpeed;
-
-	glm::vec3 im = des - pos;
 
 	cpBodySetVel(&m_phProjectile->GetBodyDef(), cpv(startV.x,startV.y));
 	m_phProjectile->Move(des, t);

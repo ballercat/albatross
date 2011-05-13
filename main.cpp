@@ -17,20 +17,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef TYPES_HEADER
-#define TYPES_HEADER
 
-#ifndef NULL
-	#define NULL	0
-#endif
+#include "gameclient.h"
+#include "server.h"
+#include <cstdio>
 
-#include<stdint.h>
-#include<SFML/System/Clock.hpp>
+int main(int argc, char** argv)
+{
+    LocalHost  GameServer;
+    MainClient GameClient;
 
-typedef void(*fp)(void*);
-typedef void(*fp_void)(void);
+    printf("%s\n",GameServer.GetServerName().c_str());
 
-#define D2R(d)	float((float(d))/(57.29578))
-#define R2D(r)	float((float(r))*(57.29578))
+    GameClient.MainMenu();
 
-#endif
+    return 0;
+}

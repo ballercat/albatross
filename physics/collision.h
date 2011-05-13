@@ -24,6 +24,7 @@
 
 #define BEGINVARS	cpArbiter *arb, cpSpace *space, void *data
 #define PRESOLVEVARS BEGINVARS
+#define POSTSOLVEVARS BEGINVARS
 #define SEPARATEVARS BEGINVARS
 
 namespace collision
@@ -50,6 +51,12 @@ namespace collision
 	{
 		//Player
 		static cpBool PlayerWorld(PRESOLVEVARS);
+	};
+
+	struct Post
+	{
+		//Bullet World
+		static void BulletWorld(POSTSOLVEVARS);
 	};
 
 	struct Separate

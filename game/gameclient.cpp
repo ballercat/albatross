@@ -58,7 +58,6 @@ MainClient::MainClient(void) :
 		_populateSprites();
 
 		//Display settings
-		display->setCursor(info.cursorfile.c_str());
 		display->Window->SetFramerateLimit(info.fpslimit);
 
 		//Physics
@@ -123,6 +122,9 @@ MainClient::MainClient(void) :
 	mInput->HandleMouse();
 	
 	mMessageQueue.Clear();
+	currentTime = 0.0f;
+
+	mTime	= &timing::GlobalTime::Instance();
 } //MainClient::MainClient
 
 ////////////////////////////////////////////////////////////
@@ -216,7 +218,7 @@ void MainClient::_drawBullets(float& delta)
 ////////////////////////////////////////////////////////////
 void MainClient::_initCollisionHandlers(cpSpace *space)
 {	
-	mPhysics->AddCollision(MAPPOLYGON, BULLET, this, collision::Begin::BulletWorld);
+	mPhysics->AddCollision(MAPPOLYGON, BULLET, this, NULL, NULL, collision::Post::BulletWorld);//collision::Begin::BulletWorld);
 	mPhysics->AddCollision(EXPLOSIVE, MAPPOLYGON, this, collision::Begin::ExplosiveWorld);
 	mPhysics->AddCollision(EXPLOSION, PLAYER, this, collision::Begin::ExplosionObject);
 	mPhysics->AddCollision(EXPLOSIVE, PLAYER, this, collision::Begin::ExplosiveObject);

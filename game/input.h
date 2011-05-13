@@ -254,7 +254,15 @@ class Input
         /// Mouse definitions
         struct Mouse
         {
-            Mouse() : buttondown(false) {}
+            Mouse() : buttondown(false)
+			{
+				pos 	= glm::vec3(0,0,0);
+				diff 	= glm::vec3(0,0,0);
+				left	= 0;
+				right	= 0;
+				middle	= 0;
+				lastup	= 0.0f;
+			}
 
             glm::vec3 pos;
             glm::vec3 diff;

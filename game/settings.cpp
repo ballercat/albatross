@@ -15,6 +15,9 @@ void MainClient::_loadGameSettings(void)
 	//Input .ini file settings
 	info.debug			= ini.GetBoolValue("Settings", "debug");
 	info.mapfile 		= ini.GetValue("Settings", "map");
+	info.demoFile		= ini.GetValue("Settings", "demo");
+	info.demoPlay		= ini.GetBoolValue("Settings", "play");
+	info.demoRecord		= ini.GetBoolValue("Settings", "record");
 
 	info.fullscreen 	= ini.GetBoolValue("Window", "fullscreen");
 	info.window_width	= ini.GetLongValue("Window", "width");

@@ -59,7 +59,7 @@ public:
             Static,
             Dead
         };
-        deprecated::GenVec3d    des; ///> destination
+        glm::vec3    des; ///> destination
         glm::vec3    pos; ///> postion
         int         val; ///> status value
 		glm::vec3	v; ///> velocity

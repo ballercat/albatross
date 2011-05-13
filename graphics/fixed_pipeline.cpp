@@ -19,6 +19,7 @@
 
 
 #include "fixed_pipeline.h"
+#include "timing.h"
 #include <cstdio>
 
 using namespace gfx;
@@ -31,6 +32,7 @@ FixedPipeline::FixedPipeline(	unsigned pWidth,
 								const char* name,
 								bool fullscreen	)
 {
+	_timer	= &timing::GlobalTime::Instance();
 	_width	= pWidth;
 	_height = pHeight;
 
@@ -83,7 +85,7 @@ FixedPipeline::FixedPipeline(	unsigned pWidth,
 
 	FrameTime = 0.0f;
 	_skip_frames_counter = 0;
-	_draw_time = _timer.GetElapsedTime();
+	_draw_time = _timer->GetElapsedTime();
 }
 
 ////////////////////////////////////////////////////////////
@@ -128,7 +130,7 @@ void FixedPipeline::setCursor(const char* fpath)
 ////////////////////////////////////////////////////////////
 void FixedPipeline::beginScene()
 {
-	_draw_time = _timer.GetElapsedTime();
+	_draw_time = _timer->GetElapsedTime();
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -157,7 +159,7 @@ void FixedPipeline::endScene()
 		Window->Display();
 	}
 
-	float t = _timer.GetElapsedTime();
+	float t = _timer->GetElapsedTime();
 	FrameTime = t - _draw_time;
 	_draw_time = t;
 
