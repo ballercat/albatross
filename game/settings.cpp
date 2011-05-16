@@ -96,3 +96,34 @@ void MainClient::_populateSprites(void)
 		}
 	}
 }
+
+////////////////////////////////////////////////////////////
+/// Load a map
+////////////////////////////////////////////////////////////
+void MainClient::_loadMap(const char *p_MapPath)
+{
+	if(map != NULL){
+		bgmfdelete(map);
+		map = NULL;
+
+		mPhysics->remAllStaticShapes();
+	}
+
+	//Load the map
+	map = bgmfopen(p_MapPath);
+
+	//Polygon vertexes
+	glm::vec3 v0,v1,v2;
+
+	//Add polygons to the space
+	for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
+	{
+		v0 = p->data[0];
+		v1 = p->data[1];
+		v2 = p->data[2];
+
+		mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
+		mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
+		mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+	}
+}

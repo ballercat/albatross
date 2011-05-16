@@ -19,6 +19,8 @@
 
 
 #include "gui.h"
+#include "slider.h"
+#include "panel.h"
 
 GUIsystem::GUIsystem(sf::RenderWindow *window,Input *input,EventQueue* eq) :
 	Pick(0)
@@ -326,61 +328,11 @@ void GUIsystem::drawWidgets()
         guiWidget *widget;
         for(size_t k=0;k<_widgets.size();k++){
             widget = _widgets[k];
-            if(widget->shapes.size()){
-                for(size_t j=0;j<widget->shapes.size();j++){
-                    out->Draw(*(widget->shapes[j]));
+            if(widget->pShapes.size()){
+                for(size_t j=0;j<widget->pShapes.size();j++){
+                    out->Draw(*(widget->pShapes[j]));
                 }
             }
         }
     }
 }
-guiSlider::guiSlider(size_t id, int _x, int _y, size_t length, guiWidget* parent)
-{
-    _parent = parent;
-    x = _x;
-    y = _y;
-    if(_parent){
-        x = _parent->x + x;
-        y = _parent->y + x;
-    }
-
-    w = 20;
-    h = length;
-
-    _bg = sf::Shape::Rectangle(x, y, x+w, y+h, GUICOLOR_BACKDROP);
-    _area = sf::Rect<int>(x,y,x+w,y+h);
-    _dial = sf::Shape::Rectangle(x, y+h, x+w, y+h-10, GUICOLOR_FOREGROUND);
-    _dial_area = sf::Rect<int>(x,y,x+w,y+h);
-
-    shapes.push_back(&_bg);
-    shapes.push_back(&_dial);
-}
-
-guiSlider::~guiSlider()
-{
-    shapes.clear();
-    strings.clear();
-}
-
-bool guiSlider::update(Input* in)
-{
-    int mx = in->GetInput().GetMouseX();
-    int my = in->GetInput().GetMouseY();
-    bool left = in->IsMouseButtonDown(Input::Mouse::Left);
-
-    if(_area.Contains(mx,my) && left){
-        int dh = my - _area.Bottom;
-        _dial_area = sf::Rect<int>(x, y+dh, x+w, y+dh-10);
-        _dial = sf::Shape::Rectangle(x, y+h+dh, x+w, y+h+dh-10, GUICOLOR_FOREGROUND);
-        in->mState.mouse.left = false;
-        val = -dh;
-
-        if(_onclick){
-            (*_onclick)(this, _onclick_data);
-        }
-
-        return true;
-    }
-    return false;
-}
-

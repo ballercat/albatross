@@ -71,6 +71,12 @@ public:
 		ATimer() : Stamp(0.0f), Timer(0.0f) {}
 		float Stamp; //timestamp
 		float Timer;
+
+		inline void Reset(void)
+		{
+			Stamp	= 0.0f;
+			Timer	= 0.0f;
+		}
 	};
 
 	//Timing struct
@@ -101,6 +107,18 @@ public:
 
 	//Global Timing
 	Timing	pTime;
+
+public:
+
+	inline void ResetTiming(void)
+	{
+		pTime.Current = pTime.pTIMER->GetElapsedTime();
+		pTime.Flame.Reset();
+		pTime.Jet.Reset();
+		pTime.Shoot.Reset();
+		pTime.Move.Reset();
+		pTime.Jump.Reset();
+	}
 
 public:
 	glm::vec3	pWeaponPos; //weapon position

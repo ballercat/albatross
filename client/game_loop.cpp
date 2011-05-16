@@ -50,10 +50,14 @@ void MainClient::Run(const char *p_DemoFile)
 	//Timing
 	mTime->Reset();
 	mTicks = 0;
-	static float delta = 0.0f;
 	currentTime = mTime->GetElapsedTime();
 	float oldtime = currentTime;
 	float inputlag = currentTime;
+	float delta = 0.0f;
+
+	printf("Current Time: %f\n", currentTime);
+
+	mPlayer->ResetTiming();
 
 	GameDemo::Command *cmd = NULL;
 
@@ -140,8 +144,8 @@ void MainClient::Run(const char *p_DemoFile)
 			mTicks++;
 		}
 
-		display->zoom.x += mInput->InputState().mouse.wheel * 0.05f;
-		display->zoom.y += mInput->InputState().mouse.wheel * 0.05f;
+		display->zoom.x += mInput->InputState().mouse.wheel * 0.005f;
+		display->zoom.y += mInput->InputState().mouse.wheel * 0.005f;
 
 		//NOTE: camera position is INTERPOLATED position of player
 		//NOT physical position
@@ -182,9 +186,7 @@ void MainClient::Run(const char *p_DemoFile)
 			_drawHits();
 
 			//Draw the cursor
-			glPushMatrix();
 			display->cursor.Draw();
-			glPopMatrix();
 
 			//Draw fps
 			display->drawFPS();
@@ -230,10 +232,10 @@ bool MainClient::_handleMessages(void)
                 break;
             case message::GMSG_FIRE:
             {
-                t = mTime->GetElapsedTime();
-                if(t - lastbullet < 0.10f)
-                    break;
-                lastbullet = t;
+                //t = mTime->GetElapsedTime();
+                //if(t - lastbullet < 0.10f)
+                    //break;
+                //lastbullet = t;
                 glm::vec3 dest = dmp;
                	Bullet *bullet = mPlayer->Shoot(dest);	
 				if(bullet != NULL)

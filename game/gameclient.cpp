@@ -66,6 +66,7 @@ MainClient::MainClient(void) :
     	cpBody *staticBody = &space->staticBody;
 		
 		//Load the map, plug in polygon values into the game
+		/*
 		map = bgmfopen(info.mapfile.c_str());
     	glm::vec3 v0,v1,v2;
     	for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
@@ -84,7 +85,8 @@ MainClient::MainClient(void) :
         	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v2.x,v2.y),cpv(v0.x,v0.y),0.0f));
         	shape->e = 1.0f; shape->u = 1.0f;
         	shape->collision_type = MAPPOLYGON;
-    	}
+    	}*/
+		map = NULL;
 
 		//Bind bullet collision handlers
 		_initCollisionHandlers(space);

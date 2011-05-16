@@ -21,8 +21,11 @@
 #define GUI_HEADER_GUARD
 
 #include<SFML/Graphics.hpp>
+#include<glm/glm.hpp>
 #include<vector>
 #include<string>
+
+#include "widget.h"
 #include "input.h"
 
 struct sel_block
@@ -64,31 +67,6 @@ struct evtgui_click{
     }
 };
 
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-struct guiWidget
-{
-public:
-    virtual ~guiWidget(){};
-    virtual bool update(Input* _in) = 0;
-
-    std::vector<sf::Shape*> shapes;
-    std::vector<sf::String*> strings;
-    int x, y, w, h;
-
-    virtual void SetOnClickCallback(void (*OnClick)(guiWidget*,void*),void *data)
-    {
-        _onclick = OnClick;
-        _onclick_data = data;
-    }
-
-protected:
-    guiWidget *_parent;
-    sf::Rect<int> _area;
-    bool selected;
-    void (*_onclick)(guiWidget*,void*);
-    void *_onclick_data;
-};
 
 ////////////////////////////////////////////////////////////
 ///Menu bar
@@ -133,26 +111,6 @@ private:
 };
 
 ////////////////////////////////////////////////////////////
-/// Slider widget
-////////////////////////////////////////////////////////////
-struct guiSlider : public guiWidget
-{
-public:
-    guiSlider(size_t id, int _x, int _y,size_t length, guiWidget* parent=NULL);
-    virtual bool update(Input* in);
-    virtual ~guiSlider();
-
-    size_t val;
-private:
-    size_t _length;
-    sf::Shape _bg;
-    sf::Shape _dial;
-    sf::String _name;
-
-    sf::Rect<int> _dial_area;
-};
-
-////////////////////////////////////////////////////////////
 /// GUI system
 ////////////////////////////////////////////////////////////
 class GUIsystem
@@ -191,6 +149,7 @@ public:
 	/// Add a slider widget
 	////////////////////////////////////////////////////////////
 	size_t AddSlider(int _x, int _y, size_t length);
+
 
 	////////////////////////////////////////////////////////////
 	/// Set a widgets callback function

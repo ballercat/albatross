@@ -302,6 +302,11 @@ Bullet* Player::Shoot(glm::vec3& p_Dest)
 	if(!pHasWeapon)
 		return NULL;
 
+	if(pTime.Current - pTime.Shoot.Timer < pWeapon.pInfo.Rate)
+		return NULL;
+
+	pTime.Shoot.Timer = pTime.Current;
+
 	Bullet *bullet = pWeapon.Shoot();
 	bullet->pos = pBarrelPos;
 	bullet->des = pBarrelPos + p_Dest;

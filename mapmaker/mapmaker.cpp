@@ -5,6 +5,7 @@
 #include "messages.h"
 #include "assets.h"
 #include "gui.h"
+#include "slider.h"
 #include <glm/gtc/type_ptr.hpp>
 
 
@@ -178,13 +179,8 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
     }
 }
 
-int main(int argc,char** argv)
+void MapMaker::Run()
 {
-    message::Queue MessageQueue;
-    Input* input = new Input();
-    gfx::FixedPipeline* display;
-
-    display = new gfx::FixedPipeline(1024, 600, "map maker");
     input->Window = display->Window;
 
     LoadTextures("textures.ini",display->Texture);
@@ -195,8 +191,7 @@ int main(int argc,char** argv)
     std::vector<glm::vec3> vertex;
     glm::vec3 mouse_delta;
 
-    MapMaker mm;
-    mm.loadMap("assets/maps/test.bgmf");
+    loadMap("assets/maps/test.bgmf");
 
     //Menu and gui controlls
     gui.AddOption(gui.File,OPEN_FILE_ID,"Open");
@@ -223,15 +218,15 @@ int main(int argc,char** argv)
     //Vertex movement
     glm::vec3 vertex_color = glm::vec3(1,1,1);
 
-    mm.colorR = 0.0f;
-    mm.colorG = 0.0f;
-    mm.colorB = 0.0f;
+    colorR = 0.0f;
+    colorG = 0.0f;
+    colorB = 0.0f;
     size_t slider = gui.AddSlider(100,100,255);
-    gui.SetWidgetCallback(slider, ONCLICK_CALLBACK, &OnRedSliderClick, &mm.colorR);
+    gui.SetWidgetCallback(slider, ONCLICK_CALLBACK, &OnRedSliderClick, &colorR);
     slider = gui.AddSlider(70, 100, 255);
-    gui.SetWidgetCallback(slider, ONCLICK_CALLBACK, &OnGreenSliderClick, &mm.colorG);
+    gui.SetWidgetCallback(slider, ONCLICK_CALLBACK, &OnGreenSliderClick, &colorG);
     slider = gui.AddSlider(40, 100, 255);
-    gui.SetWidgetCallback(slider, ONCLICK_CALLBACK, &OnBlueSliderClick, &mm.colorB);
+    gui.SetWidgetCallback(slider, ONCLICK_CALLBACK, &OnBlueSliderClick, &colorB);
 
     MapMaker::change_struct *change = NULL;
 
@@ -259,67 +254,67 @@ int main(int argc,char** argv)
                         break;
                     case SAVE_FILE_ID:
                         printf("Saving map.....");
-                        mm.saveMap("assets/maps/test.bgmf");
+                        saveMap("assets/maps/test.bgmf");
                         printf("done\n");
                         break;
                     case DELETE_VERTEX_ID:
                         break;
                     case MOVE_VERTEX_ID:
-                        if(change == &mm.move_vertex){
+                        if(change == &move_vertex){
                             change->vertex = NULL;
                             change = NULL;
                         }
                         else {
-                            change = &mm.move_vertex;
+                            change = &move_vertex;
                             change->vertex = NULL;
                         }
                         break;
                     case SNAP_VERTEX_ID:
-                        mm.vertex_snap = !mm.vertex_snap;
-                        if(change == &mm.move_vertex){
+                        vertex_snap = !vertex_snap;
+                        if(change == &move_vertex){
                             change->vertex = NULL;
                         }
                         break;
                     case COLOR_VERTEX_ID:
-                        if(change == &mm.color_vertex){
+                        if(change == &color_vertex){
                             change->vertex_color = NULL;
                             change = NULL;
                         }
                         else {
-                            change = &mm.color_vertex;
+                            change = &color_vertex;
                             change->vertex_color = NULL;
                         }
                         break;
                     case DELETE_POLY_ID:
-                        if(change == &mm.remove_poly){
+                        if(change == &remove_poly){
                             change->poly = NULL;
                             change = NULL;
                         } else {
-                            change = &mm.remove_poly;
+                            change = &remove_poly;
                             change->poly = NULL;
                             change->remove = true;
                         }
                         break;
                     case MOVE_POLY_ID:
-                        if(change == &mm.move_poly){
+                        if(change == &move_poly){
                             change->poly = NULL;
                             change = NULL;
                         }
                         else {
-                            change = &mm.move_poly;
+                            change = &move_poly;
                             change->poly = NULL;
                             change->color = false;
                         }
 
                         break;
                     case COLOR_POLY_ID:
-                        if(change == &mm.color_poly){
+                        if(change == &color_poly){
                             change->poly = NULL;
                             change->index = 0;
                             change = NULL;
                         }
                         else {
-                            change = &mm.color_poly;
+                            change = &color_poly;
                             change->poly = NULL;
                             change->color = true;
                         }
@@ -329,9 +324,9 @@ int main(int argc,char** argv)
             EQ.pop();
         }
 
-        mm.mouse = display->stw(input->mState.mouse.pos);
-		mm.mouse /= display->zoom;
-		mm.mouse += display->camera;
+        mouse = display->stw(input->mState.mouse.pos);
+		mouse /= display->zoom;
+		mouse += display->camera;
 
         if(input->mState.StaticKey[Input::Key::Q]){
             change = NULL;
@@ -350,18 +345,18 @@ int main(int argc,char** argv)
             //picks
             if(input->mState.mouse.left){
                 if(change){
-                    input->mState.mouse.left = !mm.Pick(change, 5);
+                    input->mState.mouse.left = !Pick(change, 5);
                 }
                 if(!change && input->mState.mouse.left){
                     //rogue vertex
-                    vertex.push_back(mm.mouse);
+                    vertex.push_back(mouse);
                     if(vertex.size() == 3){
                         //Create a new Polygon
                         bgmf_poly poly = bgmf_poly(vertex[0],vertex[1],vertex[2]);
                         bgmf_poly_tex tc = bgmfdefaulttc;
                         uint32_t m = POLY_SOLID | POLY_VISIBLE;
                         bgmf_color color = bgmfdefaultcol;
-                        bgmfappend(mm.map, m, tc, color, poly);
+                        bgmfappend(map, m, tc, color, poly);
 
                         vertex.clear();
                     }
@@ -370,7 +365,7 @@ int main(int argc,char** argv)
                 input->mState.mouse.left = false;
             }
 
-            mm.ApplyChange(change, input->IsMouseButtonDown(Input::Mouse::Left));
+            ApplyChange(change, input->IsMouseButtonDown(Input::Mouse::Left));
 		}
 
         if(input->mState.mouse.wheel){
@@ -381,33 +376,33 @@ int main(int argc,char** argv)
 		glClearColor(0.5f,0.7f,0.8f,1.0f);
         display->beginScene();
 
-        if(mm.map){
+        if(map){
 
             //Draw all the polygons
-            display->drawArray( &mm.map->poly[0],
-                                &mm.map->texcoord[0],
-                                &mm.map->color[0],
-                                mm.map->header.pc*3,
+            display->drawArray( &map->poly[0],
+                                &map->texcoord[0],
+                                &map->color[0],
+                                map->header.pc*3,
                                 GL_TRIANGLES,
                                 display->Texture[WORLD_PLAIN] );
 
-            if(change == &mm.move_poly || change == &mm.remove_poly ||
-               change == &mm.color_poly)
+            if(change == &move_poly || change == &remove_poly ||
+               change == &color_poly)
             {
                 glm::vec4 c;
                 if(change->move)
                     c = glm::vec4(0.0f,1.0f,0.0f,1.0f);
                 else if(change->remove)
                     c = glm::vec4(1.0f,0.0f,0.0f,1.0f);
-                else if(change == &mm.color_poly)
+                else if(change == &color_poly)
                    c = glm::vec4(1.0f,0.0f,1.0f,1.0f);
 
                 bgmf_color color(c,c,c);
 				bgmf_poly *p;
 
-                for(size_t k = 0; k < mm.map->header.pc;k++){
-					p = &mm.map->poly[k];
-                    if(PointInTriangle(mm.mouse, p->data[0], p->data[1], p->data[2])){
+                for(size_t k = 0; k < map->header.pc;k++){
+					p = &map->poly[k];
+                    if(PointInTriangle(mouse, p->data[0], p->data[1], p->data[2])){
 
 						glColor4f(c.x,c.y,c.z,c.w);/*
 						glBegin(GL_LINE_LOOP);
@@ -422,25 +417,25 @@ int main(int argc,char** argv)
 
 			
             //Draw vertexes
-            if(change == &mm.move_vertex){
+            if(change == &move_vertex){
                 //Draw every vertex green
                 glPointSize(5.0f);
                 glColor3f(0.0f,1.0f,0.0f);
-                display->drawArray( &mm.map->poly[0],
+                display->drawArray( &map->poly[0],
                                     NULL,
                                     NULL,
-                                    mm.map->header.pc*3,
+                                    map->header.pc*3,
                                     GL_POINTS,
                                     0 );
             }
             else {
                 //Draw regular colors
-            if(change == &mm.color_vertex)
+            if(change == &color_vertex)
                 glPointSize(8.0f);
-            display->drawArray( &mm.map->poly[0],
+            display->drawArray( &map->poly[0],
                                 NULL,
-                                &mm.map->color[0],
-                                mm.map->header.pc*3,
+                                &map->color[0],
+                                map->header.pc*3,
                                 GL_POINTS,
                                 0 );
             }
@@ -465,25 +460,25 @@ int main(int argc,char** argv)
 			display->drawArray(&glm::vec3(0,0,0)[0], NULL, NULL, 1, GL_POINTS, 0);
 
 			bgmf_poly polygon(glm::vec3(-435,-100,0),glm::vec3(-480,-55,0),glm::vec3(-390,-55,0));
-			glColor3f(mm.colorR,mm.colorG,mm.colorB);
+			glColor3f(colorR,colorG,colorB);
 			drawTexPolygon(&polygon, display->Texture[WORLD_PLAIN]);
 			glPointSize(1.0f);
 		}glPopMatrix();
 
-        mm.mode_string = "Mode: Normal";
-        if(change == &mm.move_poly)
-            mm.mode_string = "Mode: Move Polygon";
-        else if(change == &mm.color_vertex)
-            mm.mode_string = "Mode: Color Vertex";
-        else if(change == &mm.move_vertex)
-            mm.mode_string = "Mode: Move Vertex";
-        else if(change == &mm.remove_poly)
-            mm.mode_string = "Mode: Delete Polygon";
-        else if(change == &mm.color_poly)
-            mm.mode_string = "Mode: Color Polygon";
+        mode_string = "Mode: Normal";
+        if(change == &move_poly)
+            mode_string = "Mode: Move Polygon";
+        else if(change == &color_vertex)
+            mode_string = "Mode: Color Vertex";
+        else if(change == &move_vertex)
+            mode_string = "Mode: Move Vertex";
+        else if(change == &remove_poly)
+            mode_string = "Mode: Delete Polygon";
+        else if(change == &color_poly)
+            mode_string = "Mode: Color Polygon";
 
 
-        display->drawText(glm::vec3(0,580,0),mm.mode_string.c_str(),12);
+        display->drawText(glm::vec3(0,580,0),mode_string.c_str(),12);
         gui.drawMenu();
         gui.drawPopupMenu();
         gui.drawWidgets();
@@ -492,11 +487,10 @@ int main(int argc,char** argv)
 
         display->endScene();
 
-        mm.lastmouse = mm.mouse;
+        lastmouse = mouse;
 
     }
 
-    return 0;
 }
 
 void OnRedSliderClick(guiWidget *wig, void *value)

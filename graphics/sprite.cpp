@@ -183,7 +183,13 @@ void Sprite::Step(void)
 		return;
 
 	float t		= mTime->GetElapsedTime();
+
+	//Global Time can be reset, need to account for that so..
+	if( t < mLastUpdate )
+		mLastUpdate = t - mSpeed;
+
 	float dt 	= t - mLastUpdate;
+
 	if( dt >= mSpeed )
     {
         mPosition+=int(dt/mSpeed);

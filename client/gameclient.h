@@ -33,19 +33,37 @@
 #include "map.h"
 #include "demo.h"
 #include "timing.h"
+#include "mapmaker.h"
 #include <vector>
 #include <list>
 
+////////////////////////////////////////////////////////////
+/// Sprites required for the game
+////////////////////////////////////////////////////////////
 struct GameSprites{
 	//Sprites used in-game
 	std::vector<Sprite>	Bullet;
 	std::vector<Sprite>	Weapon;
 	std::vector<Sprite>	Expl;
 
+	//HUD sprites
+	struct MenuSprites{
+		Sprite	StartGame;
+		Sprite	ExitGame;
+	} menu;
+
 	//Underlying OpenGL textures
 	std::vector<GLuint>	bulletTex;
 	std::vector<GLuint>	weaponTex;
 	std::vector<GLuint> explTex;
+};
+
+////////////////////////////////////////////////////////////
+/// In-game HUD, menu and menu input
+////////////////////////////////////////////////////////////
+struct GameHUD
+{
+
 };
 
 ////////////////////////////////////////////////////////////
@@ -64,10 +82,19 @@ public:
 	//Game-step... deprecated
 	//int Execute(void);
 
+	////////////////////////////////////////////////////////////
 	///Main game loop
+	////////////////////////////////////////////////////////////
 	void Run(const char *p_DemoFile = NULL);
+
+	////////////////////////////////////////////////////////////
+	/// Run main menu
+	////////////////////////////////////////////////////////////
 	void MainMenu();
 
+	////////////////////////////////////////////////////////////
+	/// Collision handlers NOTE:DEPRECTATED
+	////////////////////////////////////////////////////////////
 	static int BeginCollision(cpArbiter *arb,cpSpace *space,void *unused);
 	static cpBool w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client);
 
@@ -96,27 +123,65 @@ public:
 	GameInfo	info; //Game information
 
 private:
-	///Member Data
+	////////////////////////////////////////////////////////////
+	/// Load settings
+	////////////////////////////////////////////////////////////
+	void _loadGameSettings(void);
+	void _populateSprites(void);
+	void _loadMap(const char *p_MapPath);
+
+
+////////////////////////////////////////////////////////////
+///Member Data
+////////////////////////////////////////////////////////////
+private:
+	//Demo data
 	GameDemo						Demo;
+
+private:
+	//IO
 	InputHandlerMixin<Input>*       mInput;
 	gfx::FixedPipeline*    			display;
-	Player*		                    mPlayer;
-	physics::PhysicsSimulator*      mPhysics;
-	GenericHeap<Bullet>             Bullets;
-	sf::Clock*						mTime;
-	bgmf    *map;
 
+private:
+	//Physics
+	physics::PhysicsSimulator*      mPhysics;
+
+private:
+	//Main player data
+	Player*		                    mPlayer;
+	GenericHeap<Bullet>             Bullets;
+
+private:
+	//Timing
+	float							currentTime;
+	sf::Clock*						mTime; //pointer to the global time
+
+private:
+	//Map data
+	bgmf*							map;
+	MapMaker						mm;
+
+private:
+	//NOTE: Remove these
 	float lastupdate;
 	float lastbullet;
 	float inputupdate;
 	float objectupdate;
 
+private:
+	//Hacked sprites
 	Sprite* Tree;
 	Sprite* Explosion;
+
+private:
+	//More hacking in of features
 	bool	expld;
 
-	float	currentTime;
+private:
+	//Graphics
 	GameSprites		gs; //THE ALMIGHTY GAME SPRITE
+
 private:
 	////////////////////////////////////////////////////////////
 	/// Weapons
@@ -160,13 +225,6 @@ private:
 		p_Sprite->pos = p_Pos + (p_Delta * p_Velocity);
 		p_Sprite->Draw();
 	}
-
-private:
-	////////////////////////////////////////////////////////////
-	/// Load settings
-	////////////////////////////////////////////////////////////
-	void _loadGameSettings(void);
-	void _populateSprites(void);
 
 private:
 	////////////////////////////////////////////////////////////		

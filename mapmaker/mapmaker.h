@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <string>
 #include "map.h"
-#include <SFML/Graphics.hpp>
+#include "fixed_pipeline.h"
 #include "input.h"
 
 struct Poly{
@@ -36,6 +36,9 @@ public:
         remove_poly.remove = true;
         remove_poly.pick_poly = true;
     }
+
+	void Run();
+
     bool saveMap(const char *fpath)
     {
         bgmfsave(map, "assets/maps/test.bgmf");
@@ -143,6 +146,10 @@ public:
     change_struct   remove_poly;
 
     float colorR,colorG,colorB;
+
+    Input* input;
+    gfx::FixedPipeline* display;
+	//message::Queue *MessageQueue;
 };
 
 

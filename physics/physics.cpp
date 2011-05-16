@@ -73,7 +73,56 @@ void PhysicsSimulator::AddCollision(int p_One,
 }
 
 ////////////////////////////////////////////////////////////
-/// Physics Object Impl
+/// Add a static shape
+////////////////////////////////////////////////////////////
+int PhysicsSimulator::addStaticSegmentShape(glm::vec3& p_Vert0, glm::vec3& p_Vert1, int p_Type)
+{
+	cpShape* shape = cpSpaceAddShape(mySpace, cpSegmentShapeNew(&mySpace->staticBody,
+											cpv(p_Vert0.x,p_Vert0.y),
+											cpv(p_Vert1.x,p_Vert1.y), 0.0f));
+
+	if(!shape)
+		return -1;
+
+	shape->e = 1.0f;
+	shape->u = 1.0f;
+	shape->collision_type = p_Type;
+
+	int shapeID = m_staticShapes.size();
+
+	m_staticShapes.push_back(shape);
+
+	return shapeID;
+}
+
+////////////////////////////////////////////////////////////
+/// Remove a static shape
+////////////////////////////////////////////////////////////
+void PhysicsSimulator::remStaticShape(int p_ShapeID)
+{
+	//TODO: Something here would be nice...
+}
+
+////////////////////////////////////////////////////////////
+/// Remove all static shapes
+////////////////////////////////////////////////////////////
+void PhysicsSimulator::remAllStaticShapes()
+{
+	std::list<cpShape*>::iterator	iter;
+	cpShape *remShape = NULL;
+
+	for(iter = m_staticShapes.begin(); iter != m_staticShapes.end(); ++iter){
+		remShape = *(iter);
+
+		cpSpaceRemoveShape(mySpace, remShape);
+		cpShapeFree(remShape);
+	}
+
+	m_staticShapes.clear();
+}
+
+////////////////////////////////////////////////////////////
+/// Physics Object ctor
 ////////////////////////////////////////////////////////////
 PhysicsObject::PhysicsObject(void) :
     myMass(0.0f),
@@ -85,13 +134,19 @@ PhysicsObject::PhysicsObject(void) :
 
 }
 
+////////////////////////////////////////////////////////////
+/// Kill object(remove shape from world
+////////////////////////////////////////////////////////////
 void PhysicsObject::Kill(void)
 {
 	cpSpaceRemoveShape(mWorldPtr, myShapeDef);
 	cpShapeFree(myShapeDef);
 	m_Spawn = false;
 }
-	
+
+////////////////////////////////////////////////////////////
+/// dtor
+////////////////////////////////////////////////////////////
 PhysicsObject::~PhysicsObject(void)
 {
 	if(m_Spawn)

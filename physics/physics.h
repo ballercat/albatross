@@ -26,6 +26,7 @@
 #include"generics.h"
 #include<chipmunk/chipmunk.h>
 #include<vector>
+#include<list>
 #include<glm/glm.hpp>
 #include<cassert>
 
@@ -84,6 +85,14 @@ public:
 
 public:
 	////////////////////////////////////////////////////////////
+	/// Static Shapes
+	////////////////////////////////////////////////////////////
+	int 	addStaticSegmentShape(glm::vec3& p_Vert0, glm::vec3& p_Vert1, int p_Type);
+	void	remStaticShape(int p_ShapeID);
+	void	remAllStaticShapes();
+
+public:
+	////////////////////////////////////////////////////////////
 	/// Add collision handler: 
 	/// AddCollision(type1, type2); <-- clear all handlers
 	////////////////////////////////////////////////////////////		
@@ -100,6 +109,7 @@ private:
     // Member Data
     ////////////////////////////////////////////////////////////
     cpSpace     *mySpace;
+	std::list<cpShape*>	m_staticShapes;
 };
 
 ////////////////////////////////////////////////////////////

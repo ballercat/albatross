@@ -26,12 +26,14 @@ void MainClient::MainMenu()
     bool quit = false;
 	bool ostart = false;
 	bool oexit = false;
+	bool omapmaker = false;
 
 	float centerw = info.window_width/2;
 	float centerh = info.window_height/2;
 
 	MMOption optStart(centerw, centerh-100, 40, 20);
-	MMOption optExit(centerw, centerh-80, 40, 20);
+	MMOption optMapMaker(centerw, centerh-80, 40, 20);
+	MMOption optExit(centerw, centerh-60, 40, 20);
 
 	glm::vec3 mouse = glm::vec3(0,0,0);
 
@@ -48,6 +50,15 @@ void MainClient::MainMenu()
 				ostart = false;
 			}
 
+			if(optMapMaker.box.Contains(mouse.x, mouse.y)){
+				display->drawText(optMapMaker.pos, "[MAP MAKER]", 12);
+				omapmaker = true;
+			}
+			else{
+				display->drawText(optMapMaker.pos, "MAP MAKER", 12);
+				omapmaker = false;
+			}
+
 			if(optExit.box.Contains(mouse.x, mouse.y)){
 				display->drawText(optExit.pos, "[EXIT]", 12);
 				oexit = true;
@@ -60,9 +71,18 @@ void MainClient::MainMenu()
 			if(mInput->mState.mouse.left){
 				if(ostart){
 					display->setCursor(info.cursorfile.c_str());
+					_loadMap(info.mapfile.c_str());
 					Run();
 					display->Window->ShowMouseCursor(true);
 					ostart = false;
+				}
+				else if(omapmaker){
+					mm.input = mInput;
+					mm.display = display;
+					mInput->mState.mouse.left = false;
+					mm.Run();
+					display->zoom = glm::vec3(1,1,1);
+					omapmaker = false;
 				}
 				else if(oexit){
 					return;
