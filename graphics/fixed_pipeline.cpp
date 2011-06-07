@@ -89,6 +89,57 @@ FixedPipeline::FixedPipeline(	unsigned pWidth,
 }
 
 ////////////////////////////////////////////////////////////
+/// ctor from a window handle
+////////////////////////////////////////////////////////////
+FixedPipeline::FixedPipeline(sf::WindowHandle p_Handle, const char* name)
+{
+	Window 	= new sf::RenderWindow(p_Handle);
+	Window->PreserveOpenGLStates(true);
+
+	_timer 	= &timing::GlobalTime::Instance();
+	_width	= Window->GetWidth();
+	_height	= Window->GetHeight();
+
+	camera 	= glm::vec3(0,0,0);
+	zoom	= glm::vec3(1,1,1);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DITHER);
+	glDisable(GL_DEPTH_TEST);
+
+	GLenum err = glewInit();
+	if(GLEW_OK != err)
+		exit(0x20202);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glViewport(0, 0, _width, _height);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-(_width/2),(_width/2),-(_height/2),(_height/2),-5.0f, 5.0f);
+
+	//Matrices
+	Model = View = glm::mat4();
+	Projection = glm::ortho(-(_width/2),(_width/2),-(_height/2),(_height/2),-5.0f, 5.0f);
+
+	//general text
+	_text.SetText("NULL");
+	_text.SetPosition(0,0);
+	_text.SetColor(sf::Color(0,0,0));
+	//Fps
+	_fps.SetText("0");
+	_fps.SetPosition(0,0);
+	_fps.SetColor(sf::Color(0,255,0));
+	_fps.SetSize(14);
+
+	FrameTime = 0.0f;
+	_skip_frames_counter = 0;
+	_draw_time = _timer->GetElapsedTime();
+}
+
+////////////////////////////////////////////////////////////
 void FixedPipeline::resizeWindow(int w, int h)
 {
 	//void

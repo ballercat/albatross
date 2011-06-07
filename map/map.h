@@ -29,6 +29,31 @@
 #define POLY_SOLID 0x02
 
 ////////////////////////////////////////////////////////////
+/// glm::vec3(x,y,unused) Polygon-Vertex
+/// Not actually used in the map representation
+/// Used for reperesenting vertexes in the mapmaker etc.,
+////////////////////////////////////////////////////////////
+struct bgmf_vert
+{
+	bgmf_vert() :
+		pPos(NULL),
+		pCol(NULL)
+	{
+		//void
+	}
+
+	bgmf_vert(glm::vec3 *p_Position, glm::vec4 *p_Color) :
+		pPos(p_Position),
+		pCol(p_Color)
+	{
+		//void
+	}
+
+	glm::vec3	*pPos;
+	glm::vec4	*pCol;
+};
+
+////////////////////////////////////////////////////////////
 /// 3xglm::vec3(x,y,unused) Map-polygon struct
 ////////////////////////////////////////////////////////////
 struct bgmf_poly

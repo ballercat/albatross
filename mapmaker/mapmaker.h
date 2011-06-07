@@ -17,6 +17,9 @@ struct MapMaker
 {
 public:
 
+	////////////////////////////////////////////////////////////
+	/// ctor
+	////////////////////////////////////////////////////////////
     MapMaker()
     {
         load = false;
@@ -35,9 +38,14 @@ public:
         color_poly.pick_poly = true;
         remove_poly.remove = true;
         remove_poly.pick_poly = true;
+
+		pick_vertex.pick_vertex = true;
+
+		change = NULL;
     }
 
 	void Run();
+	void Step();
 
     bool saveMap(const char *fpath)
     {
@@ -108,17 +116,20 @@ public:
             pick_vertex = false;
             pick_poly = false;
             pick_color = false;
+			picked = false;
             index = 0;
         }
         bgmf_poly   *poly;
         glm::vec3   *vertex;
         glm::vec4   *vertex_color;
+		bgmf_vert	pVert;
         bool move;
         bool color;
         bool remove;
         bool pick_vertex;
         bool pick_poly;
         bool pick_color;
+		bool picked;
 
         size_t      index;
     };
@@ -144,11 +155,17 @@ public:
     change_struct   color_vertex;
     change_struct   color_poly;
     change_struct   remove_poly;
+	change_struct	pick_vertex;
+	change_struct	pick_polygon;
+
+	change_struct*	change;
 
     float colorR,colorG,colorB;
 
     Input* input;
     gfx::FixedPipeline* display;
+	EventQueue	pEvents;
+
 	//message::Queue *MessageQueue;
 };
 

@@ -33,7 +33,6 @@
 #include "map.h"
 #include "demo.h"
 #include "timing.h"
-#include "mapmaker.h"
 #include <vector>
 #include <list>
 
@@ -160,7 +159,6 @@ private:
 private:
 	//Map data
 	bgmf*							map;
-	MapMaker						mm;
 
 private:
 	//NOTE: Remove these
