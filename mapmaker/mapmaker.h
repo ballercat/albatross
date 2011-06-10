@@ -16,45 +16,30 @@ struct Poly{
 struct MapMaker
 {
 public:
+	MapMaker();
 
-	////////////////////////////////////////////////////////////
-	/// ctor
-	////////////////////////////////////////////////////////////
-    MapMaker()
-    {
-        load = false;
-        vertex_snap = false;
+public:
+	struct change_struct;
 
-        mode_string = "Mode: Normal";
-        map = NULL;
-
-        move_poly.move = true;
-        move_poly.pick_poly = true;
-        move_vertex.move = true;
-        move_vertex.pick_vertex = true;
-        color_vertex.color = true;
-        color_vertex.pick_color = true;
-        color_poly.color = true;
-        color_poly.pick_poly = true;
-        remove_poly.remove = true;
-        remove_poly.pick_poly = true;
-
-		pick_vertex.pick_vertex = true;
-
-		change = NULL;
-    }
-
-	void Run();
 	void Step();
+    bool Pick(change_struct *ch, size_t range);
+    void ApplyChange(change_struct *ch, bool leftdown);
 
+public:
+	////////////////////////////////////////////////////////////
+	/// Save map file
+	////////////////////////////////////////////////////////////
     bool saveMap(const char *fpath)
     {
-        bgmfsave(map, "assets/maps/test.bgmf");
+        bgmfsave(map, fpath);
 
         return true;
     }
 
-    bool loadMap(const char *fpath)
+	////////////////////////////////////////////////////////////
+	/// Load map file
+	////////////////////////////////////////////////////////////
+	bool loadMap(const char *fpath)
     {
         if(map){
             bgmfdelete(map);
@@ -70,8 +55,10 @@ public:
         return true;
     }
 
-    //This will find a vertex in 10px by 10px area
-    inline glm::vec3* findVertex(float& mx, float &my,glm::vec3* ignore=NULL)
+	////////////////////////////////////////////////////////////
+	/// This will find a vertex in 10px by 10px area
+    ////////////////////////////////////////////////////////////
+	inline glm::vec3* findVertex(float& mx, float &my,glm::vec3* ignore=NULL)
     {
         static float area = 10.0f;
         glm::vec3 *v = NULL;
@@ -104,52 +91,75 @@ public:
         return final;
     }
 
+	////////////////////////////////////////////////////////////
+	/// Change property struct
+	////////////////////////////////////////////////////////////
     struct change_struct{
-        change_struct()
-        {
-            poly = NULL;
-            vertex = NULL;
-            vertex_color = NULL;
-            move = false;
-            color = false;
-            remove = false;
-            pick_vertex = false;
-            pick_poly = false;
-            pick_color = false;
-			picked = false;
-            index = 0;
-        }
-        bgmf_poly   *poly;
-        glm::vec3   *vertex;
-        glm::vec4   *vertex_color;
-		bgmf_vert	pVert;
-        bool move;
-        bool color;
-        bool remove;
-        bool pick_vertex;
-        bool pick_poly;
-        bool pick_color;
-		bool picked;
+	public:
+		////////////////////////////////////////////////////////////
+		/// ctor
+		////////////////////////////////////////////////////////////
+		change_struct() { this->Clear(); }
 
-        size_t      index;
+	public:
+		////////////////////////////////////////////////////////////
+		/// Clear all the data
+		////////////////////////////////////////////////////////////
+		inline void Clear(void)
+		{
+			poly		= NULL;
+			vertex		= NULL;
+			vertex_color = NULL;
+			move		= false;
+			color		= false;
+			remove		= false;
+			pick_vertex	= false;
+			pick_poly	= false;
+			select		= false;
+			picked		= false;
+			index		= 0;
+		}
+
+	public:
+		////////////////////////////////////////////////////////////
+		/// data
+		////////////////////////////////////////////////////////////
+        bgmf_poly   	*poly;
+        glm::vec3   	*vertex;
+        glm::vec4   	*vertex_color;
+		bgmf_vert		pVert;
+		bgmf_poly_view	pPolygon;
+        bool 			move;
+        bool 			color;
+        bool 			remove;
+        bool 			pick_vertex;
+        bool 			pick_poly;
+        bool 			pick_color;
+		bool			select;
+		bool 			picked;
+
+        size_t      	index;
     };
 
-    bool Pick(change_struct *ch, size_t range);
-    void ApplyChange(change_struct *ch, bool leftdown);
-
-    //Data
+public:
+    /// Data
     bool load;
     bool vertex_snap;
-
+	std::vector<glm::vec3> vertex;
     glm::vec3 mouse;
     glm::vec3 lastmouse;
 
-    std::string mode_string;
-
     bgmf *map;
 
-    std::vector<glm::vec3> vertex;
+public:
+	/// Graphics data
+	struct GfxData {
+		std::vector<GLuint>	Texture;
+		std::vector<Sprite>	Scenery;
+	} gfx;
 
+public:
+	/// Change structs
     change_struct   move_poly;
     change_struct   move_vertex;
     change_struct   color_vertex;
@@ -157,16 +167,14 @@ public:
     change_struct   remove_poly;
 	change_struct	pick_vertex;
 	change_struct	pick_polygon;
-
 	change_struct*	change;
 
-    float colorR,colorG,colorB;
+public:
+	/// Events & IO
+    Input				*input;
+    gfx::FixedPipeline	*display;
+	EventQueue			pEvents;
 
-    Input* input;
-    gfx::FixedPipeline* display;
-	EventQueue	pEvents;
-
-	//message::Queue *MessageQueue;
 };
 
 

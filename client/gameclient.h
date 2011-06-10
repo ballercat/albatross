@@ -51,6 +51,13 @@ struct GameSprites{
 		Sprite	ExitGame;
 	} menu;
 
+	//Map
+	struct MapData{
+		std::vector<GLuint>	Texture; //polygon textures
+		std::vector<Sprite>	Scenery;	 //static sprites
+		std::vector<Sprite> AnimScenery; //animated sprties
+	} map;
+
 	//Underlying OpenGL textures
 	std::vector<GLuint>	bulletTex;
 	std::vector<GLuint>	weaponTex;

@@ -23,6 +23,7 @@
 #include<glm/glm.hpp>
 #include<stdint.h>
 #include<vector>
+#include<string>
 
 //Map polygon masks
 #define POLY_VISIBLE 0x01
@@ -119,6 +120,32 @@ struct bgmf_color
 };
 
 ////////////////////////////////////////////////////////////
+/// Helper map polygon struct
+////////////////////////////////////////////////////////////
+struct bgmf_poly_view
+{
+public:
+	////////////////////////////////////////////////////////////
+	/// ctor
+	////////////////////////////////////////////////////////////
+	bgmf_poly_view() :
+		pTID(0),
+		pP(NULL),
+		pTC(NULL),
+		pC(NULL)
+	{
+		//void
+	}
+
+public:
+	unsigned int		pTID;	//Polygon ID
+	unsigned int		pM;		//mask
+	bgmf_poly			*pP;	//vertex pointer
+	bgmf_poly_tex		*pTC;	//texture coord pointer
+	bgmf_color			*pC;	//color pointer
+};
+
+////////////////////////////////////////////////////////////
 /// Map-sprite struct
 ////////////////////////////////////////////////////////////
 struct bgmf_sprite
@@ -173,6 +200,7 @@ struct bgmf
     bgmf_header header;
 
 	///Polygon Data
+	std::vector<std::string>	texpath;
 	std::vector<unsigned int>	texture; //>Map texture paths
     std::vector<uint32_t>       mask; //>polygon masks
     std::vector<bgmf_poly_tex>  texcoord; //>polygon texture coords

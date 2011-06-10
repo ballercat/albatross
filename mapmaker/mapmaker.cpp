@@ -7,7 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-#define CAMERA_STEP (0.8f * display->zoom.x)
+#define CAMERA_STEP (0.8f)
 
 static bool
 SameSide(glm::vec3 p1,glm::vec3 p2,glm::vec3 a, glm::vec3 b)
@@ -30,20 +30,13 @@ PointInTriangle(glm::vec3 p, glm::vec3 a, glm::vec3 b,glm::vec3 c)
 }
 
 ////////////////////////////////////////////////////////////
+/// ctor
 ////////////////////////////////////////////////////////////
-static void drawTexPolygon(bgmf_poly *p,GLuint texid)
+MapMaker::MapMaker() :
+	map(NULL),
+	change(NULL)
 {
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D,texid);
-    glBegin(GL_TRIANGLES);{
-        glTexCoord2f(0.0f,0.0f);
-        glVertex2f(p->data[0].x,p->data[0].y);
-        glTexCoord2f(0.0f,1.0f);
-        glVertex2f(p->data[1].x,p->data[1].y);
-        glTexCoord2f(1.0f,1.0f);
-        glVertex2f(p->data[2].x,p->data[2].y);
-    }glEnd();
-    glDisable(GL_TEXTURE_2D);
+
 }
 
 ////////////////////////////////////////////////////////////
@@ -88,6 +81,37 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
     else if(ch->pick_vertex){
         glm::vec3 v;
         sf::Rect<float> pick;
+
+		if(ch->poly){
+			//Pick a vertex from a polygon
+            v = ch->poly->data[0];
+            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
+            if(pick.Contains(mouse.x, mouse.y)){
+                ch->vertex 			= &ch->poly->data[0];
+				ch->vertex_color 	= &map->color[ch->index].data[0];
+                return true;
+            }
+            v = ch->poly->data[1];
+            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
+            if(pick.Contains(mouse.x, mouse.y)){
+                ch->vertex 			= &ch->poly->data[1];
+                ch->vertex_color	= &map->color[ch->index].data[1];
+                return true;
+            }
+            v = ch->poly->data[2];
+            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
+            if(pick.Contains(mouse.x, mouse.y)){
+                ch->vertex 			= &ch->poly->data[2];
+                ch->vertex_color	= &map->color[ch->index].data[2];
+                return true;
+            }
+
+			ch->vertex = NULL;
+			ch->pick_vertex = false;
+
+			return false;
+		}
+
         for(size_t i = 0; i < map->poly.size();i++){
 
             v = map->poly[i].data[0];
@@ -118,13 +142,21 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
         ch->vertex = NULL;
         return false;
     }//Polygon selection
-    else if(ch->pick_poly){
+    else if(ch == &pick_polygon){
         bgmf_poly *p = NULL;
         for(size_t i = 0;i < map->poly.size();i++){
             p = &map->poly[i];
             if(PointInTriangle(mouse, p->data[0], p->data[1], p->data[2])){
                 ch->poly = p;
                 ch->index = i;
+
+				//This is extra code for filling in the
+				//polygon view field. Its used in the gui
+				ch->pPolygon.pTC 	= &map->texcoord[i];
+				ch->pPolygon.pP		= p;
+				ch->pPolygon.pC		= &map->color[i];
+				ch->pPolygon.pTID	= display->Texture[WORLD_PLAIN];
+
                 return true;
             }
         }
@@ -148,7 +180,11 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
 			ch->picked = false;
 
 		if(ch->picked && input->IsKeyDown(Input::Key::LShift)){
-			*ch->vertex = mouse;
+			glm::vec3 *v = findVertex(mouse.x,mouse.y,ch->vertex);
+			if(v && vertex_snap)
+				*ch->vertex = *v;
+			else
+				*ch->vertex = mouse;
 		}
 	}
     else if(ch == &move_vertex && ch->vertex && leftdown){
@@ -158,25 +194,33 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
         else
             *ch->vertex = mouse;
     }
-    else if(ch->poly){
+    else if(ch == &pick_polygon){
         if(ch->move && leftdown){
             glm::vec3 mv = mouse - lastmouse;
             ch->poly->data[0] += mv;
             ch->poly->data[1] += mv;
             ch->poly->data[2] += mv;
         }
-        else if(ch->color){
-            glm::vec4 c(colorR,colorG,colorB,1.0f);
-            map->color[ch->index] = bgmfsetcolorall(c);
-        }
-        else if(ch->remove){
+        else if(ch->remove && ch->poly){
             bgmfremovepoly(map,*ch->poly);
             ch->poly = NULL;
             ch = NULL;
         }
-    }
-    else if(ch == &color_vertex){
-        *ch->vertex_color = glm::vec4(colorR,colorG,colorB,1.0f);
+		else if(ch->vertex){
+			if(leftdown && input->IsKeyDown(Input::Key::LShift)){
+				glm::vec3 *v = findVertex(mouse.x,mouse.y,ch->vertex);
+				if(v && vertex_snap)
+					*ch->vertex = *v;
+				else
+					*ch->vertex = mouse;
+			}
+		}
+		else if(ch->select && leftdown){
+			if(ch->poly)
+				ch->picked	= true;
+			else
+				ch->picked	= false;
+		}
     }
 }
 
@@ -249,16 +293,17 @@ void MapMaker::Step()
                                 GL_TRIANGLES,
                                 display->Texture[WORLD_PLAIN] );
 
-            if(change == &move_poly || change == &remove_poly ||
-               change == &color_poly)
+            if(change == &pick_polygon)
             {
                 glm::vec4 c;
                 if(change->move)
                     c = glm::vec4(0.0f,1.0f,0.0f,1.0f);
                 else if(change->remove)
                     c = glm::vec4(1.0f,0.0f,0.0f,1.0f);
-                else if(change == &color_poly)
+                else if(change->color)
                    c = glm::vec4(1.0f,0.0f,1.0f,1.0f);
+				else if(change->select)
+					c = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
                 bgmf_color color(c,c,c);
 				bgmf_poly *p;
@@ -266,7 +311,6 @@ void MapMaker::Step()
                 for(size_t k = 0; k < map->header.pc;k++){
 					p = &map->poly[k];
                     if(PointInTriangle(mouse, p->data[0], p->data[1], p->data[2])){
-
 						glColor4f(c.x,c.y,c.z,c.w);
 						display->drawArray( &p->data[0], NULL, &color.data[0], 3, GL_LINE_LOOP, 0);
                     }
@@ -321,6 +365,11 @@ void MapMaker::Step()
 					glLineWidth(1.0f);
 
 				}glPopMatrix();
+			}
+
+			if(change == &pick_polygon && change->picked){
+				glColor4f(1.0f, 0.0f, 1.0, 0.5f);
+				display->drawArray(&change->poly->data[0], NULL, NULL, 3, GL_LINE_LOOP, 0);
 			}
 
 			if(!vertex.empty()){

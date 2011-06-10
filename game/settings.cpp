@@ -112,9 +112,14 @@ void MainClient::_loadMap(const char *p_MapPath)
 	//Load the map
 	map = bgmfopen(p_MapPath);
 
+	//Map textures
+	{
+		size_t sz = map->
+	}
 	//Polygon vertexes
 	glm::vec3 v0,v1,v2;
 
+	size_t i = 0;
 	//Add polygons to the space
 	for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
 	{
@@ -122,8 +127,12 @@ void MainClient::_loadMap(const char *p_MapPath)
 		v1 = p->data[1];
 		v2 = p->data[2];
 
-		mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
-		mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
-		mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+		if(map->color[i].data[0].a > 0.5f && map->color[i].data[1].a > 0.5f && map->color[i].data[2].a > 0.5f){
+			mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
+			mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
+			mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+		}
+
+		i++;
 	}
 }

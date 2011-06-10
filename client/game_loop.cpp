@@ -158,15 +158,6 @@ void MainClient::Run(const char *p_DemoFile)
 
 		//Draw everything
 		display->beginScene();{
-			if(map){
-				//Draw map polygons
-				display->drawArray( &map->poly[0],
-									&map->texcoord[0],
-									&map->color[0],
-									map->header.pc*3,
-									GL_TRIANGLES,
-									display->Texture[WORLD_PLAIN] );
-			}
 			Tree->Draw();
 
 			//Draw all the bullets
@@ -181,6 +172,16 @@ void MainClient::Run(const char *p_DemoFile)
 			mPlayer->Draw(delta);
 
 			_drawWeapons();
+
+			if(map){
+				//Draw map polygons
+				display->drawArray( &map->poly[0],
+									&map->texcoord[0],
+									&map->color[0],
+									map->header.pc*3,
+									GL_TRIANGLES,
+									display->Texture[WORLD_PLAIN] );
+			}
 
 			//Draw bullet Hits
 			_drawHits();
