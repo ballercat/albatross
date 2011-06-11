@@ -5,7 +5,8 @@
 #include "messages.h"
 #include "assets.h"
 #include <glm/gtc/type_ptr.hpp>
-
+#include<cassert>
+#include<cmath>
 
 #define CAMERA_STEP (0.8f)
 
@@ -34,9 +35,69 @@ PointInTriangle(glm::vec3 p, glm::vec3 a, glm::vec3 b,glm::vec3 c)
 ////////////////////////////////////////////////////////////
 MapMaker::MapMaker() :
 	map(NULL),
-	change(NULL)
+	change(NULL),
+	__x(0)
 {
 
+}
+
+////////////////////////////////////////////////////////////
+/// Initialize
+////////////////////////////////////////////////////////////
+void MapMaker::Init()
+{
+	//NOTE: if display isnt innitialized we got some issues here
+	assert(NULL == input);
+	assert(NULL == display);
+	assert(NULL == map);
+
+	//Begin Test code
+	{
+		//Generate polygon texture(s)
+		bgmf_poly_tex	texcoord;
+		size_t	tsz	= map->texpath.size();
+		size_t	psz	= map->header.pc;
+		float tw	= tsz*128.0f;
+		float th	= 128.0f;
+		float dt	= 0.0f;
+		sf::Image	texturedata(tw, th);
+
+		//Create the actual OpenGL texture
+		{
+			sf::Image	rawImg;
+			const char* texdir = "assets/texture/";
+			std::string fpath;
+
+			for(size_t i=0;i<tsz;i++){
+				fpath = "assets/texture/" + map->texpath[i];
+				rawImg.LoadFromFile(fpath);
+				texturedata.Copy(rawImg, 128*i, 0);
+			}
+
+			glGenTextures(1, &gfx.Texture);
+
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, gfx.Texture);
+
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th,
+						   0, GL_RGBA, GL_UNSIGNED_BYTE, texturedata.GetPixelsPtr());
+
+			glDisable(GL_TEXTURE_2D);
+		}
+
+		gfx.tc.resize(map->header.pc, bgmftexpolyzero);
+
+		for(size_t i=0;i<psz;i++){
+			// Adjust texture coordinates
+			FixTC(&map->texcoord[i], map->texture[i]);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -45,40 +106,8 @@ MapMaker::MapMaker() :
 ////////////////////////////////////////////////////////////
 bool MapMaker::Pick(change_struct *ch, size_t range)
 {
-    //Color selection
-    if(ch->pick_color){
-        glm::vec3 v;
-        sf::Rect<float> pick;
-        for(size_t i = 0; i < map->color.size();i++){
-
-            v = map->poly[i].data[0];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex_color = &map->color[i].data[0];
-                ch->index = i;
-                return true;
-            }
-            v = map->poly[i].data[1];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex_color = &map->color[i].data[1];
-                ch->index = i;
-                return true;
-            }
-            v = map->poly[i].data[2];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex_color = &map->color[i].data[2];
-                ch->index = i;
-                return true;
-            }
-        }
-
-		//Nothing found
-        ch->vertex_color = NULL;
-        return false;
-    }//Vertex selection
-    else if(ch->pick_vertex){
+	//Vertex selection
+    if(ch->pick_vertex){
         glm::vec3 v;
         sf::Rect<float> pick;
 
@@ -144,7 +173,7 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
     }//Polygon selection
     else if(ch == &pick_polygon){
         bgmf_poly *p = NULL;
-        for(size_t i = 0;i < map->poly.size();i++){
+        for(size_t i = 0;i < map->header.pc;i++){
             p = &map->poly[i];
             if(PointInTriangle(mouse, p->data[0], p->data[1], p->data[2])){
                 ch->poly = p;
@@ -152,14 +181,13 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
 
 				//This is extra code for filling in the
 				//polygon view field. Its used in the gui
-				ch->pPolygon.pTC 	= &map->texcoord[i];
-				ch->pPolygon.pP		= p;
-				ch->pPolygon.pC		= &map->color[i];
-				ch->pPolygon.pTID	= display->Texture[WORLD_PLAIN];
+				ch->pPolygon = &map->Polygon[i];
+				//ch->pPolygon->pT = &__x;
 
                 return true;
             }
         }
+		ch->pPolygon = NULL;
         ch->poly = NULL;
         return false;
     }
@@ -195,7 +223,7 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
             *ch->vertex = mouse;
     }
     else if(ch == &pick_polygon){
-        if(ch->move && leftdown){
+        if(input->IsKeyDown(Input::Key::LShift) && leftdown){
             glm::vec3 mv = mouse - lastmouse;
             ch->poly->data[0] += mv;
             ch->poly->data[1] += mv;
@@ -270,6 +298,7 @@ void MapMaker::Step()
 					bgmf_color color = bgmfdefaultcol;
 					bgmfappend(map, m, tc, color, poly);
 
+
 					vertex.clear();
 				}
 			}
@@ -287,21 +316,20 @@ void MapMaker::Step()
 
             //Draw all the polygons
             display->drawArray( &map->poly[0],
-                                &map->texcoord[0],
+                                /*&map->texcoord[0],*/
+								&gfx.tc[0],
                                 &map->color[0],
                                 map->header.pc*3,
                                 GL_TRIANGLES,
-                                display->Texture[WORLD_PLAIN] );
+                                gfx.Texture );
 
             if(change == &pick_polygon)
             {
                 glm::vec4 c;
-                if(change->move)
-                    c = glm::vec4(0.0f,1.0f,0.0f,1.0f);
-                else if(change->remove)
+                if(change->remove)
                     c = glm::vec4(1.0f,0.0f,0.0f,1.0f);
                 else if(change->color)
-                   c = glm::vec4(1.0f,0.0f,1.0f,1.0f);
+					c = glm::vec4(1.0f,0.0f,1.0f,1.0f);
 				else if(change->select)
 					c = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -368,7 +396,10 @@ void MapMaker::Step()
 			}
 
 			if(change == &pick_polygon && change->picked){
-				glColor4f(1.0f, 0.0f, 1.0, 0.5f);
+				if(input->IsKeyDown(Input::Key::LShift))
+					glColor4f(0.0f,1.0f,0.0f, 1.0f);
+				else
+					glColor4f(0.0f, 1.0f, 1.0, 1.0f);
 				display->drawArray(&change->poly->data[0], NULL, NULL, 3, GL_LINE_LOOP, 0);
 			}
 

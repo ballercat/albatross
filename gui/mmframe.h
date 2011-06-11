@@ -58,6 +58,7 @@ private:
 	wxMenu				*mSelectSubMenu;
 	VertexPropWindow	*mVertexProp;
 	PolyPropWindow		*pPolyProp;
+	wxString			cwd;
 };
 
 #endif //#define MMFRAME_HEADER_GUARD

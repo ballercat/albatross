@@ -34,6 +34,7 @@ public:
 	wxImage			pTexture;
 	bgmf_poly		pPoly;
 	MapMaker::change_struct	*pChange;
+	MapMaker		*mm;
 };
 
 #endif //#define POLYPROP_HEADER_GUARD

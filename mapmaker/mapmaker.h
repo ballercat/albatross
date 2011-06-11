@@ -17,6 +17,7 @@ struct MapMaker
 {
 public:
 	MapMaker();
+	unsigned int __x;
 
 public:
 	struct change_struct;
@@ -24,6 +25,7 @@ public:
 	void Step();
     bool Pick(change_struct *ch, size_t range);
     void ApplyChange(change_struct *ch, bool leftdown);
+	void Init();
 
 public:
 	////////////////////////////////////////////////////////////
@@ -54,6 +56,16 @@ public:
 
         return true;
     }
+
+	inline void FixTC(bgmf_poly_tex *pTc, size_t pTexID){
+		float tsz		= 1.0f / map->texpath.size();
+		float left		= pTexID * tsz;
+		float right		= left + tsz;
+
+		pTc->data[0] = glm::vec2(left, 0.0f);
+		pTc->data[1] = glm::vec2(left, 1.0f);
+		pTc->data[2] = glm::vec2(right, 1.0f);
+	}
 
 	////////////////////////////////////////////////////////////
 	/// This will find a vertex in 10px by 10px area
@@ -110,6 +122,7 @@ public:
 			poly		= NULL;
 			vertex		= NULL;
 			vertex_color = NULL;
+			pPolygon	= NULL;
 			move		= false;
 			color		= false;
 			remove		= false;
@@ -128,7 +141,7 @@ public:
         glm::vec3   	*vertex;
         glm::vec4   	*vertex_color;
 		bgmf_vert		pVert;
-		bgmf_poly_view	pPolygon;
+		bgmf_poly_view	*pPolygon;
         bool 			move;
         bool 			color;
         bool 			remove;
@@ -154,7 +167,8 @@ public:
 public:
 	/// Graphics data
 	struct GfxData {
-		std::vector<GLuint>	Texture;
+		GLuint	Texture;
+		std::vector<bgmf_poly_tex>	tc;
 		std::vector<Sprite>	Scenery;
 	} gfx;
 

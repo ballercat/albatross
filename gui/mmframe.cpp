@@ -23,6 +23,7 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
 	//Add Status bar
 	CreateStatusBar(3);
 	SetStatusText(wxT("Normal"), 1);
+	cwd = wxGetCwd();
 
 	//Build Menu bar
 	mMenuBar = new wxMenuBar();{
@@ -70,6 +71,7 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
 
 	//Add Polygon Properties Window
 	pPolyProp	= new PolyPropWindow(this);
+	pPolyProp->mm = mm;
 	pPolyProp->Move(ClientToScreen(wxPoint(1023,350)));
 	pPolyProp->Show(false);
 }
@@ -148,12 +150,15 @@ void mmFrame::OnIdle(wxIdleEvent &p_Event)
 		mVertexProp->Show(false);
 	}
 	//Handle Polygon Selection Mode
-	if(mm->change == &mm->pick_polygon && mm->change->poly){
+	if(mm->change == &mm->pick_polygon && mm->change->picked && mm->change->pPolygon){
 			pPolyProp->pChange	= mm->change;
-			//pPolyProp->Move(ClientToScreen(wxPoint(0,350)));
+			wxString path = cwd + "/assets/texture/" + mm->map->texpath[(*mm->change->pPolygon->pT)];
+			pPolyProp->pTexture.LoadFile(path);
+			pPolyProp->pTexture.Rescale(128,128);
 			pPolyProp->Show();
+			mm->change->picked = false;
 	}
-	else {
+	else if(mm->change == &mm->pick_polygon && !mm->change->pPolygon){
 		pPolyProp->Show(false);
 	}
 }

@@ -26,8 +26,10 @@
 #include<string>
 
 //Map polygon masks
-#define POLY_VISIBLE 0x01
-#define POLY_SOLID 0x02
+#define POLY_VISIBLE 	0x01
+#define POLY_SOLID 		0x02
+#define POLY_HOLLOW		0x01
+#define POLY_DEFAULT	0x04
 
 ////////////////////////////////////////////////////////////
 /// glm::vec3(x,y,unused) Polygon-Vertex
@@ -129,7 +131,7 @@ public:
 	/// ctor
 	////////////////////////////////////////////////////////////
 	bgmf_poly_view() :
-		pTID(0),
+		pID(0),
 		pP(NULL),
 		pTC(NULL),
 		pC(NULL)
@@ -138,8 +140,9 @@ public:
 	}
 
 public:
-	unsigned int		pTID;	//Polygon ID
+	unsigned int		pID;	//Polygon ID
 	unsigned int		pM;		//mask
+	unsigned int		*pT;		//texture #
 	bgmf_poly			*pP;	//vertex pointer
 	bgmf_poly_tex		*pTC;	//texture coord pointer
 	bgmf_color			*pC;	//color pointer
@@ -204,8 +207,9 @@ struct bgmf
 	std::vector<unsigned int>	texture; //>Map texture paths
     std::vector<uint32_t>       mask; //>polygon masks
     std::vector<bgmf_poly_tex>  texcoord; //>polygon texture coords
-    std::vector<bgmf_color>      color; //>polygon colors(per vertex)
+    std::vector<bgmf_color>     color; //>polygon colors(per vertex)
     std::vector<bgmf_poly>      poly; //>polygon vertexes(TRIANGLES)
+	std::vector<bgmf_poly_view>	Polygon;
 /*
 	///Static sprites/scenery data
 	std::vector<bgmf_sprite>	sprite;

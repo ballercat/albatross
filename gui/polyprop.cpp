@@ -1,4 +1,6 @@
 #include"polyprop.h"
+#include<wx/filename.h>
+#include<algorithm>
 
 enum{
 	mmID_SELECTTEXTURE = 8000,
@@ -23,8 +25,6 @@ PolyPropWindow::PolyPropWindow(wxWindow *p_Parent) :
 										wxSize(190,20));
 	}
 
-	pTexture.LoadFile("assets/texture/plain.png");
-	pTexture.Rescale(50,50);
 }
 
 BEGIN_EVENT_TABLE(PolyPropWindow, wxMiniFrame)
@@ -56,13 +56,27 @@ void PolyPropWindow::OnSelectVerts(wxCommandEvent &p_Event)
 ////////////////////////////////////////////////////////////
 void PolyPropWindow::OnSelectTexture(wxCommandEvent &WXUNUSED(p_Event))
 {
-	wxFileDialog *ChooseTxtr = new wxFileDialog(this, _T("Choose a texture"), _("./"), _(""), _(""), wxID_OPEN);
+	//wxString cwd = wxGetCwd();
+	wxFileDialog *ChooseTxtr = new wxFileDialog(this, _T("Choose a texture"), _("./assets/texture/"), _(""), _(""), wxID_OPEN);
 	if( ChooseTxtr->ShowModal() == wxID_OK ){
 		wxString path = ChooseTxtr->GetPath();
-		pTexture.Destroy();
-		pTexture.LoadFile(path);
-		pTexture.Rescale(50,50);
-		Refresh();
+		{
+			pTexture.LoadFile(path);
+			wxFileName fpath(path);
+			pSelTextureBtn->SetLabel(fpath.GetFullName());
+			pTexture.Rescale(128,128);
+			Refresh();
+
+			path = fpath.GetFullName();
+			//Find the texture in textures
+			std::vector<std::string>::iterator	it;
+			it	= std::find(mm->map->texpath.begin(), mm->map->texpath.end(), std::string(path.ToAscii()));
+			if(it != mm->map->texpath.end()){
+				size_t pos = size_t(mm->map->texpath.end() - it);
+				*pChange->pPolygon->pT = pos;
+				mm->FixTC(pChange->pPolygon->pTC, pos);
+			}
+		}
 	}
 
 	ChooseTxtr->Close();
