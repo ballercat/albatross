@@ -34,11 +34,23 @@ PointInTriangle(glm::vec3 p, glm::vec3 a, glm::vec3 b,glm::vec3 c)
 /// ctor
 ////////////////////////////////////////////////////////////
 MapMaker::MapMaker() :
+	drawgrid(false),
+	count(0),
 	map(NULL),
 	change(NULL),
 	__x(0)
 {
+	for(int y =0; y<76;y++){
+		grid[count] = glm::vec3(-512.0f,(y-38)*8.0f,0.0f);
+		grid[count+1] = glm::vec3(512.0f,(y-38)*8.0f,0.0f);
+		count+=2;
+	}
 
+	for(int x = 0; x < 128; x++){
+		grid[count] = glm::vec3((x-64)*8.0f, -300.0f, 0.0f);
+		grid[count+1] = glm::vec3((x-64)*8.0f, 300.0f, 0.0f);
+		count+=2;
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -51,52 +63,54 @@ void MapMaker::Init()
 	assert(NULL == display);
 	assert(NULL == map);
 
-	//Begin Test code
+	gfx.Texture = 0;
+	loadTextureData();
+}
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+void MapMaker::loadTextureData()
+{
+	//Generate polygon texture(s)
+	float	tsz	= map->texpath.size();
+	size_t	psz	= map->header.pc;
+	float tw	= tsz*128.0f;
+	float th	= 128.0f;
+	sf::Image	texturedata(tw, th);
+
+	//Create the actual OpenGL texture
 	{
-		//Generate polygon texture(s)
-		bgmf_poly_tex	texcoord;
-		size_t	tsz	= map->texpath.size();
-		size_t	psz	= map->header.pc;
-		float tw	= tsz*128.0f;
-		float th	= 128.0f;
-		float dt	= 0.0f;
-		sf::Image	texturedata(tw, th);
+		sf::Image	rawImg;
+		std::string fpath;
 
-		//Create the actual OpenGL texture
-		{
-			sf::Image	rawImg;
-			const char* texdir = "assets/texture/";
-			std::string fpath;
-
-			for(size_t i=0;i<tsz;i++){
-				fpath = "assets/texture/" + map->texpath[i];
-				rawImg.LoadFromFile(fpath);
-				texturedata.Copy(rawImg, 128*i, 0);
-			}
-
-			glGenTextures(1, &gfx.Texture);
-
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, gfx.Texture);
-
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th,
-						   0, GL_RGBA, GL_UNSIGNED_BYTE, texturedata.GetPixelsPtr());
-
-			glDisable(GL_TEXTURE_2D);
+		for(size_t i=0;i<tsz;i++){
+			fpath = pWorkingDir + "/assets/texture/" + map->texpath[i];
+			//fpath = map->texpath[i];
+			rawImg.LoadFromFile(fpath);
+			texturedata.Copy(rawImg, 128*i, 0);
 		}
 
-		gfx.tc.resize(map->header.pc, bgmftexpolyzero);
+		glDeleteTextures(1, &gfx.Texture);
+		glGenTextures(1, &gfx.Texture);
 
-		for(size_t i=0;i<psz;i++){
-			// Adjust texture coordinates
-			FixTC(&map->texcoord[i], map->texture[i]);
-		}
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, gfx.Texture);
+
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th,
+					   0, GL_RGBA, GL_UNSIGNED_BYTE, texturedata.GetPixelsPtr());
+
+		glDisable(GL_TEXTURE_2D);
+	}
+
+	for(size_t i=0;i<psz;i++){
+		// Adjust texture coordinates
+		FixTC(&map->texcoord[i], map->texture[i]);
 	}
 }
 
@@ -228,6 +242,7 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
             ch->poly->data[0] += mv;
             ch->poly->data[1] += mv;
             ch->poly->data[2] += mv;
+			ch->move = true;
         }
         else if(ch->remove && ch->poly){
             bgmfremovepoly(map,*ch->poly);
@@ -294,10 +309,11 @@ void MapMaker::Step()
 					//Create a new Polygon
 					bgmf_poly poly = bgmf_poly(vertex[0],vertex[1],vertex[2]);
 					bgmf_poly_tex tc = bgmfdefaulttc;
-					uint32_t m = POLY_SOLID | POLY_VISIBLE;
+					uint32_t m = POLY_DEFAULT;
 					bgmf_color color = bgmfdefaultcol;
 					bgmfappend(map, m, tc, color, poly);
 
+					FixTC(map->Polygon[map->header.pc-1].pTC, *map->Polygon[map->header.pc-1].pT);
 
 					vertex.clear();
 				}
@@ -317,32 +333,36 @@ void MapMaker::Step()
             //Draw all the polygons
             display->drawArray( &map->poly[0],
                                 /*&map->texcoord[0],*/
-								&gfx.tc[0],
+								&map->texcoord[0],
                                 &map->color[0],
                                 map->header.pc*3,
                                 GL_TRIANGLES,
                                 gfx.Texture );
 
+			if(drawgrid){
+				glPushMatrix();
+				glLoadIdentity();
+				if(display->zoom.x > 1.0f)
+					glScalef(display->zoom.x, display->zoom.y, display->zoom.z);
+				glColor4f(1.0f,1.0f,1.0f,0.1f);
+				display->drawArray( &grid[0], NULL, NULL, count, GL_LINES, NULL);
+				glPopMatrix();
+			}
+
             if(change == &pick_polygon)
             {
-                glm::vec4 c;
                 if(change->remove)
-                    c = glm::vec4(1.0f,0.0f,0.0f,1.0f);
+                    glColor4f(1.0f,0.0f,0.0f,1.0f);
                 else if(change->color)
-					c = glm::vec4(1.0f,0.0f,1.0f,1.0f);
-				else if(change->select)
-					c = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+					glColor4f(1.0f,0.0f,1.0f,1.0f);
+				//else if(change->select)
+					//glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				else if(change->move)
+					glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 
-                bgmf_color color(c,c,c);
-				bgmf_poly *p;
-
-                for(size_t k = 0; k < map->header.pc;k++){
-					p = &map->poly[k];
-                    if(PointInTriangle(mouse, p->data[0], p->data[1], p->data[2])){
-						glColor4f(c.x,c.y,c.z,c.w);
-						display->drawArray( &p->data[0], NULL, &color.data[0], 3, GL_LINE_LOOP, 0);
-                    }
-                }
+				if(change->pPolygon){
+					display->drawArray(change->pPolygon->pP, NULL, NULL, 3, GL_LINE_LOOP, 0);
+				}
             }
 
 

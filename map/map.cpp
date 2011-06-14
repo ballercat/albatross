@@ -59,17 +59,25 @@ bgmf* bgmfopen(const char *fpath)
 	//Read in texture names
 	{
 		uint32_t temp = 0;
-		char buffer[100];
+		char buffer;
+		std::string file;
 
 		fread(&temp, sizeof(uint32_t), 1, mapfile);
 
 		while(temp != 0){
 
-			fread(&buffer, sizeof(char), temp, mapfile);
-			map->texpath.push_back(std::string(buffer));
+			for(size_t i=0;i<temp;i++){
+				fread(&buffer, sizeof(char), 1, mapfile);
+				file += buffer;
+			}
+			//fread(&buffer, sizeof(char), temp, mapfile);
+			map->texpath.push_back(file);
 
 			fread(&temp, sizeof(uint32_t), 1, mapfile);
+			file = "";
 		}
+
+		//map->texpath.push_back("lumpybark.bmp");
 	}
 	fread(&map->texture[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
     fread(&map->mask[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
@@ -77,7 +85,7 @@ bgmf* bgmfopen(const char *fpath)
     //fread(&map->texcoord[0], sizeof(bgmf_poly_tex) * map->header.pc, 1, mapfile);
     fread(&map->poly[0], sizeof(bgmf_poly) * map->header.pc, 1, mapfile);
 
-	//Populate Polygon vectors
+	//Populate Polygon vector
 	{
 		bgmf_poly_view	ViewPolygon;
 		for(size_t i = 0;i < map->header.pc;i++){
@@ -162,10 +170,21 @@ void bgmfremovepoly(bgmf *map, bgmf_poly p)
 void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, bgmf_poly &p)
 {
     map->mask.push_back(mask);
+	map->texture.push_back(0);
     map->texcoord.push_back(t);
     map->poly.push_back(p);
     map->color.push_back(color);
-    map->header.pc++;
+
+	bgmf_poly_view	ViewPolygon;
+	ViewPolygon.pM	= map->mask[map->header.pc];
+	ViewPolygon.pC	= &map->color[map->header.pc];
+	ViewPolygon.pP	= &map->poly[map->header.pc];
+	ViewPolygon.pTC = &map->texcoord[map->header.pc];
+	ViewPolygon.pID = map->header.pc;
+	ViewPolygon.pT 	= &map->texture[map->header.pc];
+	map->Polygon.push_back(ViewPolygon);
+
+	map->header.pc++;
 }
 
 void bgmfaddpolygon(bgmf *map, bgmf_poly poly)

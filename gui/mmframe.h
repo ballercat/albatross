@@ -5,6 +5,7 @@
 #include"mapmaker.h"
 #include"polyprop.h"
 #include"vertexprop.h"
+#include"mapprop.h"
 
 ////////////////////////////////////////////////////////////
 /// Main wxFrame holding everything
@@ -16,6 +17,10 @@ public:
 	/// ctor
 	////////////////////////////////////////////////////////////
 	mmFrame(wxWindow *p_Parent);
+	virtual ~mmFrame()
+	{
+		//void
+	}
 
 public:
 	//Event Handlers
@@ -41,6 +46,9 @@ public:
 	void OnMenuDeletePoly(wxCommandEvent&);
 	void OnMenuEditSelVert(wxCommandEvent &p_Event);
 	void OnMenuEditSelPoly(wxCommandEvent &p_Event);
+	void OnMenuMapProperties(wxCommandEvent &);
+	void OnMenuVertexSnapCheck(wxCommandEvent &);
+	void ShowGrid(wxCommandEvent&);
 
 	////////////////////////////////////////////////////////////
 	/// On Idle
@@ -52,13 +60,8 @@ protected:
 
 private:
 	MapMaker			*mm;
-	wxMenuBar			*mMenuBar;
-	wxMenu				*mFileMenu;
-	wxMenu				*mEditMenu, *mViewMenu;
-	wxMenu				*mSelectSubMenu;
 	VertexPropWindow	*mVertexProp;
 	PolyPropWindow		*pPolyProp;
-	wxString			cwd;
 };
 
 #endif //#define MMFRAME_HEADER_GUARD

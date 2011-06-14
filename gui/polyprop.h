@@ -3,6 +3,9 @@
 
 #include"gui.h"
 #include"mapmaker.h"
+#include<wx/choice.h>
+#include<string>
+#include<vector>
 
 ////////////////////////////////////////////////////////////
 /// Polygon Properties Window
@@ -13,7 +16,13 @@ public:
 	////////////////////////////////////////////////////////////
 	/// ctor
 	////////////////////////////////////////////////////////////
-	PolyPropWindow(wxWindow *p_Parent);
+	PolyPropWindow(wxWindow *p_Parent, MapMaker* p_MM);
+
+public:
+	////////////////////////////////////////////////////////////
+	/// Display(aka Show the window)
+	////////////////////////////////////////////////////////////
+	void Display(bool p_Show=true);
 
 protected:
 
@@ -24,15 +33,14 @@ public:
 	/// Events
 	////////////////////////////////////////////////////////////
 	void OnSelectVerts(wxCommandEvent &p_Event);
-	void OnSelectTexture(wxCommandEvent &);
+	void OnTextureSelect(wxCommandEvent &);
 	void OnPaint(wxPaintEvent &p_Event);
 
 public:
 	wxPanel			*pMain;
-	wxButton		*pSelTextureBtn;
+	wxChoice		*pTextureChoice;
+	std::vector<std::string>	*pTextureNames;
 	wxButton		*pSelVertsBtn;
-	wxImage			pTexture;
-	bgmf_poly		pPoly;
 	MapMaker::change_struct	*pChange;
 	MapMaker		*mm;
 };

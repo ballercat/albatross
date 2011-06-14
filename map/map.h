@@ -210,6 +210,11 @@ struct bgmf
     std::vector<bgmf_color>     color; //>polygon colors(per vertex)
     std::vector<bgmf_poly>      poly; //>polygon vertexes(TRIANGLES)
 	std::vector<bgmf_poly_view>	Polygon;
+
+	float	texlength;
+
+	std::vector<glm::vec3>		redspawn;
+	std::vector<glm::vec3>		bluespawn;
 /*
 	///Static sprites/scenery data
 	std::vector<bgmf_sprite>	sprite;

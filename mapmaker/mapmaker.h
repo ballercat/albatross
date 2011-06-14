@@ -57,16 +57,6 @@ public:
         return true;
     }
 
-	inline void FixTC(bgmf_poly_tex *pTc, size_t pTexID){
-		float tsz		= 1.0f / map->texpath.size();
-		float left		= pTexID * tsz;
-		float right		= left + tsz;
-
-		pTc->data[0] = glm::vec2(left, 0.0f);
-		pTc->data[1] = glm::vec2(left, 1.0f);
-		pTc->data[2] = glm::vec2(right, 1.0f);
-	}
-
 	////////////////////////////////////////////////////////////
 	/// This will find a vertex in 10px by 10px area
     ////////////////////////////////////////////////////////////
@@ -155,13 +145,32 @@ public:
     };
 
 public:
+	////////////////////////////////////////////////////////////
+	/// Texture handling
+	////////////////////////////////////////////////////////////
+	void loadTextureData();
+
+	inline void FixTC(bgmf_poly_tex *pTc, size_t pTexID){
+		float tsz		= 1.0f / map->texpath.size();
+		float left		= pTexID * tsz;
+		float right		= left + tsz;
+
+		pTc->data[0] = glm::vec2(left, 0.0f);
+		pTc->data[1] = glm::vec2(left, 1.0f);
+		pTc->data[2] = glm::vec2(right, 1.0f);
+	}
+
+public:
     /// Data
+	glm::vec3 grid[128*76];
+	int count;
+	bool drawgrid;
     bool load;
     bool vertex_snap;
 	std::vector<glm::vec3> vertex;
     glm::vec3 mouse;
     glm::vec3 lastmouse;
-
+	std::string		pWorkingDir;
     bgmf *map;
 
 public:

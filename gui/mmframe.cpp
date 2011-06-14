@@ -7,7 +7,10 @@ enum {
 	mmID_DELETEPOLY,
 	mmID_DELETEVERT,
 	mmID_ENABLEGRID,
-	mmID_CLEARMODE
+	mmID_CLEARMODE,
+	mmID_MAPPROPERTIES,
+	mmID_ALPHASPAWN,
+	mmID_BRAVOSPAWN
 };
 
 ////////////////////////////////////////////////////////////
@@ -23,10 +26,15 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
 	//Add Status bar
 	CreateStatusBar(3);
 	SetStatusText(wxT("Normal"), 1);
-	cwd = wxGetCwd();
 
 	//Build Menu bar
-	mMenuBar = new wxMenuBar();{
+	wxMenuBar *mMenuBar = new wxMenuBar();{
+		wxMenu				*mEditMenu;
+		wxMenu				*mFileMenu;
+		wxMenu				*mViewMenu;
+		wxMenu				*mMapMenu;
+		wxMenu				*mSelectSubMenu;
+
 		//File
 		mFileMenu = new wxMenu();{
 			mFileMenu->Append(wxID_OPEN, _T("&Open"), _T("Open an existing map file"));
@@ -44,7 +52,7 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
 			}
 
 			mEditMenu->Append(mmID_CLEARMODE, _T("&Clear Mode\tAlt+C"), _T("Set Mode to 'Normal'"));
-			mEditMenu->AppendCheckItem((mmID_ENABLEVERTSNAP), _T("&Vertex Snap"), _T("Snap Vertexes Together"));
+			mEditMenu->AppendCheckItem(mmID_ENABLEVERTSNAP, _T("&Vertex Snap"), _T("Snap Vertexes Together"));
 			mEditMenu->AppendSeparator();
 			mEditMenu->Append(mmID_DELETEPOLY, _T("&Delete Poly\tCtrl+Alt+F"), _T("Delete Polygon"));
 			mEditMenu->Append(mmID_DELETEVERT, _T("&Delete Vert\tCtrl+Alt+V"), _T("Delete Vertex"));
@@ -57,9 +65,22 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
 			mViewMenu->AppendCheckItem(mmID_ENABLEGRID, _T("&Show Grid"), _T("Enable Grid"));
 		}
 
+		mMapMenu = 	new wxMenu();{
+			mMapMenu->Append((mmID_MAPPROPERTIES), _T("&Properties\tCtr+M"), _T("Edit Map Properties"));
+			mMapMenu->AppendSeparator();
+
+			wxMenu *SpawnSubMenu = new wxMenu();{
+				SpawnSubMenu->Append(mmID_ALPHASPAWN, _("&Alpha"), _("Set Alpha Spawn"));
+				SpawnSubMenu->Append(mmID_BRAVOSPAWN, _("&Bravo"), _("Set Bravo Spawn"));
+			}
+
+			mMapMenu->AppendSubMenu(SpawnSubMenu, _("Spawn"));
+		}
+
 		mMenuBar->Append(mFileMenu, _T("&File"));
 		mMenuBar->Append(mEditMenu, _T("&Edit"));
 		mMenuBar->Append(mViewMenu, _T("&View"));
+		mMenuBar->Append(mMapMenu, _T("&Map"));
 
 		SetMenuBar(mMenuBar);
 	}
@@ -70,8 +91,7 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
 	mVertexProp->Show(false);
 
 	//Add Polygon Properties Window
-	pPolyProp	= new PolyPropWindow(this);
-	pPolyProp->mm = mm;
+	pPolyProp	= new PolyPropWindow(this, mm);
 	pPolyProp->Move(ClientToScreen(wxPoint(1023,350)));
 	pPolyProp->Show(false);
 }
@@ -89,6 +109,11 @@ BEGIN_EVENT_TABLE(mmFrame, wxFrame)
 
 	EVT_MENU(mmID_SELECTVERTEX, mmFrame::OnMenuEditSelVert)
 	EVT_MENU(mmID_SELECTPOLY, 	mmFrame::OnMenuEditSelPoly)
+	EVT_MENU(mmID_ENABLEVERTSNAP, mmFrame::OnMenuVertexSnapCheck)
+
+	EVT_MENU(mmID_ENABLEGRID, mmFrame::ShowGrid)
+
+	EVT_MENU(mmID_MAPPROPERTIES, mmFrame::OnMenuMapProperties)
 
 	EVT_IDLE(mmFrame::OnIdle)
 END_EVENT_TABLE()
@@ -102,11 +127,7 @@ void mmFrame::OnIdle(wxIdleEvent &p_Event)
 	str.Printf(wxT("%f, %f"),mm->mouse.x, mm->mouse.y);
 
 	SetStatusText(str,2);
-
-	if(mEditMenu->IsChecked(mmID_ENABLEVERTSNAP))
-		mm->vertex_snap = true;
-	else
-		mm->vertex_snap = false;
+	SetStatusText(mm->map->texpath[1]);
 
 	//Handle Vertex Selection Mode
 	if(mm->change == &mm->pick_vertex && mm->change->vertex)
@@ -151,11 +172,7 @@ void mmFrame::OnIdle(wxIdleEvent &p_Event)
 	}
 	//Handle Polygon Selection Mode
 	if(mm->change == &mm->pick_polygon && mm->change->picked && mm->change->pPolygon){
-			pPolyProp->pChange	= mm->change;
-			wxString path = cwd + "/assets/texture/" + mm->map->texpath[(*mm->change->pPolygon->pT)];
-			pPolyProp->pTexture.LoadFile(path);
-			pPolyProp->pTexture.Rescale(128,128);
-			pPolyProp->Show();
+			pPolyProp->Display(true);
 			mm->change->picked = false;
 	}
 	else if(mm->change == &mm->pick_polygon && !mm->change->pPolygon){
@@ -179,6 +196,7 @@ void mmFrame::OnMenuFileOpen(wxCommandEvent &p_Event)
 		strcpy(buffer, (const char*)OpenMapDialog->GetPath().mb_str(wxConvLibc));
 
 		mm->loadMap(buffer);
+		mm->loadTextureData();
 	}
 
 	OpenMapDialog->Close();
@@ -251,4 +269,29 @@ void mmFrame::OnMenuEditSelVert(wxCommandEvent &p_Event)
 	mm->change->pick_vertex	= true;
 
 	SetStatusText(wxT("Select Vertex"), 1);
+}
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+void mmFrame::ShowGrid(wxCommandEvent &WXUNUSED(p_Event))
+{
+	mm->drawgrid = !mm->drawgrid;
+}
+
+////////////////////////////////////////////////////////////
+/// Check vertex snap
+////////////////////////////////////////////////////////////
+void mmFrame::OnMenuVertexSnapCheck(wxCommandEvent &WXUNUSED(p_Event))
+{
+	mm->vertex_snap = !mm->vertex_snap;
+}
+
+////////////////////////////////////////////////////////////
+/// Show Map properties
+////////////////////////////////////////////////////////////
+void mmFrame::OnMenuMapProperties(wxCommandEvent &WXUNUSED(p_Event))
+{
+	//pMapProp->Show(!pMapProp->IsShown());
+	MapSettingsDialog *MapSettings = new MapSettingsDialog(this, mm);
+	MapSettings->Show();
 }

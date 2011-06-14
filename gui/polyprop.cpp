@@ -1,13 +1,12 @@
 #include"polyprop.h"
-#include<wx/filename.h>
-#include<algorithm>
+#include<cassert>
 
 enum{
 	mmID_SELECTTEXTURE = 8000,
 	mmID_SELECTPOLYVERTS
 };
 
-PolyPropWindow::PolyPropWindow(wxWindow *p_Parent) :
+PolyPropWindow::PolyPropWindow(wxWindow *p_Parent, MapMaker *p_MM) :
 	wxMiniFrame(p_Parent, wxID_ANY, "Poly Properties", wxPoint(0, 300), wxSize(200,250))
 {
 
@@ -18,33 +17,20 @@ PolyPropWindow::PolyPropWindow(wxWindow *p_Parent) :
 										wxPoint(0,205),
 										wxSize(190,20));
 
-		pSelTextureBtn	= new wxButton( pMain,
-										mmID_SELECTTEXTURE,
-										wxT("Select Texture"),
-										wxPoint(0,185),
-										wxSize(190,20));
+		pTextureChoice = new wxChoice(pMain, mmID_SELECTTEXTURE);
+		mm = p_MM;
+
 	}
 
 }
 
 BEGIN_EVENT_TABLE(PolyPropWindow, wxMiniFrame)
 	EVT_BUTTON	(mmID_SELECTPOLYVERTS, 	PolyPropWindow::OnSelectVerts)
-	EVT_BUTTON	(mmID_SELECTTEXTURE, 	PolyPropWindow::OnSelectTexture)
-	EVT_PAINT	(PolyPropWindow::OnPaint)
+	EVT_CHOICE	(mmID_SELECTTEXTURE, PolyPropWindow::OnTextureSelect)
 END_EVENT_TABLE()
 
 ////////////////////////////////////////////////////////////
-/// Paint Event
-////////////////////////////////////////////////////////////
-void PolyPropWindow::OnPaint(wxPaintEvent &WXUNUSED(p_Event))
-{
-	wxPaintDC	__dc(this);
-	wxPaintDC	DC(pMain);
-
-	DC.DrawBitmap(wxBitmap(pTexture), 5, 5);
-}
-
-////////////////////////////////////////////////////////////
+/// Select Vertexes that belong to this polygon
 ////////////////////////////////////////////////////////////
 void PolyPropWindow::OnSelectVerts(wxCommandEvent &p_Event)
 {
@@ -52,32 +38,30 @@ void PolyPropWindow::OnSelectVerts(wxCommandEvent &p_Event)
 }
 
 ////////////////////////////////////////////////////////////
-/// On select texture file
+/// Select Texture for the polygon
 ////////////////////////////////////////////////////////////
-void PolyPropWindow::OnSelectTexture(wxCommandEvent &WXUNUSED(p_Event))
+void PolyPropWindow::OnTextureSelect(wxCommandEvent &WXUNUSED(p_Event))
 {
-	//wxString cwd = wxGetCwd();
-	wxFileDialog *ChooseTxtr = new wxFileDialog(this, _T("Choose a texture"), _("./assets/texture/"), _(""), _(""), wxID_OPEN);
-	if( ChooseTxtr->ShowModal() == wxID_OK ){
-		wxString path = ChooseTxtr->GetPath();
-		{
-			pTexture.LoadFile(path);
-			wxFileName fpath(path);
-			pSelTextureBtn->SetLabel(fpath.GetFullName());
-			pTexture.Rescale(128,128);
-			Refresh();
+	//void
+	*mm->change->pPolygon->pT = pTextureChoice->GetSelection();
+	mm->FixTC(mm->change->pPolygon->pTC, *mm->change->pPolygon->pT);
+}
 
-			path = fpath.GetFullName();
-			//Find the texture in textures
-			std::vector<std::string>::iterator	it;
-			it	= std::find(mm->map->texpath.begin(), mm->map->texpath.end(), std::string(path.ToAscii()));
-			if(it != mm->map->texpath.end()){
-				size_t pos = size_t(mm->map->texpath.end() - it);
-				*pChange->pPolygon->pT = pos;
-				mm->FixTC(pChange->pPolygon->pTC, pos);
-			}
-		}
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+void PolyPropWindow::Display(bool p_Show)
+{
+	if(!p_Show){
+		Show(false);
+		return;
 	}
 
-	ChooseTxtr->Close();
+	assert(!mm);
+
+	pTextureChoice->Clear();
+	for(size_t i=0;i<mm->map->texpath.size();i++)
+		pTextureChoice->Insert(_(mm->map->texpath[i].c_str()), i);
+	pTextureChoice->SetSelection(*mm->change->pPolygon->pT);
+
+	Show();
 }
