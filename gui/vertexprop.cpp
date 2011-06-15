@@ -5,13 +5,15 @@ enum {
 	mmID_REDCOLVERTVAL,
 	mmID_GREENCOLVERTVAL,
 	mmID_BLUECOLVERTVAL,
-	mmID_ALPHACOLVERTVAL
+	mmID_ALPHACOLVERTVAL,
+	mmID_XVALUE,
+	mmID_YVALUE
 };
 
 ////////////////////////////////////////////////////////////
 /// ctor
 ////////////////////////////////////////////////////////////
-VertexPropWindow::VertexPropWindow(wxWindow* p_Parent) :
+VertexPropWindow::VertexPropWindow(wxWindow* p_Parent, MapMaker *p_MM) :
 	wxMiniFrame(p_Parent,
 				wxID_ANY,
 				"Vertex Prop",
@@ -19,6 +21,8 @@ VertexPropWindow::VertexPropWindow(wxWindow* p_Parent) :
 				wxSize(150,200),
 				wxCAPTION | wxCLOSE_BOX )
 {
+	mm = p_MM;
+
 	//Main Panel
 	mMain = new wxPanel(this);{
 		//Color value text controls
@@ -37,65 +41,90 @@ VertexPropWindow::VertexPropWindow(wxWindow* p_Parent) :
 			}
 		}
 
-		//Change Color with a color Dialog
-		mColorButton = new wxButton(mMain, mmID_CHANGECOLORBTN, wxT("Change Color"), wxPoint(5,80));
+		{
+			pXValue = new wxTextCtrl(mMain, mmID_XVALUE, _(""), wxPoint(5, 90), wxSize(80, 20));
+			pYValue	= new wxTextCtrl(mMain, mmID_YVALUE, _(""), wxPoint(5, 110), wxSize(80, 20));
+		}
+
 	}
 
 	Centre();
 }
 
 ////////////////////////////////////////////////////////////
+/// Display
+////////////////////////////////////////////////////////////
+void VertexPropWindow::Display(bool p_Show)
+{
+	Show(p_Show);
+	if(!p_Show)
+		return;
+
+	{
+		wxString Rstr, Gstr, Bstr, Astr;
+
+		Rstr.Printf(_("%d"), int(mm->change->vertex_color->r*256));
+		Gstr.Printf(_("%d"), int(mm->change->vertex_color->g*256));
+		Bstr.Printf(_("%d"), int(mm->change->vertex_color->b*256));
+		Astr.Printf(_("%d"), int(mm->change->vertex_color->a*256));
+
+		pRed->SetValue(Rstr);
+		pGreen->SetValue(Gstr);
+		pBlue->SetValue(Bstr);
+		pAlpha->SetValue(Astr);
+	}
+
+	{
+		wxString Xstr, Ystr;
+
+		Xstr.Printf(_("%f"), mm->change->vertex->x);
+		Ystr.Printf(_("%f"), mm->change->vertex->y);
+
+		pXValue->SetValue(Xstr);
+		pYValue->SetValue(Ystr);
+	}
+
+}
+
+////////////////////////////////////////////////////////////
 /// Vertex Properties frame events
 ////////////////////////////////////////////////////////////
 BEGIN_EVENT_TABLE(VertexPropWindow, wxMiniFrame)
-	EVT_BUTTON	(mmID_CHANGECOLORBTN,	VertexPropWindow::OnChangeColorButton)
 	EVT_TEXT	(mmID_REDCOLVERTVAL,	VertexPropWindow::OnRedChange)
 	EVT_TEXT	(mmID_GREENCOLVERTVAL,	VertexPropWindow::OnGreenChange)
 	EVT_TEXT	(mmID_BLUECOLVERTVAL,	VertexPropWindow::OnBlueChange)
 	EVT_TEXT	(mmID_ALPHACOLVERTVAL,	VertexPropWindow::OnAlphaChange)
+
+	EVT_TEXT	(mmID_XVALUE,	VertexPropWindow::XChange)
+	EVT_TEXT	(mmID_YVALUE,	VertexPropWindow::YChange)
 END_EVENT_TABLE()
 
 ////////////////////////////////////////////////////////////
-/// Change the color for the vertex with a wxColorDialog
+/// X, Y position change
 ////////////////////////////////////////////////////////////
-void VertexPropWindow::OnChangeColorButton(wxCommandEvent &p_Event)
+void VertexPropWindow::XChange(wxCommandEvent &WXUNUSED(p_Event))
 {
-	wxColourDialog			*ChangeColorDlg;
-	wxColourData 	ColorData; ColorData.SetChooseFull(true);
-
-	// Convert the existing color of the vertex to wxColour & wxColourData
-	//wxColor Color((uint8_t)pVert.pCol->r, (uint8_t)pVert.pCol->g, (uint8_t)pVert.pCol->b, (uint8_t)pVert.pCol->a);
-	wxColor Color(256*pVert.pCol->r,256*pVert.pCol->g,256*pVert.pCol->b,256*pVert.pCol->a);
-
-	ColorData.SetCustomColour(0,Color);
-
-	//Create the Dialog
-	ChangeColorDlg 	= new wxColourDialog(this, &ColorData);
-
-	if(ChangeColorDlg->ShowModal() == wxID_OK){
-		//Convert the new color back into vertex color
-		glm::vec4		NewColor;
-
-		Color	 	= ChangeColorDlg->GetColourData().GetColour();
-
-		NewColor.r	= Color.Red()/256.0f;
-		NewColor.g	= Color.Green()/256.0f;
-		NewColor.b	= Color.Blue()/256.0f;
-		NewColor.a	= Color.Alpha()/256.0f;
-
-		*(pVert.pCol)	= NewColor;
-	}
-
-	//Destroy the dialog
-	ChangeColorDlg->Destroy();
+	static double x = 0.0f;
+	pXValue->GetValue().ToDouble(&x);
+	mm->change->vertex->x = x;
 }
 
+void VertexPropWindow::YChange(wxCommandEvent &WXUNUSED(p_Event))
+{
+	static double y = 0.0f;
+	pYValue->GetValue().ToDouble(&y);
+	mm->change->vertex->y = y;
+}
+
+////////////////////////////////////////////////////////////
+/// Color change events
+////////////////////////////////////////////////////////////
 void VertexPropWindow::OnRedChange(wxCommandEvent &p_Event)
 {
 	long value = 0;
 	pRed->GetValue().ToLong(&value);
 
-	pVert.pCol->r = value/256.0f;
+	mm->change->vertex_color->r = value/256.0f;
 }
 
 void VertexPropWindow::OnGreenChange(wxCommandEvent &p_Event)
@@ -103,7 +132,7 @@ void VertexPropWindow::OnGreenChange(wxCommandEvent &p_Event)
 	long value = 0;
 	pGreen->GetValue().ToLong(&value);
 
-	pVert.pCol->g = value/256.0f;
+	mm->change->vertex_color->g = value/256.0f;
 }
 
 void VertexPropWindow::OnBlueChange(wxCommandEvent &p_Event)
@@ -111,7 +140,7 @@ void VertexPropWindow::OnBlueChange(wxCommandEvent &p_Event)
 	long value = 0;
 	pBlue->GetValue().ToLong(&value);
 
-	pVert.pCol->b = value/256.0f;
+	mm->change->vertex_color->b = value/256.0f;
 }
 
 void VertexPropWindow::OnAlphaChange(wxCommandEvent &WXUNUSED(p_Event))
@@ -119,5 +148,5 @@ void VertexPropWindow::OnAlphaChange(wxCommandEvent &WXUNUSED(p_Event))
 	long value = 0;
 	pAlpha->GetValue().ToLong(&value);
 
-	pVert.pCol->a = value/256.0f;
+	mm->change->vertex_color->a = value/256.0f;
 }

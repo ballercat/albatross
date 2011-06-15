@@ -185,7 +185,7 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
         ch->vertex = NULL;
         return false;
     }//Polygon selection
-    else if(ch == &pick_polygon){
+    else if(ch->pick_poly){
         bgmf_poly *p = NULL;
         for(size_t i = 0;i < map->header.pc;i++){
             p = &map->poly[i];
@@ -196,7 +196,6 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
 				//This is extra code for filling in the
 				//polygon view field. Its used in the gui
 				ch->pPolygon = &map->Polygon[i];
-				//ch->pPolygon->pT = &__x;
 
                 return true;
             }
@@ -220,7 +219,6 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
 			ch->picked = true;
 		else
 			ch->picked = false;
-
 		if(ch->picked && input->IsKeyDown(Input::Key::LShift)){
 			glm::vec3 *v = findVertex(mouse.x,mouse.y,ch->vertex);
 			if(v && vertex_snap)
@@ -236,7 +234,8 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
         else
             *ch->vertex = mouse;
     }
-    else if(ch == &pick_polygon){
+    else if(ch->pick_poly){
+		ch->move = false;
         if(input->IsKeyDown(Input::Key::LShift) && leftdown){
             glm::vec3 mv = mouse - lastmouse;
             ch->poly->data[0] += mv;
@@ -247,6 +246,7 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
         else if(ch->remove && ch->poly){
             bgmfremovepoly(map,*ch->poly);
             ch->poly = NULL;
+			ch->pPolygon = NULL;
             ch = NULL;
         }
 		else if(ch->vertex){
@@ -304,6 +304,8 @@ void MapMaker::Step()
 			}
 			if(!change && input->mState.mouse.left){
 				//rogue vertex
+				mouse.x = int(mouse.x);
+				mouse.y = int(mouse.y);
 				vertex.push_back(mouse);
 				if(vertex.size() == 3){
 					//Create a new Polygon
@@ -353,16 +355,18 @@ void MapMaker::Step()
             {
                 if(change->remove)
                     glColor4f(1.0f,0.0f,0.0f,1.0f);
-                else if(change->color)
-					glColor4f(1.0f,0.0f,1.0f,1.0f);
-				//else if(change->select)
-					//glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				else if(change->select)
+					glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
 				else if(change->move)
 					glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 
-				if(change->pPolygon){
-					display->drawArray(change->pPolygon->pP, NULL, NULL, 3, GL_LINE_LOOP, 0);
+				change_struct swap;
+				swap.pick_poly = true;
+				Pick(&swap, 5);
+				if(swap.pPolygon){
+					display->drawArray(swap.pPolygon->pP, NULL, NULL, 3, GL_LINE_LOOP, 0);
 				}
+
             }
 
 
@@ -415,12 +419,14 @@ void MapMaker::Step()
 				}glPopMatrix();
 			}
 
-			if(change == &pick_polygon && change->picked){
+			if(change == &pick_polygon && change->pPolygon){
 				if(input->IsKeyDown(Input::Key::LShift))
 					glColor4f(0.0f,1.0f,0.0f, 1.0f);
 				else
 					glColor4f(0.0f, 1.0f, 1.0, 1.0f);
+				glLineWidth(2.0f);
 				display->drawArray(&change->poly->data[0], NULL, NULL, 3, GL_LINE_LOOP, 0);
+				glLineWidth(1.0f);
 			}
 
 			if(!vertex.empty()){

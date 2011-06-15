@@ -114,8 +114,56 @@ void MainClient::_loadMap(const char *p_MapPath)
 
 	//Map textures
 	{
-		size_t sz = map->
+		//Generate polygon texture(s)
+		float	tsz	= map->texpath.size();
+		size_t	psz	= map->header.pc;
+		float tw	= tsz*128.0f;
+		float th	= 128.0f;
+		sf::Image	texturedata(tw, th);
+
+		//Create the actual OpenGL texture
+		{
+			sf::Image	rawImg;
+			std::string	fpath;
+
+			for(size_t i=0;i<tsz;i++){
+				fpath = "assets/texture/" + map->texpath[i];
+				rawImg.LoadFromFile(fpath);
+				texturedata.Copy(rawImg, 128*i, 0);
+			}
+
+			glGenTextures(1, &gs.map.Texture);
+
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, gs.map.Texture);
+
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th,
+						   0, GL_RGBA, GL_UNSIGNED_BYTE, texturedata.GetPixelsPtr());
+
+			glDisable(GL_TEXTURE_2D);
+		}
+
+		tsz				= 1.0f / map->texpath.size();
+		float left		= 0.0f;
+		float right		= 0.0f;
+
+		for(size_t i=0;i<psz;i++){
+			// Populate map texture coordinates
+			left = map->texture[i] * tsz;
+			right = left + tsz;
+
+			map->texcoord[i].data[0] = glm::vec2(left, 0.0f);
+			map->texcoord[i].data[1] = glm::vec2(left, 1.0f);
+			map->texcoord[i].data[2] = glm::vec2(right, 1.0f);
+		}
 	}
+
 	//Polygon vertexes
 	glm::vec3 v0,v1,v2;
 

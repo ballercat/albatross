@@ -86,7 +86,7 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
 	}
 
 	//Add Vertex Properties window
-	mVertexProp = new VertexPropWindow(this);
+	mVertexProp = new VertexPropWindow(this, mm);
 	mVertexProp->Move(ClientToScreen(wxPoint(1023,0)));
 	mVertexProp->Show(false);
 
@@ -133,42 +133,15 @@ void mmFrame::OnIdle(wxIdleEvent &p_Event)
 	if(mm->change == &mm->pick_vertex && mm->change->vertex)
 	{
 		//Vertex Selected. Show Vertex Properties window
-
-		mVertexProp->pVert.pPos	= mm->change->vertex;
-		mVertexProp->pVert.pCol = mm->change->vertex_color;
-
-		mVertexProp->Show(true);
-
-		//Set apropriate values
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->r*256));
-		mVertexProp->pRed->SetValue(str);
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->g*256));
-		mVertexProp->pGreen->SetValue(str);
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->b*256));
-		mVertexProp->pBlue->SetValue(str);
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->a*256));
-		mVertexProp->pAlpha->SetValue(str);
+		mVertexProp->Display();
 	}
 	else if(mm->change == &mm->pick_polygon && mm->change->pick_vertex && mm->change->vertex){
-		mVertexProp->pVert.pPos	= mm->change->vertex;
-		mVertexProp->pVert.pCol	= mm->change->vertex_color;
-
-		mVertexProp->Show();
-
-		//Set apropriate values
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->r*256));
-		mVertexProp->pRed->SetValue(str);
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->g*256));
-		mVertexProp->pGreen->SetValue(str);
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->b*256));
-		mVertexProp->pBlue->SetValue(str);
-		str.Printf(wxT("%d"), int(mVertexProp->pVert.pCol->a*256));
-		mVertexProp->pAlpha->SetValue(str);
+		mVertexProp->Display();
 
 		mm->change->picked	= false;
 	}
 	else {
-		mVertexProp->Show(false);
+		mVertexProp->Display(false);
 	}
 	//Handle Polygon Selection Mode
 	if(mm->change == &mm->pick_polygon && mm->change->picked && mm->change->pPolygon){
@@ -255,6 +228,7 @@ void mmFrame::OnMenuEditSelPoly(wxCommandEvent &p_Event)
 	mm->change			= &mm->pick_polygon;
 	mm->change->Clear();
 	mm->change->select	= true;
+	mm->change->pick_poly = true;
 
 	SetStatusText(wxT("Select Polygon"), 1);
 }

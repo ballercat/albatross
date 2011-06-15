@@ -53,7 +53,7 @@ struct GameSprites{
 
 	//Map
 	struct MapData{
-		std::vector<GLuint>	Texture; //polygon textures
+		GLuint				Texture; //polygon textures
 		std::vector<Sprite>	Scenery;	 //static sprites
 		std::vector<Sprite> AnimScenery; //animated sprties
 	} map;

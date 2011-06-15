@@ -65,7 +65,12 @@ MapSettingsDialog::MapSettingsDialog(wxWindow* p_Parent, MapMaker *p_MM)
 		pRemove = new wxButton(pMain, mmID_REMTEXTURE, _("Remove Texture"), wxPoint(205,35), wxDefaultSize);
 	}
 
+	wxPanel *pSprite = new wxPanel(this);{
+
+	}
+
 	notebook->AddPage(pMain, _("General"));
+	notebook->AddPage(pSprite, _("Sprites"));
 
 	LayoutDialog();
 

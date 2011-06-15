@@ -180,7 +180,7 @@ void MainClient::Run(const char *p_DemoFile)
 									&map->color[0],
 									map->header.pc*3,
 									GL_TRIANGLES,
-									display->Texture[WORLD_PLAIN] );
+									gs.map.Texture );
 			}
 
 			//Draw bullet Hits
