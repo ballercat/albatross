@@ -110,6 +110,13 @@ struct bgmf_poly_tex
         return false;
     }
 
+	bgmf_poly_tex& operator=(const bgmf_poly_tex& p_Swap)
+	{
+		data[0] = p_Swap.data[0];
+		data[1] = p_Swap.data[1];
+		data[2] = p_Swap.data[2];
+	}
+
     glm::vec2 data[3];
 };
 
@@ -125,6 +132,14 @@ struct bgmf_color
         data[1] = v1;
         data[2] = v2;
     }
+
+	bgmf_color& operator=(const bgmf_color& p_Swap)
+	{
+		data[0] = p_Swap.data[0];
+		data[1] = p_Swap.data[1];
+		data[2] = p_Swap.data[2];
+	}
+
     glm::vec4 data[3];
 };
 
@@ -137,11 +152,18 @@ union bgmf_pmask
 	{
 		full = p_Value;
 	}
+
 	struct value{
 		unsigned visible 	: 1;
-		unsigned solid		: 1;
+		unsigned hollow		: 1;
 		unsigned unused		: 30;
 	} bit;
+
+	bgmf_pmask& operator=(const bgmf_pmask& p_Swap)
+	{
+		full = p_Swap.full;
+	}
+
 	uint32_t	full;
 };
 
@@ -237,7 +259,8 @@ struct bgmf
     std::vector<bgmf_color>     color; //>polygon colors(per vertex)
     std::vector<bgmf_poly>      poly; //>polygon vertexes(TRIANGLES)
 	std::vector<bgmf_poly_view>	Polygon;
-
+	uint32_t					hpc; //>Hollow Polygon count
+	uint32_t					hpos; //pc - hpc
 	float	texlength;
 
 	std::vector<glm::vec2>		redspawn;
@@ -262,6 +285,7 @@ extern void bgmfaddpolygon(bgmf *map, bgmf_poly p);
 extern void bgmfremovepoly(bgmf *map, bgmf_poly p);
 extern void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, bgmf_poly &p);
 extern void bgmfsort(bgmf *map);
+extern void bgmfswap(bgmf *map, int left, int right);
 
 extern bgmf_poly_tex *bgmfnewptc(float u0, float v0, float u1, float v1, float u2, float v2);
 extern bgmf_poly *bgmfnewpoly(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2);

@@ -105,6 +105,8 @@ bgmf* bgmfopen(const char *fpath)
     fread(&map->color[0], sizeof(bgmf_color) * map->header.pc, 1, mapfile);
     fread(&map->poly[0], sizeof(bgmf_poly) * map->header.pc, 1, mapfile);
 
+	map->hpc = 0;
+
 	//Populate Polygon vector
 	{
 		bgmf_poly_view	ViewPolygon;
@@ -117,9 +119,12 @@ bgmf* bgmfopen(const char *fpath)
 			ViewPolygon.pT 	= &map->texture[i];
 
 			map->Polygon.push_back(ViewPolygon);
+
+			if(map->mask[i].bit.hollow) map->hpc++;
 		}
 	}
 
+	map->hpos = map->header.pc - map->hpc;
 
     fclose(mapfile);
 
@@ -138,6 +143,9 @@ void bgmfsave(bgmf *map, const char *fpath)
         fprintf(stderr, "Could not save to file : %s\n",fpath);
         return;
     }
+
+	//Before any writing sort the polygons
+	bgmfsort(map);
 
 	//Write all the data to file
 	unsigned int temp = 0;
@@ -169,6 +177,88 @@ void bgmfsave(bgmf *map, const char *fpath)
     fwrite(&map->poly[0], sizeof(bgmf_poly)*map->header.pc, 1, mapfile);
 
     fclose(mapfile);
+}
+
+////////////////////////////////////////////////////////////
+/// Swap polygon data
+////////////////////////////////////////////////////////////
+void bgmfswap(bgmf *map, int left, int right)
+{
+	std::swap(map->mask[left], map->mask[right]);
+	std::swap(map->poly[left], map->poly[right]);
+	std::swap(map->color[left], map->color[right]);
+	std::swap(map->texture[left], map->texture[right]);
+	std::swap(map->texcoord[left], map->texcoord[right]);
+}
+
+////////////////////////////////////////////////////////////
+/// Sort polygon data by the mask values
+////////////////////////////////////////////////////////////
+static int sortPartition(bgmf* map, int left, int right)
+{
+	bgmf_pmask pivot = map->mask[left];
+	while(true)
+	{
+		while(map->mask[left].bit.hollow < pivot.bit.hollow) left++;
+		while(map->mask[right].bit.hollow > pivot.bit.hollow) right--;
+
+		if(left < right && map->mask[left].bit.hollow != map->mask[right].bit.hollow){
+			bgmfswap(map, left, right);
+		}
+		else {
+			return right;
+		}
+	}
+
+	return right;
+}
+
+//actual sorting
+static void sortQuickSort(bgmf *map, int left, int right)
+{
+	int i = left;
+	int k = right;
+
+	if( right - left >= 1){
+		bgmf_pmask pivot = map->mask[left];
+
+		while( k > i ){
+			while(map->mask[i].bit.hollow <= pivot.bit.hollow &&
+					i <= right && k > i )
+				i++;
+			while(map->mask[k].bit.hollow > pivot.bit.hollow &&
+					k >= left && k >= i)
+				k--;
+
+			if (k > i)
+				bgmfswap(map, i, k);
+
+			sortQuickSort(map, left, k - 1);
+			sortQuickSort(map, k + 1, right);
+		}
+	}
+	else {
+		return;
+	}
+}
+
+//Sorting wrapper
+void bgmfsort(bgmf *map)
+{
+	if(!map)
+		return;
+
+	sortQuickSort(map, 0, map->poly.size()-1);
+
+	//Fix the polygon view
+	for(size_t i=0;i<map->poly.size();i++){
+		map->Polygon[i].pID	= i;
+		map->Polygon[i].pM	= &map->mask[i];
+		map->Polygon[i].pTC	= &map->texcoord[i];
+		map->Polygon[i].pT	= &map->texture[i];
+		map->Polygon[i].pP	= &map->poly[i];
+		map->Polygon[i].pC	= &map->color[i];
+	}
 }
 
 ////////////////////////////////////////////////////////////

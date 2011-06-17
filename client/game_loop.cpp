@@ -158,6 +158,16 @@ void MainClient::Run(const char *p_DemoFile)
 
 		//Draw everything
 		display->beginScene();{
+			if(map){
+				//Draw solid polygons map polygons
+				display->drawArray( &map->poly[0],
+									&map->texcoord[0],
+									&map->color[0],
+									(map->header.pc - map->hpc)*3,
+									GL_TRIANGLES,
+									gs.map.Texture );
+			}
+
 			Tree->Draw();
 
 			//Draw all the bullets
@@ -173,19 +183,18 @@ void MainClient::Run(const char *p_DemoFile)
 
 			_drawWeapons();
 
-			if(map){
-				//Draw map polygons
-				display->drawArray( &map->poly[0],
-									&map->texcoord[0],
-									&map->color[0],
-									map->header.pc*3,
-									GL_TRIANGLES,
-									gs.map.Texture );
-			}
-
 			//Draw bullet Hits
 			_drawHits();
 
+			//Draw Hollow Polygons
+			{
+				display->drawArray(&map->poly[map->hpos],
+									&map->texcoord[map->hpos],
+									&map->color[map->hpos],
+									map->hpc * 3,
+									GL_TRIANGLES,
+									gs.map.Texture );
+			}
 			//Draw the cursor
 			display->cursor.Draw();
 

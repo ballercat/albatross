@@ -175,7 +175,8 @@ void MainClient::_loadMap(const char *p_MapPath)
 		v1 = p->data[1];
 		v2 = p->data[2];
 
-		if(map->color[i].data[0].a > 0.5f && map->color[i].data[1].a > 0.5f && map->color[i].data[2].a > 0.5f){
+		//Only add non-hollow polygons
+		if(!map->mask[i].bit.hollow){
 			mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
 			mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
 			mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
