@@ -208,6 +208,9 @@ void MainClient::Run(const char *p_DemoFile)
 		Demo.Save("demo.bgdf");
 }
 
+////////////////////////////////////////////////////////////
+/// Handle Messages
+////////////////////////////////////////////////////////////
 bool MainClient::_handleMessages(void)
 {
 	float t;
@@ -242,10 +245,6 @@ bool MainClient::_handleMessages(void)
                 break;
             case message::GMSG_FIRE:
             {
-                //t = mTime->GetElapsedTime();
-                //if(t - lastbullet < 0.10f)
-                    //break;
-                //lastbullet = t;
                 glm::vec3 dest = dmp;
                	Bullet *bullet = mPlayer->Shoot(dest);	
 				if(bullet != NULL)
