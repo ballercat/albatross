@@ -61,8 +61,12 @@ void MainClient::MainMenu()
 				if(ostart){
 					display->setCursor(info.cursorfile.c_str());
 					_loadMap(info.mapfile.c_str());
+					mPlayer = new Player(display->Texture);
+					mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y,0));
+					mPlayer->PickWeapon(WeaponInfo[0],0);
 					Run();
 					display->Window->ShowMouseCursor(true);
+					delete mPlayer;
 					ostart = false;
 				}
 				else if(oexit){

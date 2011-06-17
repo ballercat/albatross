@@ -23,6 +23,9 @@
 #include <cstring>
 #include <algorithm>
 
+////////////////////////////////////////////////////////////
+/// Open a .bgmf file format, returns a new struct
+////////////////////////////////////////////////////////////
 bgmf* bgmfopen(const char *fpath)
 {
     FILE *mapfile;
@@ -47,6 +50,19 @@ bgmf* bgmfopen(const char *fpath)
         return NULL;
     }
 
+/*
+	map->nheader.BGMF[0] = 'B';
+	map->nheader.BGMF[1] = 'G';
+	map->nheader.BGMF[2] = 'M';
+	map->nheader.BGMF[3] = 'F';
+	map->nheader.poly_offset = map->header.poly_offset;
+	map->nheader.pc = map->header.pc;
+	map->nheader.rsc = 0;
+	map->nheader.bsc = 0;
+	map->nheader.X = 'X';
+*/
+	map->redspawn.resize(map->header.rsc, glm::vec2(0,0));
+	map->bluespawn.resize(map->header.bsc, glm::vec2(0,0));
     map->poly.resize(map->header.pc,bgmfpolyzero);
     map->texcoord.resize(map->header.pc,bgmftexpolyzero);
     map->color.resize(map->header.pc,bgmf_color());
@@ -55,6 +71,10 @@ bgmf* bgmfopen(const char *fpath)
 
 	/*NOTE: Not reading/writing the whole map struct at once
 	 * 		makes it simpler to add new features to the map */
+
+	//Read in spawn locations
+	fread(&map->redspawn[0], sizeof(glm::vec2), map->header.rsc, mapfile);
+	fread(&map->bluespawn[0], sizeof(glm::vec2), map->header.bsc, mapfile);
 
 	//Read in texture names
 	{
@@ -79,6 +99,7 @@ bgmf* bgmfopen(const char *fpath)
 
 		//map->texpath.push_back("lumpybark.bmp");
 	}
+
 	fread(&map->texture[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
     fread(&map->mask[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
     fread(&map->color[0], sizeof(bgmf_color) * map->header.pc, 1, mapfile);
@@ -88,7 +109,7 @@ bgmf* bgmfopen(const char *fpath)
 	{
 		bgmf_poly_view	ViewPolygon;
 		for(size_t i = 0;i < map->header.pc;i++){
-			ViewPolygon.pM	= map->mask[i];
+			ViewPolygon.pM	= &map->mask[i];
 			ViewPolygon.pC	= &map->color[i];
 			ViewPolygon.pP	= &map->poly[i];
 			ViewPolygon.pTC = &map->texcoord[i];
@@ -105,6 +126,9 @@ bgmf* bgmfopen(const char *fpath)
     return map;
 }
 
+////////////////////////////////////////////////////////////
+/// Save .bgmf file
+////////////////////////////////////////////////////////////
 void bgmfsave(bgmf *map, const char *fpath)
 {
     FILE *mapfile;
@@ -114,12 +138,17 @@ void bgmfsave(bgmf *map, const char *fpath)
         fprintf(stderr, "Could not save to file : %s\n",fpath);
         return;
     }
-    map->header.poly_offset = sizeof(bgmf_header);
 
 	//Write all the data to file
 	unsigned int temp = 0;
 
+	//Write map header
 	fwrite(map, sizeof(bgmf_header), 1, mapfile);
+
+	//Write spawn locations
+	fwrite(&map->redspawn[0], sizeof(glm::vec2), map->header.rsc, mapfile);
+	fwrite(&map->bluespawn[0], sizeof(glm::vec2), map->header.bsc, mapfile);
+
 	//write texture names
 	{
 		for(size_t i=0;i<map->texpath.size();i++){
@@ -142,16 +171,26 @@ void bgmfsave(bgmf *map, const char *fpath)
     fclose(mapfile);
 }
 
+////////////////////////////////////////////////////////////
+/// Delete the map
+////////////////////////////////////////////////////////////
 void bgmfdelete(bgmf *map)
 {
     if(map){
         map->mask.clear();
         map->poly.clear();
         map->texcoord.clear();
-        delete map;
+		map->texture.clear();
+		map->Polygon.clear();
+		map->color.clear();
     }
+
+	delete map;
 }
 
+////////////////////////////////////////////////////////////
+/// Remove a polygon from the map
+////////////////////////////////////////////////////////////
 void bgmfremovepoly(bgmf *map, bgmf_poly p)
 {
     std::vector<bgmf_poly>::iterator it = std::find(map->poly.begin(),map->poly.end(),p);
@@ -162,10 +201,23 @@ void bgmfremovepoly(bgmf *map, bgmf_poly p)
     map->texcoord.erase(map->texcoord.begin()+index);
 	map->texture.erase(map->texture.begin()+index);
     map->color.erase(map->color.begin()+index);
+	map->Polygon.erase(map->Polygon.begin()+index);
+
+	for(size_t i=0;i<map->poly.size();i++){
+		map->Polygon[i].pID	= i;
+		map->Polygon[i].pM	= &map->mask[i];
+		map->Polygon[i].pTC	= &map->texcoord[i];
+		map->Polygon[i].pT	= &map->texture[i];
+		map->Polygon[i].pP	= &map->poly[i];
+		map->Polygon[i].pC	= &map->color[i];
+	}
 
     map->header.pc--;
 }
 
+////////////////////////////////////////////////////////////
+/// Append a polygon
+////////////////////////////////////////////////////////////
 void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, bgmf_poly &p)
 {
     map->mask.push_back(mask);
@@ -175,7 +227,7 @@ void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, 
     map->color.push_back(color);
 
 	bgmf_poly_view	ViewPolygon;
-	ViewPolygon.pM	= map->mask[map->header.pc];
+	ViewPolygon.pM	= &map->mask[map->header.pc];
 	ViewPolygon.pC	= &map->color[map->header.pc];
 	ViewPolygon.pP	= &map->poly[map->header.pc];
 	ViewPolygon.pTC = &map->texcoord[map->header.pc];
@@ -186,11 +238,17 @@ void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, 
 	map->header.pc++;
 }
 
+////////////////////////////////////////////////////////////
+/// ?
+////////////////////////////////////////////////////////////
 void bgmfaddpolygon(bgmf *map, bgmf_poly poly)
 {
-
+	//void ...
 }
 
+////////////////////////////////////////////////////////////
+/// Helper function, creates a texture coord
+////////////////////////////////////////////////////////////
 bgmf_poly_tex *bgmfnewptc(float u0, float v0, float u1, float v1, float u2, float v2)
 {
     bgmf_poly_tex *texcoord = new bgmf_poly_tex;
@@ -201,6 +259,9 @@ bgmf_poly_tex *bgmfnewptc(float u0, float v0, float u1, float v1, float u2, floa
     return texcoord;
 }
 
+////////////////////////////////////////////////////////////
+/// Helper function, creates a new poly struct
+////////////////////////////////////////////////////////////
 bgmf_poly *bgmfnewpoly(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
 {
     bgmf_poly *polygon = new bgmf_poly;

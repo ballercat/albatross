@@ -31,14 +31,38 @@ PointInTriangle(glm::vec3 p, glm::vec3 a, glm::vec3 b,glm::vec3 c)
 }
 
 ////////////////////////////////////////////////////////////
+/// Draw a selection rectangle around a point
+////////////////////////////////////////////////////////////
+static void DrawRectAroundPoint(float p_X, float p_Y, float p_Size, float &p_Delta)
+{
+	p_Delta = (p_Delta < 360.0f) ? (p_Delta + 0.1f) : 0.0f;
+
+	glColor3f(0.0f, 1.0f, 0.0f);
+
+	glPushMatrix();{
+		glTranslatef(p_X, p_Y, 0.0f);
+		glRotatef(p_Delta, 0.0f, 0.0f, 1.0f);
+
+		glLineWidth(2.0f);
+		glBegin(GL_LINE_LOOP);{
+			glVertex2f(-p_Size,-p_Size);
+			glVertex2f(-p_Size, p_Size);
+			glVertex2f( p_Size, p_Size);
+			glVertex2f( p_Size,-p_Size);
+		}glEnd();
+		glLineWidth(1.0f);
+
+	}glPopMatrix();
+}
+
+////////////////////////////////////////////////////////////
 /// ctor
 ////////////////////////////////////////////////////////////
 MapMaker::MapMaker() :
 	drawgrid(false),
 	count(0),
 	map(NULL),
-	change(NULL),
-	__x(0)
+	change(NULL)
 {
 	for(int y =0; y<76;y++){
 		grid[count] = glm::vec3(-512.0f,(y-38)*8.0f,0.0f);
@@ -187,7 +211,22 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
     }//Polygon selection
     else if(ch->pick_poly){
         bgmf_poly *p = NULL;
-        for(size_t i = 0;i < map->header.pc;i++){
+		size_t i = 0;
+		if(ch->pPolygon){
+			i = ch->pPolygon->pID + 1;
+			for(i; i < map->header.pc;i++){
+				p = &map->poly[i];
+				if(PointInTriangle(mouse, p->data[0], p->data[1], p->data[2])){
+					ch->poly = p;
+					ch->index = i;
+
+					ch->pPolygon = &map->Polygon[i];
+					return true;
+				}
+			}
+		}
+
+        for(i=0;i < map->header.pc;i++){
             p = &map->poly[i];
             if(PointInTriangle(mouse, p->data[0], p->data[1], p->data[2])){
                 ch->poly = p;
@@ -204,6 +243,23 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
         ch->poly = NULL;
         return false;
     }
+	else if(ch == &spawn){
+		sf::Rect<float> pick;
+
+		if(ch->spawna && !map->redspawn.empty()){
+			int s = map->redspawn.size();
+			glm::vec2 *v;
+
+			for(int i = 0; i < s; i++){
+				v = &map->redspawn[i];
+				pick = sf::Rect<float>(v->x-range, v->y-range, v->x+range, v->y+range);
+				if(pick.Contains(mouse.x, mouse.y)){
+					ch->spawn = v;
+					return true;
+				}
+			}
+		}
+	}
 
     return false;
 }
@@ -265,6 +321,26 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
 				ch->picked	= false;
 		}
     }
+	else if(ch == &spawn && leftdown){
+		if(ch->spawn){
+			if(input->IsKeyDown(Input::Key::LShift)){
+				*ch->spawn = glm::vec2(mouse.x, mouse.y);
+				return;
+			}
+
+			return;
+		}
+		if(ch->spawna){
+			map->redspawn.push_back(glm::vec2(mouse.x, mouse.y));
+			map->header.rsc++;
+		}else if(ch->spawnb){
+			map->bluespawn.push_back(glm::vec2(mouse.x, mouse.y));
+			map->header.bsc++;
+		}
+
+		ch->Clear();
+		ch = NULL;
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -300,12 +376,10 @@ void MapMaker::Step()
 		//picks
 		if(input->mState.mouse.left){
 			if(change){
-				input->mState.mouse.left = !Pick(change, 5);
+				input->mState.mouse.left = !Pick(change, 10);
 			}
 			if(!change && input->mState.mouse.left){
 				//rogue vertex
-				mouse.x = int(mouse.x);
-				mouse.y = int(mouse.y);
 				vertex.push_back(mouse);
 				if(vertex.size() == 3){
 					//Create a new Polygon
@@ -396,27 +470,7 @@ void MapMaker::Step()
 
 			// Draw Selection Rectangle
 			if(change == &pick_vertex && change->vertex){
-				const float sz = 8.0f;
-				glm::vec3* p = change->vertex;
-
-				delta = (delta < 360.0f) ? (delta + 0.1f) : 0.0f;
-
-				glColor3f(0.0f, 1.0f, 0.0f);
-
-				glPushMatrix();{
-					glTranslatef(p->x, p->y, 0.0f);
-					glRotatef(delta, 0.0f, 0.0f, 1.0f);
-
-					glLineWidth(2.0f);
-					glBegin(GL_LINE_LOOP);{
-						glVertex2f(-sz,-sz);
-						glVertex2f(-sz, sz);
-						glVertex2f( sz, sz);
-						glVertex2f( sz,-sz);
-					}glEnd();
-					glLineWidth(1.0f);
-
-				}glPopMatrix();
+				DrawRectAroundPoint(change->vertex->x, change->vertex->y, 8.0f, delta);
 			}
 
 			if(change == &pick_polygon && change->pPolygon){
@@ -434,6 +488,22 @@ void MapMaker::Step()
 				glColor3f(0.0f,0.0f,1.0f);
 				glPointSize(6.0f);
 				display->drawArray(&vertex[0], NULL, NULL, vertex.size(), GL_POINTS, 0);
+			}
+
+			//Draw spawn points and selection rectangle
+			{
+				glBegin(GL_POINTS);{
+					glColor3f(1.0f, 0.0f, 0.0f);
+					for(int i = 0;i < map->redspawn.size();i++)
+						glVertex2f(map->redspawn[i].x, map->redspawn[i].y);
+
+					glColor3f(0.0f,0.0f,1.0f);
+					for(int i = 0;i < map->bluespawn.size();i++)
+						glVertex2f(map->bluespawn[i].x, map->bluespawn[i].y);
+				};glEnd();
+
+				if(change && change->spawn)
+					DrawRectAroundPoint(change->spawn->x, change->spawn->y, 8.0f, delta);
 			}
         }
 

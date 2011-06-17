@@ -49,6 +49,8 @@ public:
 	void OnMenuMapProperties(wxCommandEvent &);
 	void OnMenuVertexSnapCheck(wxCommandEvent &);
 	void ShowGrid(wxCommandEvent&);
+	void AlphaSpawn(wxCommandEvent&);
+	void BravoSpawn(wxCommandEvent&);
 
 	////////////////////////////////////////////////////////////
 	/// On Idle

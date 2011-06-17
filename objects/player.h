@@ -39,7 +39,19 @@ public:
 	////////////////////////////////////////////////////////////
 	/// ctor with location and texture pointer
 	////////////////////////////////////////////////////////////		
-	Player(glm::vec3 p_Pos, GLuint* p_Texture);
+	Player(GLuint* p_Texture);
+
+	inline void Spawn(glm::vec3 p_Pos)
+	{
+		pWeaponPos		= p_Pos;
+		pBarrelPos		= p_Pos;
+		pPos			= p_Pos;
+		pIPos			= p_Pos;
+		MercObject.Spawn(p_Pos);
+		MercObject.Initialize();
+		MercObject.id = 2;
+		pSpawned = true;
+	}
 
 public:
     void Step(glm::vec3& cursor, float& p_Time);
@@ -126,6 +138,7 @@ public:
 	glm::vec3	pAngle;		//angle to the cursor
 	glm::vec3	pPos;		//physical position
 	glm::vec3	pIPos;		//interpolated position
+	bool		pSpawned;
 
 public:
 	int				pWeaponID;

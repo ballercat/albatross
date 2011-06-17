@@ -23,6 +23,7 @@
 #include<SFML/Graphics.hpp>
 #include<cstdlib>
 #include<iostream>
+#include<cmath>
 
 sf::Clock   gclock;
 
@@ -55,9 +56,9 @@ void BulletPlain::Initialize(void)
     cpVect s = cpv(pos.x,pos.y);
     cpVect e = cpv(des.x,des.y);
     cpFloat d = cpvdist(s,e);
-    cpFloat t = d/pSpeed;
+    cpFloat t = d/(pSpeed+abs(startV.x/1.5f));
 
-	cpBodySetVel(&myBody->GetBodyDef(), cpv(startV.x,startV.y));
+	//cpBodySetVel(&myBody->GetBodyDef(), cpv(startV.x,startV.y));
     myBody->Move(des, t);
 
     myStatus.val = BulletStatus::Active;
@@ -133,7 +134,7 @@ void Explosive::Initialize(void)
 	cpVect s = cpv(pos.x, pos.y);
 	cpVect e = cpv(des.x, des.y);
 	cpFloat d = cpvdist(s, e);
-	cpFloat t = d/pSpeed;
+	cpFloat t = d/(pSpeed+abs(startV.x/1.5f));
 
 	cpBodySetVel(&m_phProjectile->GetBodyDef(), cpv(startV.x,startV.y));
 	m_phProjectile->Move(des, t);

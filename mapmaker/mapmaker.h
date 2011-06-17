@@ -17,7 +17,6 @@ struct MapMaker
 {
 public:
 	MapMaker();
-	unsigned int __x;
 
 public:
 	struct change_struct;
@@ -112,6 +111,7 @@ public:
 			poly		= NULL;
 			vertex		= NULL;
 			vertex_color = NULL;
+			spawn		= NULL;
 			pPolygon	= NULL;
 			move		= false;
 			color		= false;
@@ -120,6 +120,8 @@ public:
 			pick_poly	= false;
 			select		= false;
 			picked		= false;
+			spawna		= false;
+			spawnb		= false;
 			index		= 0;
 		}
 
@@ -130,6 +132,7 @@ public:
         bgmf_poly   	*poly;
         glm::vec3   	*vertex;
         glm::vec4   	*vertex_color;
+		glm::vec2		*spawn;
 		bgmf_vert		pVert;
 		bgmf_poly_view	*pPolygon;
         bool 			move;
@@ -140,6 +143,8 @@ public:
         bool 			pick_color;
 		bool			select;
 		bool 			picked;
+		bool 			spawna;
+		bool 			spawnb;
 
         size_t      	index;
     };
@@ -190,6 +195,7 @@ public:
     change_struct   remove_poly;
 	change_struct	pick_vertex;
 	change_struct	pick_polygon;
+	change_struct	spawn;
 	change_struct*	change;
 
 public:

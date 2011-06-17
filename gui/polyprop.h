@@ -34,11 +34,13 @@ public:
 	////////////////////////////////////////////////////////////
 	void OnSelectVerts(wxCommandEvent &p_Event);
 	void OnTextureSelect(wxCommandEvent &);
-	void OnPaint(wxPaintEvent &p_Event);
+	void SetHollowMask(wxCommandEvent&);
 
 public:
 	wxPanel			*pMain;
 	wxChoice		*pTextureChoice;
+	wxCheckBox 		*HollowChk;
+	wxStaticText	*pPolyID;
 	std::vector<std::string>	*pTextureNames;
 	wxButton		*pSelVertsBtn;
 	MapMaker::change_struct	*pChange;

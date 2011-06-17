@@ -52,12 +52,13 @@ Player::Player()
 	mShoot			= false;
 	mJumpState		= false;
 	mRunning		= false;
+	pSpawned		= false;
 }
 
 ////////////////////////////////////////////////////////////
 ///Constructor
 ////////////////////////////////////////////////////////////
-Player::Player(glm::vec3 p_Location, GLuint *Texture)
+Player::Player(GLuint *Texture)
 {
 	pTime.Current	= 0.0f;
 	pTime.Jump		= ATimer();
@@ -73,11 +74,9 @@ Player::Player(glm::vec3 p_Location, GLuint *Texture)
 	mBody			= &mIdleSprite;
 	mSparks			= &mJetFlameSprite;
 
-	pWeaponPos		= p_Location;
-	pBarrelPos		= p_Location; 
+
 	pAngle			= glm::vec3(0.f,0.f,0.f); 
-	pPos			= p_Location; 
-	pIPos			= p_Location;
+
 
 	pWeaponID		= 0;
 	pWeapon			= object::Weapon();
@@ -91,13 +90,10 @@ Player::Player(glm::vec3 p_Location, GLuint *Texture)
 	mShoot			= false;
 	mJumpState		= false;
 	mRunning		= false;
-	
+	pSpawned		= false;
+
 	mJetFlames.assign(10, FlameData());
 	mFC = 0;
-
-	MercObject.Spawn(p_Location);
-	MercObject.Initialize();
-	MercObject.id = 2;
 }
 
 ////////////////////////////////////////////////////////////
@@ -106,6 +102,9 @@ Player::Player(glm::vec3 p_Location, GLuint *Texture)
 ////////////////////////////////////////////////////////////
 void Player::Step(glm::vec3& cursor, float& p_Time)
 {
+	if(!pSpawned)
+		return;
+
 	// Update internal state, get position
 	GameObject::Status stat = MercObject.Update(p_Time - pTime.Current);
 	pPos = stat.pos;
@@ -176,7 +175,9 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 ////////////////////////////////////////////////////////////
 void Player::Draw(float interpolate)
 {
-	
+	if(!pSpawned)
+		return;
+
 	float dt = pTime() - pTime.Flame.Timer;
 	pTime.Flame.Timer = pTime();
 

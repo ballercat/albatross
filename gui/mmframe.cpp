@@ -17,7 +17,7 @@ enum {
 /// ctor
 ////////////////////////////////////////////////////////////
 mmFrame::mmFrame(wxWindow *p_Parent) :
-wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 670))
+wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 675))
 {
 	//Add canvas
 	wxSFMLCanvas *sfmlc = new wxSFMLCanvas(this, wxID_ANY, wxPoint(0, 0), wxSize(1024, 600));
@@ -115,6 +115,9 @@ BEGIN_EVENT_TABLE(mmFrame, wxFrame)
 
 	EVT_MENU(mmID_MAPPROPERTIES, mmFrame::OnMenuMapProperties)
 
+	EVT_MENU(mmID_ALPHASPAWN, mmFrame::AlphaSpawn)
+	EVT_MENU(mmID_BRAVOSPAWN, mmFrame::BravoSpawn)
+
 	EVT_IDLE(mmFrame::OnIdle)
 END_EVENT_TABLE()
 
@@ -127,7 +130,6 @@ void mmFrame::OnIdle(wxIdleEvent &p_Event)
 	str.Printf(wxT("%f, %f"),mm->mouse.x, mm->mouse.y);
 
 	SetStatusText(str,2);
-	SetStatusText(mm->map->texpath[1]);
 
 	//Handle Vertex Selection Mode
 	if(mm->change == &mm->pick_vertex && mm->change->vertex)
@@ -268,4 +270,20 @@ void mmFrame::OnMenuMapProperties(wxCommandEvent &WXUNUSED(p_Event))
 	//pMapProp->Show(!pMapProp->IsShown());
 	MapSettingsDialog *MapSettings = new MapSettingsDialog(this, mm);
 	MapSettings->Show();
+}
+
+void mmFrame::AlphaSpawn(wxCommandEvent &WXUNUSED(p_Event))
+{
+	mm->change	= &mm->spawn;
+	mm->change->Clear();
+	mm->change->spawna = true;
+	SetStatusText(_("Place Alpha Spawn"),1);
+}
+
+void mmFrame::BravoSpawn(wxCommandEvent &WXUNUSED(p_Event))
+{
+	mm->change = &mm->spawn;
+	mm->change->Clear();
+	mm->change->spawnb = true;
+	SetStatusText(_("Place Bravo Spawn"),1);
 }

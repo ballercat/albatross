@@ -64,36 +64,13 @@ MainClient::MainClient(void) :
     	cpShape *shape;
 		cpSpace* space = mPhysics->GetWorldHandle();
     	cpBody *staticBody = &space->staticBody;
-		
-		//Load the map, plug in polygon values into the game
-		/*
-		map = bgmfopen(info.mapfile.c_str());
-    	glm::vec3 v0,v1,v2;
-    	for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
-    	{
-        	v0 = p->data[0];
-        	v1 = p->data[1];
-        	v2 = p->data[2];
 
-        	//Add map polygon to physics world
-        	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v0.x,v0.y),cpv(v1.x,v1.y),0.0f));
-        	shape->e = 1.0f; shape->u = 1.0f;
-        	shape->collision_type = MAPPOLYGON;
-        	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v1.x,v1.y),cpv(v2.x,v2.y),0.0f));
-        	shape->e = 1.0f; shape->u = 1.0f;
-       		shape->collision_type = MAPPOLYGON;
-        	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(v2.x,v2.y),cpv(v0.x,v0.y),0.0f));
-        	shape->e = 1.0f; shape->u = 1.0f;
-        	shape->collision_type = MAPPOLYGON;
-    	}*/
+
 		map = NULL;
 
 		//Bind bullet collision handlers
 		_initCollisionHandlers(space);
 		
-    	//Create a player object
-    	mPlayer = new Player(glm::vec3(500,200,0),Texture);
-		mPlayer->PickWeapon(WeaponInfo[0],0);
 
 		//Timing(NOTE: improve/move this)
     	lastupdate = g_timer.GetElapsedTime();
