@@ -66,7 +66,7 @@ bgmf* bgmfopen(const char *fpath)
     map->poly.resize(map->header.pc,bgmfpolyzero);
     map->texcoord.resize(map->header.pc,bgmftexpolyzero);
     map->color.resize(map->header.pc,bgmf_color());
-    map->mask.resize(map->header.pc,POLY_DEFAULT);
+    map->mask.resize(map->header.pc,bgmf_pmask(0));
 	map->texture.resize(map->header.pc,0);
 
 	/*NOTE: Not reading/writing the whole map struct at once
@@ -101,7 +101,7 @@ bgmf* bgmfopen(const char *fpath)
 	}
 
 	fread(&map->texture[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
-    fread(&map->mask[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
+    fread(&map->mask[0], sizeof(bgmf_pmask) * map->header.pc, 1, mapfile);
     fread(&map->color[0], sizeof(bgmf_color) * map->header.pc, 1, mapfile);
     fread(&map->poly[0], sizeof(bgmf_poly) * map->header.pc, 1, mapfile);
 
@@ -163,7 +163,7 @@ void bgmfsave(bgmf *map, const char *fpath)
 	}
 
 	fwrite(&map->texture[0], sizeof(uint32_t)*map->header.pc, 1, mapfile);
-    fwrite(&map->mask[0], sizeof(uint32_t)*map->header.pc, 1, mapfile);
+    fwrite(&map->mask[0], sizeof(bgmf_pmask)*map->header.pc, 1, mapfile);
     fwrite(&map->color[0], sizeof(bgmf_color)*map->header.pc, 1, mapfile);
     //fwrite(&map->texcoord[0], sizeof(bgmf_poly_tex)*map->header.pc, 1, mapfile);
     fwrite(&map->poly[0], sizeof(bgmf_poly)*map->header.pc, 1, mapfile);

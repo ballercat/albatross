@@ -78,6 +78,13 @@ struct bgmf_poly
         return false;
     }
 
+	bgmf_poly& operator=(const bgmf_poly &p_Swap)
+	{
+		data[0] = p_Swap.data[0];
+		data[1] = p_Swap.data[1];
+		data[2] = p_Swap.data[2];
+	}
+
     glm::vec3 data[3];
 };
 
@@ -122,6 +129,23 @@ struct bgmf_color
 };
 
 ////////////////////////////////////////////////////////////
+/// Polygon mask union
+////////////////////////////////////////////////////////////
+union bgmf_pmask
+{
+	bgmf_pmask(uint32_t p_Value)
+	{
+		full = p_Value;
+	}
+	struct value{
+		unsigned visible 	: 1;
+		unsigned solid		: 1;
+		unsigned unused		: 30;
+	} bit;
+	uint32_t	full;
+};
+
+////////////////////////////////////////////////////////////
 /// Helper map polygon struct
 ////////////////////////////////////////////////////////////
 struct bgmf_poly_view
@@ -141,8 +165,8 @@ public:
 
 public:
 	unsigned int		pID;	//Polygon ID
-	unsigned int		*pM;		//mask
-	unsigned int		*pT;		//texture #
+	bgmf_pmask			*pM;	//mask
+	unsigned int		*pT;	//texture #
 	bgmf_poly			*pP;	//vertex pointer
 	bgmf_poly_tex		*pTC;	//texture coord pointer
 	bgmf_color			*pC;	//color pointer
@@ -208,7 +232,7 @@ struct bgmf
 	///Polygon Data
 	std::vector<std::string>	texpath;
 	std::vector<unsigned int>	texture; //>Map texture paths
-    std::vector<uint32_t>       mask; //>polygon masks
+    std::vector<bgmf_pmask>     mask; //>polygon masks
     std::vector<bgmf_poly_tex>  texcoord; //>polygon texture coords
     std::vector<bgmf_color>     color; //>polygon colors(per vertex)
     std::vector<bgmf_poly>      poly; //>polygon vertexes(TRIANGLES)
@@ -237,6 +261,7 @@ extern void bgmfdelete(bgmf *map);
 extern void bgmfaddpolygon(bgmf *map, bgmf_poly p);
 extern void bgmfremovepoly(bgmf *map, bgmf_poly p);
 extern void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, bgmf_poly &p);
+extern void bgmfsort(bgmf *map);
 
 extern bgmf_poly_tex *bgmfnewptc(float u0, float v0, float u1, float v1, float u2, float v2);
 extern bgmf_poly *bgmfnewpoly(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2);

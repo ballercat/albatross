@@ -53,15 +53,12 @@ void PolyPropWindow::OnTextureSelect(wxCommandEvent &WXUNUSED(p_Event))
 
 void PolyPropWindow::SetHollowMask(wxCommandEvent &WXUNUSED(p_Event))
 {
-	unsigned int mask = *(mm->change->pPolygon->pM);
 	if(HollowChk->IsChecked()){
-		mask = mask ^ POLY_SOLID;
+		mm->change->pPolygon->pM->bit.solid = false;
 	}
 	else {
-		mask = mask & POLY_SOLID;
+		mm->change->pPolygon->pM->bit.solid = true;
 	}
-
-	*mm->change->pPolygon->pM = mask;
 }
 
 ////////////////////////////////////////////////////////////
@@ -89,7 +86,7 @@ void PolyPropWindow::Display(bool p_Show)
 	pTextureChoice->SetSelection(*mm->change->pPolygon->pT);
 
 	//Set Mask choices
-	if((*mm->change->pPolygon->pM) & POLY_SOLID){
+	if(mm->change->pPolygon->pM->bit.solid){
 		HollowChk->SetValue(false);
 	}
 	else {
