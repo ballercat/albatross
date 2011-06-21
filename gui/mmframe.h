@@ -65,6 +65,7 @@ public:
 	void OnMenuDeletePoly(wxCommandEvent&);
 	void OnMenuEditSelVert(wxCommandEvent &p_Event);
 	void OnMenuEditSelPoly(wxCommandEvent &p_Event);
+	void OnSelectSprite(wxCommandEvent&);
 	void OnMenuMapProperties(wxCommandEvent &);
 	void OnMenuVertexSnapCheck(wxCommandEvent &);
 	void ShowGrid(wxCommandEvent&);

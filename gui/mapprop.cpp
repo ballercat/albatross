@@ -22,7 +22,10 @@
 
 enum{
 	mmID_ADDTEXTURE = 50,
-	mmID_REMTEXTURE
+	mmID_REMTEXTURE,
+	mmID_ADDSPRITE,
+	mmID_REMSPRITE,
+	mmID_PLCSPRITE
 };
 
 ////////////////////////////////////////////////////////////
@@ -33,6 +36,8 @@ IMPLEMENT_CLASS(MapSettingsDialog, wxPropertySheetDialog)
 BEGIN_EVENT_TABLE(MapSettingsDialog, wxPropertySheetDialog)
 	EVT_BUTTON(mmID_ADDTEXTURE, MapSettingsDialog::OnAddTexture)
 	EVT_BUTTON(mmID_REMTEXTURE, MapSettingsDialog::OnRemoveTexture)
+	EVT_BUTTON(mmID_ADDSPRITE, MapSettingsDialog::OnAddSprite)
+	EVT_BUTTON(mmID_PLCSPRITE, MapSettingsDialog::OnPlaceSprite)
 END_EVENT_TABLE()
 
 ////////////////////////////////////////////////////////////
@@ -50,7 +55,7 @@ MapSettingsDialog::MapSettingsDialog(wxWindow* p_Parent, MapMaker *p_MM)
 	mm = p_MM;
 
 	wxPanel *pMain = new wxPanel(this);{
-		TextureList = new wxListCtrl(pMain, wxID_ANY, wxPoint(5,10), wxSize(200,100), wxLC_REPORT);
+		TextureList = new wxListCtrl(pMain, wxID_ANY, wxPoint(5,15), wxSize(200,100), wxLC_REPORT);
 		{
 			wxListItem TextureName;{
 				TextureName.SetId(0);
@@ -85,7 +90,39 @@ MapSettingsDialog::MapSettingsDialog(wxWindow* p_Parent, MapMaker *p_MM)
 	}
 
 	wxPanel *pSprite = new wxPanel(this);{
+		SpriteList	= new wxListCtrl(pSprite, wxID_ANY, wxPoint(5,15), wxSize(200,100), wxLC_REPORT);
+		{
+			wxListItem SpriteName;{
+				SpriteName.SetId(0);
+				SpriteName.SetText(_("File"));
+				SpriteName.SetWidth(80);
+			}
 
+			wxListItem SpriteID;{
+				SpriteID.SetId(1);
+				SpriteID.SetText(_("Sprite ID"));
+				SpriteID.SetWidth(115);
+			}
+
+			SpriteList->InsertColumn(0, SpriteName);
+			SpriteList->InsertColumn(1, SpriteID);
+
+			for(int i=0;i<mm->map->sprpath.size();i++){
+				wxString id;
+				wxListItem item;
+
+				id.Printf(_("%d"), i);
+				item.SetId(i);
+				item.SetText(mm->map->sprpath[i]);
+
+				SpriteList->InsertItem(item);
+				SpriteList->SetItem(i, 1, id);
+			}
+		}
+
+		wxButton *AddSprite	= new wxButton(pSprite, mmID_ADDSPRITE, _("Add Sprite"), wxPoint(205, 10), wxDefaultSize);
+		wxButton *RemSprite	= new wxButton(pSprite, mmID_REMSPRITE, _("Remove Sprite"), wxPoint(205, 35), wxDefaultSize);
+		wxButton *PlaceSprite = new wxButton(pSprite, mmID_PLCSPRITE, _("Place Sprite"), wxPoint(205, 60), wxDefaultSize);
 	}
 
 	notebook->AddPage(pMain, _("General"));
@@ -123,6 +160,37 @@ void MapSettingsDialog::OnAddTexture(wxCommandEvent &WXUNUSED(p_Event))
 	Refresh();
 }
 
+void MapSettingsDialog::OnAddSprite(wxCommandEvent &WXUNUSED(p_Event))
+{
+	wxFileDialog *OpenSprite = new wxFileDialog(this, _("Choose A Sprite"), _("./"), _(""), _(""), wxID_OPEN);
+	if( OpenSprite->ShowModal() == wxID_OK ){
+		wxString fpath = OpenSprite->GetFilename();
+		std::string header(fpath.ToAscii());
+
+		mm->map->sprpath.push_back(std::string(fpath.ToAscii()));
+
+		//build header on the fly
+		header = header.substr(0, header.find('.'));
+		header = header + ".sprh";
+		mm->map->sprheader.push_back(header);
+
+		mm->loadSpriteData();
+
+		int spot = mm->map->sprpath.size() - 1;
+		wxListItem item;
+		wxString id;
+		id.Printf(_("%d"), spot);
+		item.SetId(spot);
+		item.SetText(fpath);
+
+		SpriteList->InsertItem(item);
+		SpriteList->SetItem(spot, 1, id);
+	}
+
+	OpenSprite->Close();
+	Refresh();
+}
+
 ////////////////////////////////////////////////////////////
 /// Remove Texture
 ////////////////////////////////////////////////////////////
@@ -131,10 +199,27 @@ void MapSettingsDialog::OnRemoveTexture(wxCommandEvent &WXUNUSED(p_Event))
 	long itemIndex = -1;
 	itemIndex = TextureList->GetNextItem(itemIndex,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 
-	if( itemIndex > 0 ){
+	if( itemIndex > -1 ){
 		TextureList->DeleteItem(itemIndex);
 
 		mm->map->texpath.erase( mm->map->texpath.begin() + itemIndex );
 		mm->loadTextureData();
+	}
+}
+
+////////////////////////////////////////////////////////////
+/// Place sprite on the map
+////////////////////////////////////////////////////////////
+void MapSettingsDialog::OnPlaceSprite(wxCommandEvent &WXUNUSED(p_Event))
+{
+	long itemIndex = -1;
+	itemIndex = SpriteList->GetNextItem(itemIndex, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+	if( itemIndex > -1 ){
+		mm->change.Clear();
+
+		mm->map->sprite.push_back(bgmf_sprite(mm->mouse,itemIndex));
+		mm->map->header.sprc++;
+		mm->loadSpriteData();
 	}
 }

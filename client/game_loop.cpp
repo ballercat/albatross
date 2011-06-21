@@ -23,20 +23,6 @@
 
 static glm::vec3 dmp;
 
-//Timing constants
-#define FPS100			(0.01f)
-#define FPS60			(0.016666666666666666666666666666667f)
-#define FPS50			(0.02f)
-#define FPS45			(0.022222222222222222222222222222222f)
-#define FPS40			(0.025f)
-#define FPS25			(0.04f)
-#define FPS20			(0.05f)
-#define FRAME_TIME		FPS40
-#define PHYSICS_STEPS	(40)
-#define PHYSICS_DELTA	FPS40
-#define PHYSICS_PERSTEP	(0.000625f)
-#define INPUT_LATENCY	(FPS50)
-
 //#define PHYSICS_PERSTEP	(PHYSICS_DELTA/PHYSICS_STEPS)
 
 //Inplace game loop function
@@ -160,15 +146,21 @@ void MainClient::Run(const char *p_DemoFile)
 		display->beginScene();{
 			if(map){
 				//Draw solid polygons map polygons
-				display->drawArray( &map->poly[0],
-									&map->texcoord[0],
-									&map->color[0],
-									(map->header.pc - map->hpc)*3,
+				/*display->drawArray( &gs.map.Vertex[0],
+									&gs.map.TextureCoord[0],
+									&gs.map.Color[0],
+									map->vertcount,
 									GL_TRIANGLES,
-									gs.map.Texture );
+									gs.map.Texture ); */
+				for(int i=0;i<map->hpos;i++){
+					display->drawArray( &map->poly[i].data[0],
+										&map->texcoord[i].data[0],
+										&map->color[i].data[0],
+										map->poly[i].data.size(),
+										GL_TRIANGLE_STRIP,
+										gs.map.Texture );
+				}
 			}
-
-			Tree->Draw();
 
 			//Draw all the bullets
 			_drawBullets(delta);
@@ -183,18 +175,28 @@ void MainClient::Run(const char *p_DemoFile)
 
 			_drawWeapons();
 
+			//Draw scenery
+			if(map->header.sprc){
+				for(int i=0;i<gs.map.Scenery.size();i++){
+					gs.map.Scenery[i].Draw();
+				}
+			}
+
 			//Draw bullet Hits
 			_drawHits();
 
 			//Draw Hollow Polygons
 			{
-				display->drawArray(&map->poly[map->hpos],
-									&map->texcoord[map->hpos],
-									&map->color[map->hpos],
-									map->hpc * 3,
-									GL_TRIANGLES,
-									gs.map.Texture );
+				for(int i=map->hpos;i<map->header.pc;i++){
+					display->drawArray( &map->poly[i].data[0],
+										&map->texcoord[i].data[0],
+										&map->color[i].data[0],
+										map->poly[i].data.size(),
+										GL_TRIANGLE_STRIP,
+										gs.map.Texture );
+				}
 			}
+
 			//Draw the cursor
 			display->cursor.Draw();
 

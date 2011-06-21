@@ -36,6 +36,20 @@
 #include <vector>
 #include <list>
 
+//Timing constants
+#define FPS100			(0.01f)
+#define FPS60			(0.016666666666666666666666666666667f)
+#define FPS50			(0.02f)
+#define FPS45			(0.022222222222222222222222222222222f)
+#define FPS40			(0.025f)
+#define FPS25			(0.04f)
+#define FPS20			(0.05f)
+#define FRAME_TIME		FPS40
+#define PHYSICS_STEPS	(40)
+#define PHYSICS_DELTA	FPS40
+#define PHYSICS_PERSTEP	(0.000625f)
+#define INPUT_LATENCY	(FPS50)
+
 ////////////////////////////////////////////////////////////
 /// Sprites required for the game
 ////////////////////////////////////////////////////////////
@@ -54,9 +68,10 @@ struct GameSprites{
 	//Map
 	struct MapData{
 		GLuint				Texture; //polygon textures
-		std::vector<Sprite>	Scenery;	 //static sprites
-		std::vector<Sprite> AnimScenery; //animated sprties
-	} map;
+		std::vector<GLuint>	SceneryTextures; //scenery textures
+		std::vector<Sprite>	Scenery;	 //sprites
+	};
+	MapData map;
 
 	//Underlying OpenGL textures
 	std::vector<GLuint>	bulletTex;
@@ -176,8 +191,7 @@ private:
 
 private:
 	//Hacked sprites
-	Sprite* Tree;
-	Sprite* Explosion;
+	//Sprite* Explosion;
 
 private:
 	//More hacking in of features
@@ -238,8 +252,8 @@ private:
 	void _initCollisionHandlers(cpSpace *space);
 
 private:
-		///Private functions
-		bool _handleMessages(void);
+	///Private functions
+	bool _handleMessages(void);
 };
 
 #endif //GAME_CLIENT_HEADER_GUARD

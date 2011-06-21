@@ -51,7 +51,7 @@ wxControl(p_Parent, p_Id, p_Position, p_Size, p_Style)
 	mm.input = mInput;
 
 	mm.pWorkingDir	= wxGetCwd();
-	mm.loadMap("assets/maps/test0.bgmf");
+	mm.map = bgmfnew();
 	mm.Init();
 }
 

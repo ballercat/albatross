@@ -62,7 +62,6 @@ public:
 	wxStaticText	*pPolyID;
 	std::vector<std::string>	*pTextureNames;
 	wxButton		*pSelVertsBtn;
-	MapMaker::change_struct	*pChange;
 	MapMaker		*mm;
 };
 

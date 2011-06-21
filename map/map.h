@@ -24,12 +24,15 @@
 #include<stdint.h>
 #include<vector>
 #include<string>
+#include<cstring>
 
 //Map polygon masks
 #define POLY_VISIBLE 	0x01
-#define POLY_SOLID 		0x02
-#define POLY_HOLLOW		0x00
-#define POLY_DEFAULT	0x03
+#define POLY_SOLID 		0x00
+#define POLY_HOLLOW		0x02
+#define POLY_DEFAULT	0x01
+
+#define BGMF_VERSION	0x01
 
 ////////////////////////////////////////////////////////////
 /// glm::vec3(x,y,unused) Polygon-Vertex
@@ -62,30 +65,31 @@ struct bgmf_vert
 struct bgmf_poly
 {
     bgmf_poly(){}
-    bgmf_poly(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
-    {
-        data[0] = v0;
-        data[1] = v1;
-        data[2] = v2;
-    }
+	bgmf_poly(const glm::vec3 *p_Data, uint32_t p_Count){
+		data.resize(p_Count, glm::vec3(0.0f, 0.0f, 0.0f));
+		memcpy(&data[0], p_Data, sizeof(glm::vec3)*p_Count);
+	}
 
     bool operator ==(const bgmf_poly &test) const
     {
-        if(data[0] == test.data[0] && data[1] == test.data[1] &&
-           data[2] == test.data[2] ){
-               return true;
-           }
-        return false;
+		if(test.data.size() != data.size())
+			return false;
+
+		for(int i =0;i<data.size();i++){
+			if(data[i] != test.data[i])
+				return false;
+		}
+
+        return true;
     }
 
 	bgmf_poly& operator=(const bgmf_poly &p_Swap)
 	{
-		data[0] = p_Swap.data[0];
-		data[1] = p_Swap.data[1];
-		data[2] = p_Swap.data[2];
+		data.clear();
+		data = p_Swap.data;
 	}
 
-    glm::vec3 data[3];
+	std::vector<glm::vec3> data;
 };
 
 ////////////////////////////////////////////////////////////
@@ -94,30 +98,19 @@ struct bgmf_poly
 struct bgmf_poly_tex
 {
     bgmf_poly_tex(){}
-    bgmf_poly_tex(glm::vec2 t0, glm::vec2 t1, glm::vec2 t2)
+    bgmf_poly_tex(const glm::vec2 *p_Data, size_t p_Count)
     {
-        data[0] = t0;
-        data[1] = t1;
-        data[2] = t2;
-    }
-
-    bool operator ==(const bgmf_poly_tex &test) const
-    {
-        if(data[0] == test.data[0] && data[1] == test.data[1] &&
-           data[2] == test.data[2] ){
-               return true;
-           }
-        return false;
+        data.resize(p_Count, glm::vec2(0.0f, 0.0f));
+		memcpy(&data[0], p_Data, p_Count*sizeof(glm::vec2));
     }
 
 	bgmf_poly_tex& operator=(const bgmf_poly_tex& p_Swap)
 	{
-		data[0] = p_Swap.data[0];
-		data[1] = p_Swap.data[1];
-		data[2] = p_Swap.data[2];
+		data.clear();
+		data = p_Swap.data;
 	}
 
-    glm::vec2 data[3];
+    std::vector<glm::vec2> data;
 };
 
 ////////////////////////////////////////////////////////////
@@ -126,21 +119,19 @@ struct bgmf_poly_tex
 struct bgmf_color
 {
     bgmf_color(){}
-    bgmf_color(glm::vec4 v0, glm::vec4 v1, glm::vec4 v2)
+    bgmf_color(const glm::vec4 *p_Data, size_t p_Count)
     {
-        data[0] = v0;
-        data[1] = v1;
-        data[2] = v2;
+        data.resize(p_Count, glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+		memcpy(&data[0], p_Data, sizeof(glm::vec4)*p_Count);
     }
 
 	bgmf_color& operator=(const bgmf_color& p_Swap)
 	{
-		data[0] = p_Swap.data[0];
-		data[1] = p_Swap.data[1];
-		data[2] = p_Swap.data[2];
+		data.clear();
+		data = p_Swap.data;
 	}
 
-    glm::vec4 data[3];
+    std::vector<glm::vec4>	data;
 };
 
 ////////////////////////////////////////////////////////////
@@ -156,8 +147,10 @@ union bgmf_pmask
 	struct value{
 		unsigned visible 	: 1;
 		unsigned hollow		: 1;
-		unsigned unused		: 30;
-	} bit;
+		unsigned unused		: 22;
+		unsigned customid	: 8;
+	};
+	value bit;
 
 	bgmf_pmask& operator=(const bgmf_pmask& p_Swap)
 	{
@@ -200,36 +193,51 @@ public:
 struct bgmf_sprite
 {
 	bgmf_sprite(){}
-	bgmf_sprite(glm::vec3 p, unsigned int tid){
-		pos = p;
-		texid = tid;
-	}
+	bgmf_sprite(glm::vec3 p, unsigned int tid) :
+		pos(p),
+		id(tid)
+	{}
 
 	glm::vec3 pos;
-	unsigned int texid;
+	unsigned int id;
 };
 
 ////////////////////////////////////////////////////////////
-/// Map-object struct
+/// Errors
 ////////////////////////////////////////////////////////////
-struct bgmf_object
+enum{
+	BGMFERR_NONE = 0,
+	BGMFERR_VERSION,
+	BGMFERR_HEADER,
+	BGMFERR_FILE,
+	BGMFERR_UNKNOWN
+};
+
+union bgmf_version
 {
-	unsigned id;
-	glm::vec3 pos;
-};
+	struct info{
+		unsigned	number : 8;
+		unsigned	split_data : 1;
+		unsigned	complex_polygons : 1;
+		unsigned 	unused : 22;
+	};
 
+	info		field;
+	uint32_t	value;
+};
 ////////////////////////////////////////////////////////////
 /// Map header as contained in the actual .bgmf file
 ////////////////////////////////////////////////////////////
 struct bgmf_header
 {
-    char 		BGMF[4]; // 'B' 'G' 'M' 'F'
-    uint32_t 	poly_offset;
-    uint32_t 	pc;
-	uint8_t		rsc;
-	uint8_t		bsc;
-	char		X; //end
-    /*  bgmf format is:
+    char 			BGMF[4]; // 'B' 'G' 'M' 'F'
+    bgmf_version 	version; //simply the size of the header
+    uint32_t 		pc;
+	uint8_t			rsc;
+	uint8_t			bsc;
+	uint32_t		sprc;
+	char			X; //end
+    /*NOTE: (this is old)  bgmf format is:
             Header : BGMF.....sizeof(header)
             Mask: sizeof(uint32_t) * poly_count
             Texture coords: sizeof(glm::vec2) * poly_count * 3
@@ -244,15 +252,30 @@ struct bgmf_header
 	 * reading loop being terminated by a 0x00 length byte */
 };
 
+struct bgmf_newheader
+{
+    char 		BGMF[4]; // 'B' 'G' 'M' 'F'
+    uint32_t 	version; //just the size of the header
+    uint32_t 	pc;
+	uint8_t		rsc;
+	uint8_t		bsc;
+	uint32_t	sprc; //sprite count;
+	char		X; //end
+};
+
 ////////////////////////////////////////////////////////////
 /// Binary Game Map Format struct
 ////////////////////////////////////////////////////////////
 struct bgmf
 {
     bgmf_header header;
+	bgmf_newheader nheader;
 
 	///Polygon Data
 	std::vector<std::string>	texpath;
+	std::vector<std::string>	sprpath;
+	std::vector<std::string>	sprheader;
+	std::vector<bgmf_sprite>	sprite;
 	std::vector<unsigned int>	texture; //>Map texture paths
     std::vector<bgmf_pmask>     mask; //>polygon masks
     std::vector<bgmf_poly_tex>  texcoord; //>polygon texture coords
@@ -265,6 +288,9 @@ struct bgmf
 
 	std::vector<glm::vec2>		redspawn;
 	std::vector<glm::vec2>		bluespawn;
+
+	uint32_t					error;
+	uint32_t					vertcount;
 /*
 	///Static sprites/scenery data
 	std::vector<bgmf_sprite>	sprite;
@@ -279,11 +305,12 @@ struct bgmf
 /// BGMF helper api
 ////////////////////////////////////////////////////////////
 extern bgmf *bgmfopen(const char *fpath);
+extern bgmf *bgmfnew(void);
 extern void bgmfsave(bgmf *map, const char *fpath);
 extern void bgmfdelete(bgmf *map);
 extern void bgmfaddpolygon(bgmf *map, bgmf_poly p);
 extern void bgmfremovepoly(bgmf *map, bgmf_poly p);
-extern void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, bgmf_poly &p);
+extern void bgmfappend(bgmf *map, bgmf_poly &p, bgmf_poly_tex &t);
 extern void bgmfsort(bgmf *map);
 extern void bgmfswap(bgmf *map, int left, int right);
 

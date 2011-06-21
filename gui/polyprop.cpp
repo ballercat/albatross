@@ -57,7 +57,7 @@ END_EVENT_TABLE()
 ////////////////////////////////////////////////////////////
 void PolyPropWindow::OnSelectVerts(wxCommandEvent &p_Event)
 {
-	pChange->pick_vertex = !pChange->pick_vertex;
+	mm->change.pick_vertex = true;
 }
 
 ////////////////////////////////////////////////////////////
@@ -66,17 +66,17 @@ void PolyPropWindow::OnSelectVerts(wxCommandEvent &p_Event)
 void PolyPropWindow::OnTextureSelect(wxCommandEvent &WXUNUSED(p_Event))
 {
 	//void
-	*mm->change->pPolygon->pT = pTextureChoice->GetSelection();
-	mm->FixTC(mm->change->pPolygon->pTC, *mm->change->pPolygon->pT);
+	*mm->change.pPolygon->pT = pTextureChoice->GetSelection();
+	mm->FixTC(mm->change.pPolygon->pID, *mm->change.pPolygon->pT);
 }
 
 void PolyPropWindow::SetHollowMask(wxCommandEvent &WXUNUSED(p_Event))
 {
 	if(HollowChk->IsChecked()){
-		mm->change->pPolygon->pM->bit.hollow = true;
+		mm->change.pPolygon->pM->bit.hollow = true;
 	}
 	else {
-		mm->change->pPolygon->pM->bit.hollow = false;
+		mm->change.pPolygon->pM->bit.hollow = false;
 	}
 }
 
@@ -94,7 +94,7 @@ void PolyPropWindow::Display(bool p_Show)
 
 	//Set ID label
 	wxString str;
-	str.Printf(_("Polygon ID: %d"), mm->change->pPolygon->pID);
+	str.Printf(_("Polygon ID: %d"), mm->change.pPolygon->pID);
 	pPolyID->SetLabel(str);
 	pPolyID->CenterOnParent(wxHORIZONTAL);
 
@@ -102,10 +102,10 @@ void PolyPropWindow::Display(bool p_Show)
 	pTextureChoice->Clear();
 	for(size_t i=0;i<mm->map->texpath.size();i++)
 		pTextureChoice->Insert(_(mm->map->texpath[i].c_str()), i);
-	pTextureChoice->SetSelection(*mm->change->pPolygon->pT);
+	pTextureChoice->SetSelection(*mm->change.pPolygon->pT);
 
 	//Set Mask choices
-	if(mm->change->pPolygon->pM->bit.hollow){
+	if(mm->change.pPolygon->pM->bit.hollow){
 		HollowChk->SetValue(true);
 	}
 	else {

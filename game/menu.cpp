@@ -21,86 +21,126 @@
 #include <string>
 #include <cstdio>
 
-struct MMOption{
-	MMOption(float p_X, float p_Y, float p_W, float p_H)
-	{
-		pos			= glm::vec3(p_X, p_Y, 0);
-		box.Left	= p_X;
-		box.Right	= p_X+p_W;
-		box.Top		= p_Y;
-		box.Bottom	= p_Y+p_H;
+static bool
+SameSide(glm::vec3 p1,glm::vec3 p2,glm::vec3 a, glm::vec3 b)
+{
+    glm::vec3 cp1 = glm::cross(b-a,p1-a);
+    glm::vec3 cp2 = glm::cross(b-a,p2-a);
+    if(glm::dot(cp1,cp2) >= 0)
+        return true;
+    return false;
+}
+
+static bool
+PointInTriangle(glm::vec3 p, glm::vec3 a, glm::vec3 b,glm::vec3 c)
+{
+    if( SameSide(p,a, b,c) && SameSide(p, b, a, c) &&
+        SameSide(p, c, a, b) )
+        return true;
+
+    return false;
+}
+
+static int _HitTest(glm::vec3 &p_Loc, bgmf_poly* p_Poly, const size_t p_Sz)
+{
+	for(size_t i=0; i < p_Sz;i++){
+		if(PointInTriangle(p_Loc, p_Poly->data[0], p_Poly->data[1], p_Poly->data[2]))
+			return i;
+		p_Poly++;
 	}
 
-	MMOption()
-	{
-		pos		= glm::vec3(0,0,0);
-	}
+	return -1;
+}
 
-	glm::vec3	pos;
-	sf::Rect<float>	box;
-};
-
+////////////////////////////////////////////////////////////
+/// Main menu loop
+////////////////////////////////////////////////////////////
 void MainClient::MainMenu()
 {
-    bool quit = false;
-	bool ostart = false;
-	bool oexit = false;
-
-	float centerw = info.window_width/2;
-	float centerh = info.window_height/2;
-
-	MMOption optStart(centerw, centerh-100, 40, 20);
-	MMOption optExit(centerw, centerh-60, 40, 20);
-
 	glm::vec3 mouse = glm::vec3(0,0,0);
 
-    while(!quit)
+	_loadMap("assets/maps/mainmenu.bgmf");
+	mPlayer = new Player(display->Texture);
+	mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y, 0));
+	mPlayer->PickWeapon(WeaponInfo[0],0);
+
+	currentTime = mTime->GetElapsedTime();
+	float oldtime = currentTime;
+	float delta = 0.0f;
+
+    while(true)
     {
+
+		currentTime = mTime->GetElapsedTime();
+
+		while((currentTime - oldtime) >= FRAME_TIME){
+			for(size_t k=0;k<PHYSICS_STEPS;k++)
+				mPhysics->Step(PHYSICS_PERSTEP);
+
+			mPlayer->Step(mouse, currentTime);
+			oldtime += FRAME_TIME;
+		}
         display->beginScene();{
 
-			if(optStart.box.Contains(mouse.x, mouse.y)){
-				display->drawText(optStart.pos, "[START]", 12);
-				ostart = true;
-			}
-			else{
-				display->drawText(optStart.pos, "START", 12);
-				ostart = false;
+			for(int i=0;i<map->hpos;i++){
+				display->drawArray( &map->poly[i].data[0],
+									&map->texcoord[i].data[0],
+									&map->color[i].data[0],
+									map->poly[i].data.size(),
+									GL_TRIANGLE_STRIP,
+									gs.map.Texture );
 			}
 
-			if(optExit.box.Contains(mouse.x, mouse.y)){
-				display->drawText(optExit.pos, "[EXIT]", 12);
-				oexit = true;
+			//Draw scenery
+			if(map->header.sprc){
+				for(int i=0;i<gs.map.Scenery.size();i++){
+					gs.map.Scenery[i].Draw();
+				}
 			}
-			else{
-				display->drawText(optExit.pos, "EXIT", 12);
-				oexit = false;
-			}
+
+			delta = currentTime - oldtime;
+			mPlayer->Draw(delta);
 
 			if(mInput->mState.mouse.left){
-				if(ostart){
-					display->setCursor(info.cursorfile.c_str());
-					_loadMap(info.mapfile.c_str());
-					mPlayer = new Player(display->Texture);
-					mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y,0));
-					mPlayer->PickWeapon(WeaponInfo[0],0);
-					Run();
-					display->Window->ShowMouseCursor(true);
-					delete mPlayer;
-					ostart = false;
-				}
-				else if(oexit){
-					return;
-				}
+				int ret = _HitTest(mouse, &map->poly[0], map->poly.size());
+				switch(ret){
+					case 0:
+					case 1:
+					{
+						display->setCursor(info.cursorfile.c_str());
+						_loadMap(info.mapfile.c_str());
+						mPlayer = new Player(display->Texture);
+						mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y,0));
+						mPlayer->PickWeapon(WeaponInfo[0],0);
+						Run();
+						//Clear graphics data
+						display->Window->ShowMouseCursor(true);
+						delete mPlayer;
+						_loadMap("assets/maps/mainmenu.bgmf");
+						display->camera = glm::vec3(0,0,0);
+						display->zoom = glm::vec3(1, 1, 1);
+						mPlayer = new Player(display->Texture);
+						mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y, 0));
+						mPlayer->PickWeapon(WeaponInfo[0],0);
+						mTime->Reset();
+						currentTime = mTime->GetElapsedTime();
+						oldtime = currentTime;
+						delta = 0.0f;
+
+						break;
+					}
+					case 3:
+					case 4:
+						return;
+				};
 			}
-			//display->setCursor(info.cursorfile.c_str());
-            display->drawFPS();
         }display->endScene();
         
         //Handle Input
         mInput->Parse();
 
 		mouse = mInput->InputState().mouse.pos;
-		//printf("%f %f\n", mouse.x, mouse.y);
+		mouse = display->stw(mouse);
     }
 
 }

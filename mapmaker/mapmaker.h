@@ -28,8 +28,9 @@
 #include "fixed_pipeline.h"
 #include "input.h"
 
-struct Poly{
-    glm::vec3 v0,v1,v2;
+struct spriteView{
+	Sprite		spr;
+	bgmf_sprite	*ptr;
 };
 
 struct MapMaker
@@ -66,10 +67,15 @@ public:
             map = NULL;
         }
         map = bgmfopen(fpath);
-        if(map){
+        if(!map->error){
             printf("Loaded %s\n",fpath);
             printf("Poly count: %d\n",map->header.pc);
         }
+		else
+		{
+			//error with opening the map...
+			return false;
+		}
 
 
         return true;
@@ -132,11 +138,15 @@ public:
 			vertex_color = NULL;
 			spawn		= NULL;
 			pPolygon	= NULL;
+			sprite		= NULL;
 			move		= false;
 			color		= false;
 			remove		= false;
 			pick_vertex	= false;
 			pick_poly	= false;
+			pick_spawn	= false;
+			pick_sprite	= false;
+			place		= false;
 			select		= false;
 			picked		= false;
 			spawna		= false;
@@ -152,6 +162,7 @@ public:
         glm::vec3   	*vertex;
         glm::vec4   	*vertex_color;
 		glm::vec2		*spawn;
+		spriteView		*sprite;
 		bgmf_vert		pVert;
 		bgmf_poly_view	*pPolygon;
         bool 			move;
@@ -159,30 +170,52 @@ public:
         bool 			remove;
         bool 			pick_vertex;
         bool 			pick_poly;
-        bool 			pick_color;
+		bool			pick_spawn;
+		bool			pick_sprite;
 		bool			select;
 		bool 			picked;
 		bool 			spawna;
 		bool 			spawnb;
+		bool			place;
 
         size_t      	index;
     };
+
+	change_struct	change;
 
 public:
 	////////////////////////////////////////////////////////////
 	/// Texture handling
 	////////////////////////////////////////////////////////////
-	void loadTextureData();
+	void	loadTextureData();
+	void	loadSpriteData();
 
-	inline void FixTC(bgmf_poly_tex *pTc, size_t pTexID){
+	inline void FixTC(int i, size_t pTexID){
 		float tsz		= 1.0f / map->texpath.size();
-		float left		= pTexID * tsz;
-		float right		= left + tsz;
 
-		pTc->data[0] = glm::vec2(left, 0.0f);
-		pTc->data[1] = glm::vec2(left, 1.0f);
-		pTc->data[2] = glm::vec2(right, 1.0f);
+		glm::vec2	swap;
+		int sz	= map->poly[i].data.size();
+		map->texcoord[i].data.clear();
+
+		for(int k=0;k<sz;k++){
+			swap = _DefaultTC[k%4];
+			swap.x = swap.x * tsz + pTexID * tsz;
+			map->texcoord[i].data.push_back(swap);
+		}
 	}
+
+public:
+	/// Graphics data
+	struct GfxData {
+		GLuint	Texture;
+		std::vector<GLuint>	SpriteTextures;
+		std::vector<bgmf_poly_tex>	tc;
+		std::vector<spriteView>	Scenery;
+	};
+
+	GfxData	gfx;
+	GLuint	SpawnPointTexture;
+	Sprite	*SpawnPoint;
 
 public:
     /// Data
@@ -192,30 +225,13 @@ public:
     bool load;
     bool vertex_snap;
 	std::vector<glm::vec3> vertex;
+	bgmf_poly_tex texcoord;
+	glm::vec2				_DefaultTC[4];
+	bgmf_poly	 polynew;
     glm::vec3 mouse;
     glm::vec3 lastmouse;
 	std::string		pWorkingDir;
     bgmf *map;
-
-public:
-	/// Graphics data
-	struct GfxData {
-		GLuint	Texture;
-		std::vector<bgmf_poly_tex>	tc;
-		std::vector<Sprite>	Scenery;
-	} gfx;
-
-public:
-	/// Change structs
-    change_struct   move_poly;
-    change_struct   move_vertex;
-    change_struct   color_vertex;
-    change_struct   color_poly;
-    change_struct   remove_poly;
-	change_struct	pick_vertex;
-	change_struct	pick_polygon;
-	change_struct	spawn;
-	change_struct*	change;
 
 public:
 	/// Events & IO

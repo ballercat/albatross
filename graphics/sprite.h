@@ -51,6 +51,7 @@ public:
 	/// Copy Constructor
 	////////////////////////////////////////////////////////////
 	Sprite(const Sprite& p_Copy) :
+		animated(p_Copy.animated),
 		height(p_Copy.height),
 		width(p_Copy.width),
 		imgd(p_Copy.imgd),
@@ -78,6 +79,7 @@ public:
 	////////////////////////////////////////////////////////////
 	inline Sprite& operator=(const Sprite& p_Copy)
 	{
+		this->animated		= p_Copy.animated;
 		this->height 		= p_Copy.height;
 		this->width 		= p_Copy.width;
 		this->imgd			= p_Copy.imgd;
@@ -142,6 +144,7 @@ public:
 
 public:
     ///Animation controll
+	bool	animated;
     size_t  mLength;
     float   mSpeed;
     size_t  mPosition;

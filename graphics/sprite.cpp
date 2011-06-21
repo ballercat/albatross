@@ -42,7 +42,8 @@ Sprite::Sprite()
     scale = glm::vec3(1,1,1);
     color = glm::vec4(1,1,1,1);
 	textureid = -1;
-    
+    animated = false;
+
 	mSpeed = 0.10f;
     mPosition = 0;
     mLength = 0;
@@ -92,7 +93,7 @@ void Sprite::_parseInfo(const char *fpath)
 		std::cerr << "Error reading " << fpath << " sprite header\n";
 	}
 
-	bool animated = sprh.GetBoolValue("Sprite", "animated");
+	animated = sprh.GetBoolValue("Sprite", "animated");
 
 	width = sprh.GetDoubleValue("Sprite", "width");
 	height = sprh.GetDoubleValue("Sprite", "height");

@@ -28,15 +28,17 @@
 ////////////////////////////////////////////////////////////
 bgmf* bgmfopen(const char *fpath)
 {
+	bgmf *map = new bgmf;
     FILE *mapfile;
 
     mapfile = fopen(fpath, "rb");
     if(!mapfile){
         fprintf(stderr,"Could not read .bgmf file: %s\n",fpath);
-        return NULL;
+        map->error = BGMFERR_FILE;
+		return map;
     }
 
-    bgmf *map = new bgmf;
+
     fread(map, sizeof(bgmf_header), 1, mapfile);
 
     if(map->header.BGMF[0] != 'B' || map->header.BGMF[1] != 'G' ||
@@ -45,26 +47,36 @@ bgmf* bgmfopen(const char *fpath)
         fprintf(stderr, "Corrupted map header\n");
         fclose(mapfile);
 
-        delete map;
-        map = NULL;
-        return NULL;
+        map->error = BGMFERR_HEADER;
+        return map;
     }
 
+	//Version mismatch check
+	if(map->header.version.field.number != BGMF_VERSION ){
+		//NOTE: Do something more usefull here here
+		map->error = BGMFERR_VERSION;
+		//return map;
+	}
+
 /*
+	//Used for swaping in new header formats
 	map->nheader.BGMF[0] = 'B';
 	map->nheader.BGMF[1] = 'G';
 	map->nheader.BGMF[2] = 'M';
 	map->nheader.BGMF[3] = 'F';
 	map->nheader.poly_offset = map->header.poly_offset;
 	map->nheader.pc = map->header.pc;
-	map->nheader.rsc = 0;
+	map->nheader.rsc = 1;
 	map->nheader.bsc = 0;
+	map->nheader.sprc = 0;
 	map->nheader.X = 'X';
 */
+
 	map->redspawn.resize(map->header.rsc, glm::vec2(0,0));
 	map->bluespawn.resize(map->header.bsc, glm::vec2(0,0));
-    map->poly.resize(map->header.pc,bgmfpolyzero);
-    map->texcoord.resize(map->header.pc,bgmftexpolyzero);
+	map->sprite.resize(map->header.sprc, bgmf_sprite());
+    map->poly.resize(map->header.pc,bgmf_poly());
+    map->texcoord.resize(map->header.pc,bgmf_poly_tex());
     map->color.resize(map->header.pc,bgmf_color());
     map->mask.resize(map->header.pc,bgmf_pmask(0));
 	map->texture.resize(map->header.pc,0);
@@ -76,9 +88,9 @@ bgmf* bgmfopen(const char *fpath)
 	fread(&map->redspawn[0], sizeof(glm::vec2), map->header.rsc, mapfile);
 	fread(&map->bluespawn[0], sizeof(glm::vec2), map->header.bsc, mapfile);
 
+	uint32_t temp = 0;
 	//Read in texture names
 	{
-		uint32_t temp = 0;
 		char buffer;
 		std::string file;
 
@@ -98,12 +110,50 @@ bgmf* bgmfopen(const char *fpath)
 		}
 
 		//map->texpath.push_back("lumpybark.bmp");
+
+		//Read in sprite names
+		temp = 0;
+		std::string sprite_header_path;
+
+		fread(&temp, sizeof(uint32_t), 1, mapfile);
+
+		while(temp != 0){
+			for(size_t i=0;i<temp;i++){
+				fread(&buffer, sizeof(char), 1, mapfile);
+				if(buffer == '.'){
+					sprite_header_path = file + ".sprh";
+					map->sprheader.push_back(sprite_header_path);
+				}
+				file += buffer;
+			}
+
+			map->sprpath.push_back(file);
+
+			fread(&temp, sizeof(uint32_t), 1, mapfile);
+			file = "";
+		}
 	}
 
+	fread(&map->sprite[0], sizeof(bgmf_sprite) * map->header.sprc, 1, mapfile);
 	fread(&map->texture[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
     fread(&map->mask[0], sizeof(bgmf_pmask) * map->header.pc, 1, mapfile);
-    fread(&map->color[0], sizeof(bgmf_color) * map->header.pc, 1, mapfile);
-    fread(&map->poly[0], sizeof(bgmf_poly) * map->header.pc, 1, mapfile);
+	for(int i=0;i<map->header.pc;i++){
+		fread(&temp, sizeof(uint32_t), 1, mapfile);
+		map->color[i].data.resize(temp, glm::vec4());
+		fread(&map->color[i].data[0], sizeof(glm::vec4), temp, mapfile);
+	}
+    //fread(&map->color[0], sizeof(bgmf_color) * map->header.pc, 1, mapfile);
+	for(int i=0;i<map->header.pc;i++){
+		fread(&temp, sizeof(uint32_t), 1, mapfile);
+		map->poly[i].data.resize(temp, glm::vec3());
+		fread(&map->poly[i].data[0], sizeof(glm::vec3), temp, mapfile);
+
+		//Resize the tex coordinates while at it
+		map->texcoord[i].data.resize(temp, glm::vec2(0.0f,0.0f));
+
+		map->vertcount += temp;
+	}
+    //fread(&map->poly[0], sizeof(bgmf_poly) * map->header.pc, 1, mapfile);
 
 	map->hpc = 0;
 
@@ -128,7 +178,30 @@ bgmf* bgmfopen(const char *fpath)
 
     fclose(mapfile);
 
+	map->error = BGMFERR_NONE;
     return map;
+}
+
+bgmf* bgmfnew(void)
+{
+	bgmf	*map = new bgmf;
+
+	map->header.BGMF[0] 	= 'B';
+	map->header.BGMF[1] 	= 'G';
+	map->header.BGMF[2] 	= 'M';
+	map->header.BGMF[3] 	= 'F';
+	map->header.version.field.number = BGMF_VERSION;
+	map->header.version.field.complex_polygons = true;
+	map->header.version.field.split_data = true;
+	map->header.pc 			= 0;
+	map->header.rsc 		= 0;
+	map->header.bsc 		= 0;
+	map->header.sprc 		= 0;
+	map->header.X 			= 'X';
+
+	map->hpc = 0;
+	map->hpos = 0;
+	map->vertcount = 0;
 }
 
 ////////////////////////////////////////////////////////////
@@ -152,6 +225,7 @@ void bgmfsave(bgmf *map, const char *fpath)
 
 	//Write map header
 	fwrite(map, sizeof(bgmf_header), 1, mapfile);
+	//fwrite(&map->nheader, sizeof(bgmf_newheader), 1, mapfile);
 
 	//Write spawn locations
 	fwrite(&map->redspawn[0], sizeof(glm::vec2), map->header.rsc, mapfile);
@@ -170,11 +244,34 @@ void bgmfsave(bgmf *map, const char *fpath)
 		fwrite(&temp, sizeof(unsigned int), 1, mapfile);
 	}
 
+	//write sprite names
+	{
+		for(size_t i=0;i<map->sprpath.size();i++){
+			temp = map->sprpath[i].length();
+			fwrite(&temp, sizeof(uint32_t), 1, mapfile);
+			fwrite(map->sprpath[i].c_str(), sizeof(char), temp, mapfile);
+		}
+
+		temp = 0;
+		fwrite(&temp, sizeof(unsigned int), 1, mapfile);
+	}
+
+	fwrite(&map->sprite[0], sizeof(bgmf_sprite)*map->header.sprc, 1, mapfile);
 	fwrite(&map->texture[0], sizeof(uint32_t)*map->header.pc, 1, mapfile);
     fwrite(&map->mask[0], sizeof(bgmf_pmask)*map->header.pc, 1, mapfile);
-    fwrite(&map->color[0], sizeof(bgmf_color)*map->header.pc, 1, mapfile);
+	for(int i=0;i<map->header.pc;i++){
+		temp = map->color[i].data.size();
+		fwrite(&temp, sizeof(uint32_t), 1, mapfile);
+		fwrite(&map->color[i].data[0], sizeof(glm::vec4)*temp, 1, mapfile);
+	}
+    //fwrite(&map->color[0], sizeof(bgmf_color)*map->header.pc, 1, mapfile);
     //fwrite(&map->texcoord[0], sizeof(bgmf_poly_tex)*map->header.pc, 1, mapfile);
-    fwrite(&map->poly[0], sizeof(bgmf_poly)*map->header.pc, 1, mapfile);
+    for(int i=0;i<map->header.pc;i++){
+		temp = map->poly[i].data.size();
+		fwrite(&temp, sizeof(uint32_t), 1, mapfile);
+		fwrite(&map->poly[i].data[0], sizeof(glm::vec3)*temp, 1, mapfile);
+	}
+	//fwrite(&map->poly[0], sizeof(bgmf_poly)*map->header.pc, 1, mapfile);
 
     fclose(mapfile);
 }
@@ -273,6 +370,7 @@ void bgmfdelete(bgmf *map)
 		map->texture.clear();
 		map->Polygon.clear();
 		map->color.clear();
+		map->sprite.clear();
     }
 
 	delete map;
@@ -308,12 +406,16 @@ void bgmfremovepoly(bgmf *map, bgmf_poly p)
 ////////////////////////////////////////////////////////////
 /// Append a polygon
 ////////////////////////////////////////////////////////////
-void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, bgmf_poly &p)
+void bgmfappend(bgmf *map, bgmf_poly &p, bgmf_poly_tex& t)
 {
-    map->mask.push_back(mask);
+    map->mask.push_back(bgmf_pmask(0));
 	map->texture.push_back(0);
     map->texcoord.push_back(t);
     map->poly.push_back(p);
+
+	glm::vec4	c(1.0f, 1.0f, 1.0f, 1.0f);
+	bgmf_color  color;
+	color.data.resize(p.data.size(), c);
     map->color.push_back(color);
 
 	bgmf_poly_view	ViewPolygon;
@@ -326,6 +428,8 @@ void bgmfappend(bgmf *map, uint32_t &mask, bgmf_poly_tex &t, bgmf_color &color, 
 	map->Polygon.push_back(ViewPolygon);
 
 	map->header.pc++;
+
+	map->vertcount += p.data.size();
 }
 
 ////////////////////////////////////////////////////////////

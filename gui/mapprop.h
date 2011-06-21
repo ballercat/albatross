@@ -43,9 +43,12 @@ public:
 	////////////////////////////////////////////////////////////
 	void OnAddTexture(wxCommandEvent&);
 	void OnRemoveTexture(wxCommandEvent&);
+	void OnAddSprite(wxCommandEvent&);
+	void OnRemSprite(wxCommandEvent&);
+	void OnPlaceSprite(wxCommandEvent&);
 
 public:
-	wxListCtrl	*TextureList;
+	wxListCtrl	*TextureList, *SpriteList;
 	wxButton	*pAdd, *pRemove;
 	MapMaker	*mm;
 };

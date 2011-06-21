@@ -77,11 +77,7 @@ MainClient::MainClient(void) :
     	lastbullet = lastupdate;
 		objectupdate = lastupdate;
 
-		//Sprite hack
-		Tree = new Sprite("assets/sprite/tree/tree1.sprh",Texture[TREE_PLAIN]);
-		Tree->pos = glm::vec3(200,300,0);
-
-		Explosion = new Sprite("assets/explosions/default.sprh", Texture[EXPL]);
+		//aExplosion = new Sprite("assets/explosions/default.sprh", Texture[EXPL]);
 	}
 
 	//Fatal error handling

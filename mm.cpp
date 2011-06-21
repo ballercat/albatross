@@ -20,3 +20,13 @@
 #include "mmgui.h"
 
 IMPLEMENT_APP(mmApplication);
+/*
+int main(int argc, char** argv)
+{
+	MapMaker mm;
+	mm.loadMap("assets/maps/test1.bgmf");
+	mm.Init();
+
+	return 0;
+}
+*/

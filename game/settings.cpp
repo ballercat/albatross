@@ -167,38 +167,89 @@ void MainClient::_loadMap(const char *p_MapPath)
 
 			glDisable(GL_TEXTURE_2D);
 		}
+	}
 
-		tsz				= 1.0f / map->texpath.size();
-		float left		= 0.0f;
-		float right		= 0.0f;
+	//Load Map Scenery
+	{
+		if(!gs.map.SceneryTextures.empty()){
+			glDeleteTextures(gs.map.SceneryTextures.size(), &gs.map.SceneryTextures[0]);
 
-		for(size_t i=0;i<psz;i++){
-			// Populate map texture coordinates
-			left = map->texture[i] * tsz;
-			right = left + tsz;
+			gs.map.SceneryTextures.clear();
+			gs.map.Scenery.clear();
+		}
 
-			map->texcoord[i].data[0] = glm::vec2(left, 0.0f);
-			map->texcoord[i].data[1] = glm::vec2(left, 1.0f);
-			map->texcoord[i].data[2] = glm::vec2(right, 1.0f);
+		int i = map->sprpath.size();
+
+		if(i){
+			gs.map.SceneryTextures.resize(i);
+			glGenTextures(i, &gs.map.SceneryTextures[0]);
+
+			std::string fpath;
+
+			//Load the actual texture data
+			for(int k=0;k<i;k++){
+				fpath = "assets/scenery/" + map->sprpath[k];
+				LoadTex(gs.map.SceneryTextures[k], fpath.c_str());
+			}
+
+			//Fling sprite objects into existance
+			for(int k=0;k<map->header.sprc;k++){
+				i = map->sprite[k].id;
+				fpath = "assets/scenery/" + map->sprheader[i];
+				Sprite spr(fpath.c_str(), gs.map.SceneryTextures[i]);
+				spr.pos = map->sprite[k].pos;
+				gs.map.Scenery.push_back(spr);
+			}
 		}
 	}
 
 	//Polygon vertexes
+	glm::vec2 _DefaultTC[4];
+	_DefaultTC[0] = glm::vec2(0.0f, 0.0f);
+	_DefaultTC[1] = glm::vec2(0.0f, 1.0f);
+	_DefaultTC[2] = glm::vec2(1.0f, 0.0f);
+	_DefaultTC[3] = glm::vec2(1.0f, 1.0f);
 	glm::vec3 v0,v1,v2;
+	float texstep = 1.0f / map->texpath.size();
+	glm::vec2 swap;
 
 	size_t i = 0;
 	//Add polygons to the space
 	for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
 	{
+		if(map->mask[i].bit.hollow)
+			continue;
+
 		v0 = p->data[0];
 		v1 = p->data[1];
 		v2 = p->data[2];
 
-		//Only add non-hollow polygons
-		if(!map->mask[i].bit.hollow){
+		mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
+		mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
+		mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+
+		swap = _DefaultTC[0];
+		swap.x = swap.x * texstep + map->texture[i] * texstep;
+		map->texcoord[i].data[0] = (swap);
+		swap = _DefaultTC[1];
+		swap.x = swap.x * texstep + map->texture[i] * texstep;
+		map->texcoord[i].data[1] = (swap);
+		swap = _DefaultTC[2];
+		swap.x = swap.x * texstep + map->texture[i] * texstep;
+		map->texcoord[i].data[2] = (swap);
+
+		for(int k=3;k<p->data.size();k++){
+			v0 = p->data[k];
+			v1 = p->data[k-1];
+			v2 = p->data[k-2];
+
 			mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
 			mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
 			mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+
+			swap = _DefaultTC[k%4];
+			swap.x = swap.x * texstep + map->texture[i] * texstep;
+			map->texcoord[i].data[k] = (swap);
 		}
 
 		i++;

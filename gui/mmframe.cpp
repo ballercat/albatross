@@ -22,6 +22,7 @@
 enum {
 	mmID_SELECTVERTEX = 7000,
 	mmID_SELECTPOLY,
+	mmID_SELECTSPRITE,
 	mmID_ENABLEVERTSNAP,
 	mmID_DELETEPOLY,
 	mmID_DELETEVERT,
@@ -29,7 +30,7 @@ enum {
 	mmID_CLEARMODE,
 	mmID_MAPPROPERTIES,
 	mmID_ALPHASPAWN,
-	mmID_BRAVOSPAWN
+	mmID_BRAVOSPAWN,
 };
 
 ////////////////////////////////////////////////////////////
@@ -68,6 +69,7 @@ wxFrame(p_Parent, wxID_ANY, "wxMapMaker", wxDefaultPosition, wxSize(1024, 675))
 			mSelectSubMenu 	= new wxMenu();{
 				mSelectSubMenu->Append((mmID_SELECTVERTEX), _T("&Vertex\tCtrl+V"), _T("Select Vertex"));
 				mSelectSubMenu->Append((mmID_SELECTPOLY), _T("&Polygon\tCtrl+F"), _T("Select Polygon"));
+				mSelectSubMenu->Append((mmID_SELECTSPRITE), _("&Sprite\tCtrl+S"), _("Select Sprite"));
 			}
 
 			mEditMenu->Append(mmID_CLEARMODE, _T("&Clear Mode\tAlt+C"), _T("Set Mode to 'Normal'"));
@@ -128,6 +130,7 @@ BEGIN_EVENT_TABLE(mmFrame, wxFrame)
 
 	EVT_MENU(mmID_SELECTVERTEX, mmFrame::OnMenuEditSelVert)
 	EVT_MENU(mmID_SELECTPOLY, 	mmFrame::OnMenuEditSelPoly)
+	EVT_MENU(mmID_SELECTSPRITE,	mmFrame::OnSelectSprite)
 	EVT_MENU(mmID_ENABLEVERTSNAP, mmFrame::OnMenuVertexSnapCheck)
 
 	EVT_MENU(mmID_ENABLEGRID, mmFrame::ShowGrid)
@@ -151,25 +154,25 @@ void mmFrame::OnIdle(wxIdleEvent &p_Event)
 	SetStatusText(str,2);
 
 	//Handle Vertex Selection Mode
-	if(mm->change == &mm->pick_vertex && mm->change->vertex)
+	if(mm->change.vertex)
 	{
 		//Vertex Selected. Show Vertex Properties window
 		mVertexProp->Display();
 	}
-	else if(mm->change == &mm->pick_polygon && mm->change->pick_vertex && mm->change->vertex){
+	/*else if(mm->change.vertex){
 		mVertexProp->Display();
 
-		mm->change->picked	= false;
-	}
+		mm->change.picked	= false;
+	}*/
 	else {
 		mVertexProp->Display(false);
 	}
 	//Handle Polygon Selection Mode
-	if(mm->change == &mm->pick_polygon && mm->change->picked && mm->change->pPolygon){
+	if(mm->change.pick_poly && mm->change.picked && mm->change.pPolygon){
 			pPolyProp->Display(true);
-			mm->change->picked = false;
+			mm->change.picked = false;
 	}
-	else if(mm->change == &mm->pick_polygon && !mm->change->pPolygon){
+	else if(mm->change.pick_poly && !mm->change.pPolygon){
 		pPolyProp->Show(false);
 	}
 }
@@ -191,6 +194,7 @@ void mmFrame::OnMenuFileOpen(wxCommandEvent &p_Event)
 
 		mm->loadMap(buffer);
 		mm->loadTextureData();
+		mm->loadSpriteData();
 	}
 
 	OpenMapDialog->Close();
@@ -224,7 +228,7 @@ void mmFrame::OnMenuFileExit(wxCommandEvent &WXUNUSED(p_Event))
 ////////////////////////////////////////////////////////////
 void mmFrame::OnMenuEditClearMode(wxCommandEvent &WXUNUSED(p_Event))
 {
-	mm->change = NULL;
+	mm->change.Clear();
 	SetStatusText(wxT("Normal"), 1);
 }
 
@@ -233,10 +237,9 @@ void mmFrame::OnMenuEditClearMode(wxCommandEvent &WXUNUSED(p_Event))
 ////////////////////////////////////////////////////////////
 void mmFrame::OnMenuDeletePoly(wxCommandEvent &WXUNUSED(p_Event))
 {
-	mm->change				= &mm->pick_polygon;
-	mm->change->Clear();
-	mm->change->pick_poly	= true;
-	mm->change->remove		= true;
+	mm->change.Clear();
+	mm->change.pick_poly	= true;
+	mm->change.remove		= true;
 
 	SetStatusText(wxT("Delete Polygon"), 1);
 }
@@ -246,10 +249,9 @@ void mmFrame::OnMenuDeletePoly(wxCommandEvent &WXUNUSED(p_Event))
 ////////////////////////////////////////////////////////////
 void mmFrame::OnMenuEditSelPoly(wxCommandEvent &p_Event)
 {
-	mm->change			= &mm->pick_polygon;
-	mm->change->Clear();
-	mm->change->select	= true;
-	mm->change->pick_poly = true;
+	mm->change.Clear();
+	mm->change.select	= true;
+	mm->change.pick_poly = true;
 
 	SetStatusText(wxT("Select Polygon"), 1);
 }
@@ -259,14 +261,25 @@ void mmFrame::OnMenuEditSelPoly(wxCommandEvent &p_Event)
 ////////////////////////////////////////////////////////////
 void mmFrame::OnMenuEditSelVert(wxCommandEvent &p_Event)
 {
-	mm->change				= &mm->pick_vertex;
-	mm->change->Clear();
-	mm->change->pick_vertex	= true;
+	mm->change.Clear();
+	mm->change.pick_vertex	= true;
 
 	SetStatusText(wxT("Select Vertex"), 1);
 }
 
 ////////////////////////////////////////////////////////////
+/// Select Sprite
+////////////////////////////////////////////////////////////
+void mmFrame::OnSelectSprite(wxCommandEvent &WXUNUSED(p_Event))
+{
+	mm->change.Clear();
+	mm->change.pick_sprite = true;
+
+	SetStatusText(_("Select Sprite"), 1);
+}
+
+////////////////////////////////////////////////////////////
+/// Show grid checkbox
 ////////////////////////////////////////////////////////////
 void mmFrame::ShowGrid(wxCommandEvent &WXUNUSED(p_Event))
 {
@@ -286,23 +299,22 @@ void mmFrame::OnMenuVertexSnapCheck(wxCommandEvent &WXUNUSED(p_Event))
 ////////////////////////////////////////////////////////////
 void mmFrame::OnMenuMapProperties(wxCommandEvent &WXUNUSED(p_Event))
 {
-	//pMapProp->Show(!pMapProp->IsShown());
 	MapSettingsDialog *MapSettings = new MapSettingsDialog(this, mm);
 	MapSettings->Show();
 }
 
 void mmFrame::AlphaSpawn(wxCommandEvent &WXUNUSED(p_Event))
 {
-	mm->change	= &mm->spawn;
-	mm->change->Clear();
-	mm->change->spawna = true;
+	mm->change.Clear();
+	mm->change.spawna = true;
+	mm->change.pick_spawn = true;
 	SetStatusText(_("Place Alpha Spawn"),1);
 }
 
 void mmFrame::BravoSpawn(wxCommandEvent &WXUNUSED(p_Event))
 {
-	mm->change = &mm->spawn;
-	mm->change->Clear();
-	mm->change->spawnb = true;
+	mm->change.Clear();
+	mm->change.pick_spawn;
+	mm->change.spawnb = true;
 	SetStatusText(_("Place Bravo Spawn"),1);
 }

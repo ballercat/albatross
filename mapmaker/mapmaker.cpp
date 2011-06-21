@@ -80,8 +80,7 @@ static void DrawRectAroundPoint(float p_X, float p_Y, float p_Size, float &p_Del
 MapMaker::MapMaker() :
 	drawgrid(false),
 	count(0),
-	map(NULL),
-	change(NULL)
+	map(NULL)
 {
 	for(int y =0; y<76;y++){
 		grid[count] = glm::vec3(-512.0f,(y-38)*8.0f,0.0f);
@@ -94,6 +93,11 @@ MapMaker::MapMaker() :
 		grid[count+1] = glm::vec3((x-64)*8.0f, 300.0f, 0.0f);
 		count+=2;
 	}
+
+	_DefaultTC[0] = glm::vec2(0.0f, 0.0f);
+	_DefaultTC[1] = glm::vec2(0.0f, 1.0f);
+	_DefaultTC[2] = glm::vec2(1.0f, 0.0f);
+	_DefaultTC[3] = glm::vec2(1.0f, 1.0f);
 }
 
 ////////////////////////////////////////////////////////////
@@ -108,6 +112,13 @@ void MapMaker::Init()
 
 	gfx.Texture = 0;
 	loadTextureData();
+	loadSpriteData();
+
+	//
+	SpawnPointTexture = 0;
+	glGenTextures(1, &SpawnPointTexture);
+	LoadTex(SpawnPointTexture, "assets/mapmaker/spawn.png");
+	SpawnPoint = new Sprite("assets/mapmaker/spawn.sprh", SpawnPointTexture);
 }
 
 ////////////////////////////////////////////////////////////
@@ -153,7 +164,48 @@ void MapMaker::loadTextureData()
 
 	for(size_t i=0;i<psz;i++){
 		// Adjust texture coordinates
-		FixTC(&map->texcoord[i], map->texture[i]);
+		FixTC(i, map->texture[i]);
+
+	}
+}
+
+void MapMaker::loadSpriteData()
+{
+	//Check for existing data, clear if true
+	if(!gfx.SpriteTextures.empty()){
+		glDeleteTextures(gfx.SpriteTextures.size(), &gfx.SpriteTextures[0]);
+
+		gfx.SpriteTextures.clear();
+		gfx.Scenery.clear();
+	}
+
+	int i = map->sprpath.size();
+
+	if(i){
+		gfx.SpriteTextures.resize(map->sprpath.size());
+		glGenTextures(i, &gfx.SpriteTextures[0]);
+
+		std::string fpath;
+
+		//Load Texture data
+		for(int k=0;k<i;k++){
+			fpath = pWorkingDir + "/assets/scenery/" + map->sprpath[k];
+			LoadTex(gfx.SpriteTextures[k], fpath.c_str());
+		}
+
+		for(int k=0;k<map->header.sprc;k++){
+			i = map->sprite[k].id;
+			fpath = pWorkingDir + "/assets/scenery/" + map->sprheader[i];
+			Sprite scnr(fpath.c_str(), gfx.SpriteTextures[i]);
+			scnr.pos = map->sprite[k].pos;
+
+			spriteView spr;
+			spr.ptr = &map->sprite[k];
+			spr.spr = scnr;
+
+			//every sprite is static in here
+			gfx.Scenery.push_back(spr);
+		}
 	}
 }
 
@@ -163,6 +215,7 @@ void MapMaker::loadTextureData()
 ////////////////////////////////////////////////////////////
 bool MapMaker::Pick(change_struct *ch, size_t range)
 {
+	int i = 0;
 	//Vertex selection
     if(ch->pick_vertex){
         glm::vec3 v;
@@ -170,67 +223,39 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
 
 		if(ch->poly){
 			//Pick a vertex from a polygon
-            v = ch->poly->data[0];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex 			= &ch->poly->data[0];
-				ch->vertex_color 	= &map->color[ch->index].data[0];
-                return true;
-            }
-            v = ch->poly->data[1];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex 			= &ch->poly->data[1];
-                ch->vertex_color	= &map->color[ch->index].data[1];
-                return true;
-            }
-            v = ch->poly->data[2];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex 			= &ch->poly->data[2];
-                ch->vertex_color	= &map->color[ch->index].data[2];
-                return true;
-            }
+			for(int i=0;i<ch->poly->data.size();i++){
+				v = ch->poly->data[i];
+				pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
+				if(pick.Contains(mouse.x, mouse.y)){
+					ch->vertex 			= &ch->poly->data[i];
+					ch->vertex_color 	= &map->color[ch->index].data[i];
+					return true;
+				}
+			}
 
 			ch->vertex = NULL;
 			ch->pick_vertex = false;
 
-			return false;
+			return true;
 		}
 
-        for(size_t i = 0; i < map->poly.size();i++){
-
-            v = map->poly[i].data[0];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex 			= &map->poly[i].data[0];
-				ch->vertex_color 	= &map->color[i].data[0];
-                ch->index = i;
-                return true;
-            }
-            v = map->poly[i].data[1];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex 			= &map->poly[i].data[1];
-                ch->vertex_color	= &map->color[i].data[1];
-				ch->index = i;
-                return true;
-            }
-            v = map->poly[i].data[2];
-            pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
-            if(pick.Contains(mouse.x, mouse.y)){
-                ch->vertex 			= &map->poly[i].data[2];
-                ch->vertex_color	= &map->color[i].data[2];
-				ch->index = i;
-                return true;
-            }
+        for( i = 0; i < map->poly.size();i++){
+			for(int k=0;k<map->poly[i].data.size();k++){
+				v = map->poly[i].data[k];
+				pick =  sf::Rect<float>(v.x-range,v.y-range,v.x+range,v.y+range);
+				if(pick.Contains(mouse.x, mouse.y)){
+					ch->vertex 			= &map->poly[i].data[k];
+					ch->vertex_color 	= &map->color[i].data[k];
+					ch->index = k;
+					return true;
+				}
+			}
         }
         ch->vertex = NULL;
-        return false;
+        return true;
     }//Polygon selection
     else if(ch->pick_poly){
         bgmf_poly *p = NULL;
-		size_t i = 0;
 		if(ch->pPolygon){
 			i = ch->pPolygon->pID + 1;
 			for(i; i < map->header.pc;i++){
@@ -242,6 +267,15 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
 					ch->pPolygon = &map->Polygon[i];
 					return true;
 				}
+				for(int k=3;k<p->data.size();k++){
+					if(PointInTriangle(mouse, p->data[k], p->data[k-1], p->data[k-2])){
+						ch->poly = p;
+						ch->index = i;
+
+						ch->pPolygon = &map->Polygon[i];
+						return true;
+					}
+				}
 			}
 		}
 
@@ -251,18 +285,27 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
                 ch->poly = p;
                 ch->index = i;
 
-				//This is extra code for filling in the
-				//polygon view field. Its used in the gui
 				ch->pPolygon = &map->Polygon[i];
 
                 return true;
             }
+
+			for(int k=3;k<p->data.size();k++){
+				if(PointInTriangle(mouse, p->data[k], p->data[k-1], p->data[k-2])){
+					ch->poly = p;
+					ch->index = i;
+
+					ch->pPolygon = &map->Polygon[i];
+
+					return true;
+				}
+			}
         }
 		ch->pPolygon = NULL;
         ch->poly = NULL;
-        return false;
+        return true;
     }
-	else if(ch == &spawn){
+	else if(ch->pick_spawn){
 		sf::Rect<float> pick;
 
 		if(ch->spawna && !map->redspawn.empty()){
@@ -278,6 +321,25 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
 				}
 			}
 		}
+
+		return true;
+	}
+	else if(ch->pick_sprite){
+		sf::Rect<float> pick;
+		Sprite *sp = NULL;
+		for(int i=0;i<gfx.Scenery.size();i++){
+			sp = &gfx.Scenery[i].spr;
+
+			pick = sf::Rect<float>(sp->pos.x+sp->vertdata[0].x, sp->pos.y+sp->vertdata[0].y,
+									sp->pos.x+sp->vertdata[4].x, sp->pos.y+sp->vertdata[4].y);
+			if(pick.Contains(mouse.x, mouse.y)){
+				ch->sprite = &gfx.Scenery[i];
+				return true;
+			}
+		}
+
+		ch->sprite = NULL;
+		return true;
 	}
 
     return false;
@@ -289,12 +351,12 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
 {
     if(!ch)
         return;
-	if(ch == &pick_vertex && leftdown){
+	if(ch->pick_vertex && leftdown){
 		if(ch->vertex)
 			ch->picked = true;
 		else
 			ch->picked = false;
-		if(ch->picked && input->IsKeyDown(Input::Key::LShift)){
+		if(ch->vertex && input->IsKeyDown(Input::Key::LShift)){
 			glm::vec3 *v = findVertex(mouse.x,mouse.y,ch->vertex);
 			if(v && vertex_snap)
 				*ch->vertex = *v;
@@ -302,20 +364,13 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
 				*ch->vertex = mouse;
 		}
 	}
-    else if(ch == &move_vertex && ch->vertex && leftdown){
-        glm::vec3 *v = findVertex(mouse.x,mouse.y,ch->vertex);
-        if(v && vertex_snap)
-            *ch->vertex = *v;
-        else
-            *ch->vertex = mouse;
-    }
     else if(ch->pick_poly){
 		ch->move = false;
         if(input->IsKeyDown(Input::Key::LShift) && leftdown){
             glm::vec3 mv = mouse - lastmouse;
-            ch->poly->data[0] += mv;
-            ch->poly->data[1] += mv;
-            ch->poly->data[2] += mv;
+            for(int i=0;i<ch->poly->data.size();i++)
+				ch->poly->data[i] += mv;
+
 			ch->move = true;
         }
         else if(ch->remove && ch->poly){
@@ -340,7 +395,7 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
 				ch->picked	= false;
 		}
     }
-	else if(ch == &spawn && leftdown){
+	else if(ch->pick_spawn && leftdown){
 		if(ch->spawn){
 			if(input->IsKeyDown(Input::Key::LShift)){
 				*ch->spawn = glm::vec2(mouse.x, mouse.y);
@@ -359,6 +414,13 @@ void MapMaker::ApplyChange(change_struct *ch, bool leftdown)
 
 		ch->Clear();
 		ch = NULL;
+	}
+	//Sprite Mode
+	else if(ch->pick_sprite && leftdown){
+		if(ch->sprite && input->IsKeyDown(Input::Key::LShift)){
+			glm::vec3 mv = mouse - lastmouse;
+			ch->sprite->ptr->pos += mv;
+		}
 	}
 }
 
@@ -394,30 +456,24 @@ void MapMaker::Step()
 	{
 		//picks
 		if(input->mState.mouse.left){
-			if(change){
-				input->mState.mouse.left = !Pick(change, 10);
-			}
-			if(!change && input->mState.mouse.left){
-				//rogue vertex
-				vertex.push_back(mouse);
-				if(vertex.size() == 3){
-					//Create a new Polygon
-					bgmf_poly poly = bgmf_poly(vertex[0],vertex[1],vertex[2]);
-					bgmf_poly_tex tc = bgmfdefaulttc;
-					uint32_t m = POLY_DEFAULT;
-					bgmf_color color = bgmfdefaultcol;
-					bgmfappend(map, m, tc, color, poly);
+			input->mState.mouse.left = !Pick(&change, 10);
 
-					FixTC(map->Polygon[map->header.pc-1].pTC, *map->Polygon[map->header.pc-1].pT);
+			if(input->mState.mouse.left){
 
-					vertex.clear();
-				}
+				polynew.data.push_back(mouse);
+				texcoord.data.push_back(_DefaultTC[polynew.data.size()%4]);
 			}
 
 			input->mState.mouse.left = false;
 		}
+		//Add created polygon
+		if(input->mState.mouse.right && polynew.data.size() > 2){
+			bgmfappend(map, polynew, texcoord);
+			polynew.data.clear();
+			texcoord.data.clear();
+		}
 
-		ApplyChange(change, input->IsMouseButtonDown(Input::Mouse::Left));
+		ApplyChange(&change, input->IsMouseButtonDown(Input::Mouse::Left));
 	}
 
 	glClearColor(0.5f,0.7f,0.8f,1.0f);
@@ -426,13 +482,25 @@ void MapMaker::Step()
         if(map){
 
             //Draw all the polygons
-            display->drawArray( &map->poly[0],
-                                /*&map->texcoord[0],*/
-								&map->texcoord[0],
-                                &map->color[0],
-                                map->header.pc*3,
-                                GL_TRIANGLES,
-                                gfx.Texture );
+			for(int i=0;i<map->header.pc;i++){
+				display->drawArray( &map->poly[i].data[0],
+									&map->texcoord[i].data[0],
+									&map->color[i].data[0],
+									map->poly[i].data.size(),
+									GL_TRIANGLE_STRIP,
+									gfx.Texture);
+			}
+
+
+			if(polynew.data.size() > 2){
+				glColor4f(0.0f, 1.0f, 0.0f, 0.5f);
+				display->drawArray( &polynew.data[0], NULL, NULL, polynew.data.size(), GL_TRIANGLE_STRIP, 0);
+			}
+
+			for(int i=0;i<gfx.Scenery.size();i++){
+				gfx.Scenery[i].spr.pos = gfx.Scenery[i].ptr->pos;
+				gfx.Scenery[i].spr.Draw();
+			}
 
 			if(drawgrid){
 				glPushMatrix();
@@ -444,85 +512,106 @@ void MapMaker::Step()
 				glPopMatrix();
 			}
 
-            if(change == &pick_polygon)
+            if(change.pick_poly)
             {
-                if(change->remove)
+                if(change.remove)
                     glColor4f(1.0f,0.0f,0.0f,1.0f);
-				else if(change->select)
+				else if(change.select)
 					glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
-				else if(change->move)
+				else if(change.move)
 					glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 
 				change_struct swap;
 				swap.pick_poly = true;
 				Pick(&swap, 5);
 				if(swap.pPolygon){
-					display->drawArray(swap.pPolygon->pP, NULL, NULL, 3, GL_LINE_LOOP, 0);
+					display->drawArray(&swap.pPolygon->pP->data[0], NULL, NULL, swap.pPolygon->pP->data.size(), GL_LINE_STRIP, 0);
 				}
 
             }
 
 
             //Draw vertexes
-            if(change == &move_vertex){
+            if(change.pick_vertex && change.move){
                 //Draw every vertex green
-                glPointSize(5.0f);
+                glPointSize(3.0f);
                 glColor3f(0.0f,1.0f,0.0f);
-                display->drawArray( &map->poly[0],
-                                    NULL,
-                                    NULL,
-                                    map->header.pc*3,
-                                    GL_POINTS,
-                                    0 );
+				for(int i=0;i<map->poly.size();i++){
+					display->drawArray( &map->poly[i].data[0],
+										NULL,
+										NULL,
+										map->poly[i].data.size(),
+										GL_POINTS,
+										0 );
+				}
             }
             else {
-					//Draw regular colors
-				if(change == &color_vertex)
-					glPointSize(8.0f);
-				display->drawArray( &map->poly[0],
-									NULL,
-									&map->color[0],
-									map->header.pc*3,
-									GL_POINTS,
-									0 );
+				//Draw regular colors
+				for(int i=0;i<map->poly.size();i++){
+					display->drawArray( &map->poly[i].data[0],
+										NULL,
+										NULL,
+										map->poly[i].data.size(),
+										GL_POINTS,
+										0 );
+				}
             }
 
 			// Draw Selection Rectangle
-			if(change == &pick_vertex && change->vertex){
-				DrawRectAroundPoint(change->vertex->x, change->vertex->y, 8.0f, delta);
+			if(change.vertex){
+				DrawRectAroundPoint(change.vertex->x, change.vertex->y, 8.0f, delta);
 			}
 
-			if(change == &pick_polygon && change->pPolygon){
+			if(change.pPolygon){
 				if(input->IsKeyDown(Input::Key::LShift))
 					glColor4f(0.0f,1.0f,0.0f, 1.0f);
 				else
 					glColor4f(0.0f, 1.0f, 1.0, 1.0f);
 				glLineWidth(2.0f);
-				display->drawArray(&change->poly->data[0], NULL, NULL, 3, GL_LINE_LOOP, 0);
+				display->drawArray(&change.poly->data[0], NULL, NULL, change.poly->data.size(), GL_LINE_STRIP, 0);
 				glLineWidth(1.0f);
 			}
 
-			if(!vertex.empty()){
+			if(change.sprite){
+				glColor3f(0.0f, 1.0f, 0.0f);
+				glLineWidth(2.0f);
+				glPushMatrix();{
+					glTranslatef(change.sprite->ptr->pos.x, change.sprite->ptr->pos.y, 0.0f);
+					glBegin(GL_LINE_LOOP);{
+						glVertex2f(change.sprite->spr.vertdata[0].x, change.sprite->spr.vertdata[0].y);
+						glVertex2f(change.sprite->spr.vertdata[1].x, change.sprite->spr.vertdata[1].y);
+						glVertex2f(change.sprite->spr.vertdata[2].x, change.sprite->spr.vertdata[2].y);
+						glVertex2f(change.sprite->spr.vertdata[5].x, change.sprite->spr.vertdata[5].y);
+					}glEnd();
+				}glPopMatrix();
+			}
+
+			if(!polynew.data.empty()){
 				//Draw vertexes that are not yet a polygon
 				glColor3f(0.0f,0.0f,1.0f);
 				glPointSize(6.0f);
-				display->drawArray(&vertex[0], NULL, NULL, vertex.size(), GL_POINTS, 0);
+				display->drawArray(&polynew.data[0], NULL, NULL, polynew.data.size(), GL_POINTS, 0);
+
 			}
 
 			//Draw spawn points and selection rectangle
 			{
-				glBegin(GL_POINTS);{
-					glColor3f(1.0f, 0.0f, 0.0f);
-					for(int i = 0;i < map->redspawn.size();i++)
-						glVertex2f(map->redspawn[i].x, map->redspawn[i].y);
 
+				for(int i = 0;i < map->redspawn.size();i++){
+					//glVertex2f(map->redspawn[i].x, map->redspawn[i].y);
+					SpawnPoint->pos = glm::vec3(map->redspawn[i].x, map->redspawn[i].y, 0.0f);
+					SpawnPoint->color = glm::vec4(5.0f, 0.0f, 0.0f, 1.0f);
+					SpawnPoint->Draw();
+				}
+
+				glBegin(GL_POINTS);{
 					glColor3f(0.0f,0.0f,1.0f);
 					for(int i = 0;i < map->bluespawn.size();i++)
 						glVertex2f(map->bluespawn[i].x, map->bluespawn[i].y);
 				};glEnd();
 
-				if(change && change->spawn)
-					DrawRectAroundPoint(change->spawn->x, change->spawn->y, 8.0f, delta);
+				if(change.spawn)
+					DrawRectAroundPoint(change.spawn->x, change.spawn->y, 8.0f, delta);
 			}
         }
 

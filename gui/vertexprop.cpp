@@ -82,10 +82,10 @@ void VertexPropWindow::Display(bool p_Show)
 	{
 		wxString Rstr, Gstr, Bstr, Astr;
 
-		Rstr.Printf(_("%d"), int(mm->change->vertex_color->r*256));
-		Gstr.Printf(_("%d"), int(mm->change->vertex_color->g*256));
-		Bstr.Printf(_("%d"), int(mm->change->vertex_color->b*256));
-		Astr.Printf(_("%d"), int(mm->change->vertex_color->a*256));
+		Rstr.Printf(_("%d"), int(mm->change.vertex_color->r*256));
+		Gstr.Printf(_("%d"), int(mm->change.vertex_color->g*256));
+		Bstr.Printf(_("%d"), int(mm->change.vertex_color->b*256));
+		Astr.Printf(_("%d"), int(mm->change.vertex_color->a*256));
 
 		pRed->SetValue(Rstr);
 		pGreen->SetValue(Gstr);
@@ -96,8 +96,8 @@ void VertexPropWindow::Display(bool p_Show)
 	{
 		wxString Xstr, Ystr;
 
-		Xstr.Printf(_("%f"), mm->change->vertex->x);
-		Ystr.Printf(_("%f"), mm->change->vertex->y);
+		Xstr.Printf(_("%f"), mm->change.vertex->x);
+		Ystr.Printf(_("%f"), mm->change.vertex->y);
 
 		pXValue->SetValue(Xstr);
 		pYValue->SetValue(Ystr);
@@ -125,14 +125,14 @@ void VertexPropWindow::XChange(wxCommandEvent &WXUNUSED(p_Event))
 {
 	static double x = 0.0f;
 	pXValue->GetValue().ToDouble(&x);
-	mm->change->vertex->x = x;
+	mm->change.vertex->x = x;
 }
 
 void VertexPropWindow::YChange(wxCommandEvent &WXUNUSED(p_Event))
 {
 	static double y = 0.0f;
 	pYValue->GetValue().ToDouble(&y);
-	mm->change->vertex->y = y;
+	mm->change.vertex->y = y;
 }
 
 ////////////////////////////////////////////////////////////
@@ -143,7 +143,14 @@ void VertexPropWindow::OnRedChange(wxCommandEvent &p_Event)
 	long value = 0;
 	pRed->GetValue().ToLong(&value);
 
-	mm->change->vertex_color->r = value/256.0f;
+	float color = value/256.0f;
+	mm->change.vertex_color->r = color;
+
+	if(mm->change.pPolygon){
+		mm->change.pPolygon->pC->data[0].r  = color;
+		mm->change.pPolygon->pC->data[1].r  = color;
+		mm->change.pPolygon->pC->data[2].r  = color;
+	}
 }
 
 void VertexPropWindow::OnGreenChange(wxCommandEvent &p_Event)
@@ -151,7 +158,14 @@ void VertexPropWindow::OnGreenChange(wxCommandEvent &p_Event)
 	long value = 0;
 	pGreen->GetValue().ToLong(&value);
 
-	mm->change->vertex_color->g = value/256.0f;
+	float color = value/256.0f;
+	mm->change.vertex_color->g = color;
+
+	if(mm->change.pPolygon){
+		mm->change.pPolygon->pC->data[0].g  = color;
+		mm->change.pPolygon->pC->data[1].g  = color;
+		mm->change.pPolygon->pC->data[2].g  = color;
+	}
 }
 
 void VertexPropWindow::OnBlueChange(wxCommandEvent &p_Event)
@@ -159,7 +173,14 @@ void VertexPropWindow::OnBlueChange(wxCommandEvent &p_Event)
 	long value = 0;
 	pBlue->GetValue().ToLong(&value);
 
-	mm->change->vertex_color->b = value/256.0f;
+	float color = value/256.0f;
+	mm->change.vertex_color->b = color;
+
+	if(mm->change.pPolygon){
+		mm->change.pPolygon->pC->data[0].b  = color;
+		mm->change.pPolygon->pC->data[1].b  = color;
+		mm->change.pPolygon->pC->data[2].b  = color;
+	}
 }
 
 void VertexPropWindow::OnAlphaChange(wxCommandEvent &WXUNUSED(p_Event))
@@ -167,5 +188,12 @@ void VertexPropWindow::OnAlphaChange(wxCommandEvent &WXUNUSED(p_Event))
 	long value = 0;
 	pAlpha->GetValue().ToLong(&value);
 
-	mm->change->vertex_color->a = value/256.0f;
+	float color = value/256.0f;
+	mm->change.vertex_color->a = color;
+
+	if(mm->change.pPolygon){
+		mm->change.pPolygon->pC->data[0].a  = color;
+		mm->change.pPolygon->pC->data[1].a  = color;
+		mm->change.pPolygon->pC->data[2].a  = color;
+	}
 }
