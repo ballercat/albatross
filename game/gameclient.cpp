@@ -20,7 +20,6 @@
 
 #include "gameclient.h"
 #include "assets.h"
-#include "collision.h"
 #include <cstdio>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -42,7 +41,7 @@ MainClient::MainClient(void) :
     	//Create the display
 		display = new gfx::FixedPipeline(	info.window_width,
 											info.window_height,
-											"v0.0.4a(Finback)",
+											"v0.0.5a(Humpback)",
 											info.fullscreen	);
 
     	GLuint *Texture = display->Texture;
@@ -263,19 +262,6 @@ void MainClient::_drawHud(void)
 		}
 
 	}glPopMatrix();
-}
-
-////////////////////////////////////////////////////////////
-/// Collision handlers
-////////////////////////////////////////////////////////////
-void MainClient::_initCollisionHandlers(cpSpace *space)
-{	
-	mPhysics->AddCollision(MAPPOLYGON, BULLET, this, NULL, NULL, collision::Post::BulletWorld);//collision::Begin::BulletWorld);
-	mPhysics->AddCollision(EXPLOSIVE, MAPPOLYGON, this, collision::Begin::ExplosiveWorld);
-	mPhysics->AddCollision(EXPLOSION, PLAYER, this, collision::Begin::ExplosionObject);
-	mPhysics->AddCollision(EXPLOSIVE, PLAYER, this, collision::Begin::ExplosiveObject);
-
-	mPhysics->AddCollision(WEAPON, PLAYER, this, w2p_beginCollision);	
 }
 
 cpBool MainClient::w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client)

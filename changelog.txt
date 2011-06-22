@@ -1,5 +1,37 @@
 Changelog
 
+0.0.4a -> 0.0.5a
+    Version name 'Finback' to 'Humpback'
+        -Lots of changes improvements
+        -Split mapmaker core from main game core
+        -Removed old mapmaker gui code
+        -Converted mapmaker to wxWidgets
+        -Added spawn points to map format
+        -Added multi-textures to map format
+        -Added scenery to map format
+        -Added hollow polygons to map format
+        -Added user defined types to map format
+        -Improved mapmaker to enable transparency in map polys
+        -Added Weapon switching in game
+        -Added actual weapon handling in game
+        -Added a HUD
+        -Added a menu(trough the map format)
+        -Added explosives
+        -Added weapon definitions
+        -Added .sprh header for sprites
+        -Added improved assets handling
+        -Added damage
+        -Added Health to objects
+        -Added a little sliding effect while stopping
+        -Improved player action handling
+        -Improved player class
+        -Removed old timing system
+        -Improved timing
+        -Improved jets
+        -Added weapon reload
+        -Converted most settings to .ini files(no longer hardcoded)
+        -More changed that I cannot remember
+        
 0.0.3a -> 0.0.4a
 
     Version name 'Bowhead' to 'Finback'

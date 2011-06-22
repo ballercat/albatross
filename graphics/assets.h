@@ -47,7 +47,7 @@ extern GLuint* GlobalShader();
 extern glm::mat4* gMatrix();
 extern glm::vec3* gTransform();
 
-#ifdef SHADER_PIPELINE
+#if SHADER_PIPELINE
 
 struct Shader
 {

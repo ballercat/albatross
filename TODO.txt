@@ -1,4 +1,6 @@
--Add more TODO notes!
--Add exceptions!
--Fix bullet handling
--Fix/Improve asset handling especially sprites
+-Add Sound
+-Add Bots
+-Add Multiplayer
+-Add exceptions(DONE)
+-Fix bullet handling(DONE)
+-Fix/Improve asset handling especially sprites(DONE)

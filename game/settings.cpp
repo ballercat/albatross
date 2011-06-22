@@ -19,6 +19,7 @@
 
 #include "gameclient.h"
 #include "SimpleIni.h"
+#include "collision.h"
 #include <string>
 
 ////////////////////////////////////////////////////////////
@@ -133,6 +134,18 @@ void MainClient::_populateSprites(void)
 				gs.Weapon.push_back(Sprite(path.c_str(), gs.weaponTex[k]));
 			}
 		}
+	}
+
+	//Bullet, Hits, Explosions Sprites
+	{
+		gs.HitTexture.resize(2, 0);
+
+		glGenTextures(2, &gs.HitTexture[0]);
+
+		LoadTex(gs.HitTexture[1], "assets/explosions/default.png");
+		gs.BulletHit.push_back(Sprite());
+		gs.BulletHit.push_back(Sprite("assets/explosions/default.sprh", gs.HitTexture[1]));
+
 	}
 }
 
@@ -274,4 +287,23 @@ void MainClient::_loadMap(const char *p_MapPath)
 
 		i++;
 	}
+}
+
+////////////////////////////////////////////////////////////
+/// Collision handlers
+////////////////////////////////////////////////////////////
+void MainClient::_initCollisionHandlers(cpSpace *space)
+{
+	mPhysics->AddCollision(MAPPOLYGON, BULLET, this, NULL, NULL, collision::Post::BulletWorld);
+	mPhysics->AddCollision(EXPLOSIVE, MAPPOLYGON, this, collision::Begin::ExplosiveWorld);
+	mPhysics->AddCollision(EXPLOSION, PLAYER, this, collision::Begin::ExplosionObject);
+	mPhysics->AddCollision(EXPLOSIVE, PLAYER, this, collision::Begin::ExplosiveObject);
+
+	mPhysics->AddCollision(WEAPON, PLAYER, this, w2p_beginCollision);
+
+	//Player World Collisions
+	mPhysics->AddCollision(MERC, MAPPOLYGON, this, 	collision::Begin::PlayerWorld,
+													collision::PreSolve::PlayerWorld,
+													NULL,
+													collision::Separate::PlayerWorld);
 }

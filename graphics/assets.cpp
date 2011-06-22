@@ -53,17 +53,7 @@ bool LoadTex(GLuint texid, const char *fpath)
 ////////////////////////////////////////////////////////////
 void LoadTextures(const char *fpath, GLuint* Texture)
 {
-/*	FILE *fp;
-
-    fp = fopen(fpath, "r");
-    if(fp == NULL){
-        fprintf(stderr, "Can't open texture list:%s!\n",fpath);
-        exit(0x300);
-    }
-
-    char texpath[256], texname[256];
-    GLuint texid = 0;
-	GLuint type; */
+	//NOTE: This is gotta go...
 
     glGenTextures(256, Texture);
 	CSimpleIniA texini;
@@ -76,30 +66,6 @@ void LoadTextures(const char *fpath, GLuint* Texture)
 		fprintf(stderr, "Failed loading texture\n");
 	LoadTex(Texture[PLAYER_JETS], texini.GetValue("Merc", "jets"));
 	LoadTex(Texture[JET_FLAME], texini.GetValue("Merc", "jetflame"));
-
-	texpath = texini.GetValue("Map", "plain");
-	LoadTex(Texture[WORLD_PLAIN], texpath.c_str());
-
-	LoadTex(Texture[TREE_PLAIN], texini.GetValue("Sprite","tree"));
-	LoadTex(Texture[EXPL], texini.GetValue("Explosion", "default"));
-/*
-    while(!feof(fp)) {
-        if(fscanf(fp, "%s", texpath) != 1){
-            fprintf(stderr, "Error parsing %s!\n", fpath);
-            fprintf(stderr, "Dump: %s %u\n",texpath);
-            //exit(0x301);
-        }
-
-        if(!LoadTex(Texture[texid], texpath)){
-            fprintf(stderr, "Failed loading %s!\n", texpath);
-        }
-        else {
-            fprintf(stdout, "Loaded: %s ...... \n", texpath);
-        }
-		texid++;
-    }
-
-    fclose(fp); */
 }
 
 ////////////////////////////////////////////////////////////
@@ -120,7 +86,7 @@ void LoadTexturesFromData(std::vector<std::string> *tname, GLuint* Texture, GLui
 	}
 }
 
-#ifdef SHADER_PIPELINE
+#if SHADER_PIPELINE
 ////////////////////////////////////////////////////////////
 GLuint CreateShader(const char *fpath, GLuint type)
 {
@@ -344,4 +310,4 @@ GLuint Shader::operator[](const char *uniform)
 	return glGetUniformLocation(_program, uniform);
 }
 
-#endif //#ifdef SHADER_PIPELINE
+#endif //#if SHADER_PIPELINE 1

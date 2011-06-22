@@ -40,11 +40,6 @@ public:
     virtual void Left();
     virtual void Jet(void);
 
-	virtual void Damage(float p_Damage)
-	{
-		myStatus.pHealth -= p_Damage;
-	}
-
 public:
 	float	jumpheight;
 	bool	applyjump;

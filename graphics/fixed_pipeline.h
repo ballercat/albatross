@@ -24,10 +24,7 @@
 #include "gfx_core.h"
 
 #define FIXED_PIPELINE 1
-
-#ifdef SHADER_PIPELINE
-	#undef SHADER_PIPELINE
-#endif
+#define SHADER_PIPELINE 0
 
 namespace gfx
 {

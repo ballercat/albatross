@@ -131,6 +131,13 @@ cpBool Begin::WeaponPlayer(BEGINVARS)
 ////////////////////////////////////////////////////////////
 cpBool Begin::PlayerWorld(BEGINVARS)
 {
+    CP_ARBITER_GET_SHAPES(arb, a, b);
+    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
+
+    cpVect n = cpvneg(cpArbiterGetNormal(arb,0));
+    if(n.y > 0.0f){
+        cpArrayPush(player->pGroundShapes, b);
+    }
 
 	return cpTrue;
 }
@@ -141,7 +148,22 @@ cpBool Begin::PlayerWorld(BEGINVARS)
 
 cpBool PreSolve::PlayerWorld(PRESOLVEVARS)
 {
-	return cpTrue;
+    CP_ARBITER_GET_SHAPES(arb, a, b);
+    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
+    if(cpArbiterIsFirstContact(arb)){
+        a->u = player->u;
+
+        cpVect n = cpvneg(cpArbiterGetNormal(arb, 0));
+        if(n.y >= player->pGroundNormal.y){
+            player->pGroundNormal = n;
+        }
+        if(n.y > 0.50f){
+            //0.67f is about as steep a wall that you can jump off
+            player->pAirborne = false;
+            player->pDoubleJump = false;
+        }
+    }
+    return cpTrue;
 }
 
 void Post::BulletWorld(POSTSOLVEVARS)
@@ -175,15 +197,16 @@ void Post::BulletWorld(POSTSOLVEVARS)
 //Player
 void Separate::PlayerWorld(SEPARATEVARS)
 {
-	CP_ARBITER_GET_SHAPES(arb, a, b);
+    CP_ARBITER_GET_SHAPES(arb, a, b);
+    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
 
-	Bullet *bullet = (Bullet*)b->data;
-	//mark the bullet object as dead
-	bullet->Status = BulletStatus::Dead;
+    cpArrayDeleteObj(player->pGroundShapes, b);
 
-	bullet->Hit = Bullet::HitSpot( bullet->pos,
-							_cTimer.GetElapsedTime(),
-							bullet->Type );
+    if(player->pGroundShapes->num == 0){
+        a->u = 0.0f;
+        player->pGroundNormal = cpvzero;
+        player->pAirborne = true;
+    }
 }
 
 

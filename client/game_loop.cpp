@@ -111,7 +111,8 @@ void MainClient::Run(const char *p_DemoFile)
 				bullet = Bullets.Get();
 				if(bullet->Status == BulletStatus::Dead){
 					if(bullet->Type == EXPLOSIVE){
-						Sprite hit = EXPLOSIONSPRITE;
+						//Sprite hit = EXPLOSIONSPRITE;
+						Sprite hit = gs.BulletHit[1];
 						hit.pos = bullet->Hit.Pos;
 						bulletHits.push_back(hit);
 					}
@@ -147,12 +148,6 @@ void MainClient::Run(const char *p_DemoFile)
 		display->beginScene();{
 			if(map){
 				//Draw solid polygons map polygons
-				/*display->drawArray( &gs.map.Vertex[0],
-									&gs.map.TextureCoord[0],
-									&gs.map.Color[0],
-									map->vertcount,
-									GL_TRIANGLES,
-									gs.map.Texture ); */
 				for(int i=0;i<map->hpos;i++){
 					display->drawArray( &map->poly[i].data[0],
 										&map->texcoord[i].data[0],

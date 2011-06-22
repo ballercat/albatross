@@ -57,7 +57,7 @@ struct GameSprites{
 	//Sprites used in-game
 	std::vector<Sprite>	Bullet;
 	std::vector<Sprite>	Weapon;
-	std::vector<Sprite>	Expl;
+	std::vector<Sprite>	BulletHit;
 
 	//HUD sprites
 	struct HUD{
@@ -84,7 +84,7 @@ struct GameSprites{
 	//Underlying OpenGL textures
 	std::vector<GLuint>	bulletTex;
 	std::vector<GLuint>	weaponTex;
-	std::vector<GLuint> explTex;
+	std::vector<GLuint> HitTexture;
 };
 
 ////////////////////////////////////////////////////////////

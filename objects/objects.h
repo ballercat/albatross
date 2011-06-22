@@ -194,7 +194,7 @@ public:
 	////////////////////////////////////////////////////////////
 	/// Spawn object
 	////////////////////////////////////////////////////////////	
-	inline void Spawn(glm::vec3 p_Pos)
+	inline virtual void Spawn(glm::vec3 p_Pos)
     {
         myStatus.pPos = p_Pos;
         myStatus.pValue = Status::Unknown;
@@ -215,9 +215,9 @@ public:
         return myStatus.pPos;
     }
 
-	virtual void Damage(float p_Damage)
+	virtual void Damage(const float	&p_Damage)
 	{
-		//void
+		myStatus.pHealth -= p_Damage;
 	}
 
 public:

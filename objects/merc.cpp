@@ -38,59 +38,8 @@ void mercUpdateVelocity(cpBody* body,cpVect gravity,cpFloat damping,cpFloat dt)
 }
 
 ////////////////////////////////////////////////////////////
-cpBool
-begin(cpArbiter *arb, cpSpace *space, void *ignore)
-{
-    CP_ARBITER_GET_SHAPES(arb, a, b);
-    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
-
-    cpVect n = cpvneg(cpArbiterGetNormal(arb,0));
-    if(n.y > 0.0f){
-        cpArrayPush(player->pGroundShapes, b);
-    }
-    return cpTrue;
-}
-
-////////////////////////////////////////////////////////////
-cpBool
-preSolve(cpArbiter *arb, cpSpace *space, void *ignore)
-{
-    CP_ARBITER_GET_SHAPES(arb, a, b);
-    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
-    if(cpArbiterIsFirstContact(arb)){
-        a->u = player->u;
-
-        cpVect n = cpvneg(cpArbiterGetNormal(arb, 0));
-        if(n.y >= player->pGroundNormal.y){
-            player->pGroundNormal = n;
-        }
-        if(n.y > 0.50f){
-            //0.67f is about as steep a wall that you can jump off
-            player->pAirborne = false;
-            player->pDoubleJump = false;
-        }
-    }
-    return cpTrue;
-}
-
-////////////////////////////////////////////////////////////
-void
-separate(cpArbiter *arb, cpSpace *space, void *ignore)
-{
-    CP_ARBITER_GET_SHAPES(arb, a, b);
-    GameObject::Status *player = &((GameObject*)a->data)->myStatus;
-
-    cpArrayDeleteObj(player->pGroundShapes, b);
-
-    if(player->pGroundShapes->num == 0){
-        a->u = 0.0f;
-        player->pGroundNormal = cpvzero;
-        player->pAirborne = true;
-    }
-
-}
-
-////////////////////////////////////////////////////////////
+/// Initialize
+/// Why is this even needed
 ////////////////////////////////////////////////////////////
 void Merc::Initialize(void)
 {
@@ -116,13 +65,6 @@ void Merc::Initialize(void)
 
 	coast = 0;
     myStatus.pGroundShapes = cpArrayNew(0);
-    cpSpaceAddCollisionHandler(	myBody.__dbg_get_space(),
-								MERC,
-								MAPPOLYGON,
-								begin,preSolve,
-								NULL,
-								separate,
-								NULL );
 }
 
 ////////////////////////////////////////////////////////////
