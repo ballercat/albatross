@@ -51,6 +51,73 @@ public:
 	////////////////////////////////////////////////////////////
 	struct Status
     {
+	public:
+		////////////////////////////////////////////////////////////
+		/// default ctor
+		////////////////////////////////////////////////////////////
+		Status(void):
+			pDest(glm::vec3()),
+			pPos(glm::vec3()),
+			pVelocity(glm::vec3()),
+			pValue(0),
+			pAirborne(false),
+			pDoubleJump(false),
+			pLastUpdate(0.0f),
+			pHealth(100.0f),
+			u(0.0f),
+			pShape(NULL),
+			pGroundNormal(cpvzero),
+			pGroundShapes(NULL)
+		{
+
+		}
+
+		////////////////////////////////////////////////////////////
+		/// copy ctor
+		////////////////////////////////////////////////////////////
+		Status(const Status &p_Copy):
+			pDest(p_Copy.pDest),
+			pPos(p_Copy.pPos),
+			pValue(p_Copy.pValue),
+			pVelocity(p_Copy.pVelocity),
+			u(p_Copy.u),
+			pShape(p_Copy.pShape),
+			pGroundNormal(p_Copy.pGroundNormal),
+			pGroundShapes(p_Copy.pGroundShapes),
+			pAirborne(p_Copy.pAirborne),
+			pDoubleJump(p_Copy.pDoubleJump),
+			pLastUpdate(p_Copy.pLastUpdate),
+			pHealth(p_Copy.pHealth)
+		{
+			//void
+		}
+
+	public:
+		////////////////////////////////////////////////////////////
+		/// Copy operator
+		////////////////////////////////////////////////////////////
+		Status& operator=(const Status& p_Copy)
+		{
+			pDest 		= p_Copy.pDest;
+			pPos		= p_Copy.pPos;
+			pVelocity	= p_Copy.pVelocity;
+			pValue		= p_Copy.pValue;
+			pAirborne	= p_Copy.pAirborne;
+			pDoubleJump	= p_Copy.pDoubleJump;
+			pLastUpdate	= p_Copy.pLastUpdate;
+			pHealth		= p_Copy.pHealth;
+			u			= p_Copy.u;
+			pShape		= p_Copy.pShape;
+			pGroundNormal	= p_Copy.pGroundNormal;
+			pGroundShapes	= p_Copy.pGroundShapes;
+
+			return *this;
+		}
+
+	public:
+		////////////////////////////////////////////////////////////
+		/// Status values
+		////////////////////////////////////////////////////////////
         enum
         {
             Unknown = 0,
@@ -59,28 +126,45 @@ public:
             Static,
             Dead
         };
-        glm::vec3    des; ///> destination
-        glm::vec3    pos; ///> postion
-        int         val; ///> status value
-		glm::vec3	v; ///> velocity
 
-        cpFloat u;
-        cpShape *shape;
-        cpVect groundNormal;
-        cpArray *groundShapes;
-
-        ///Default constructor
-        Status(void)
-        {
-            val = Unknown;
-        }
-
-        bool Airborne;
-        bool DoubleJump;
-        float       lastup; ///>last update
-        bool        sleep;
-        float       SleepTimer;
+	public:
+		////////////////////////////////////////////////////////////
+		/// Data
+		////////////////////////////////////////////////////////////
+		glm::vec3    	pDest; ///> destination
+        glm::vec3    	pPos; ///> postion
+		glm::vec3		pVelocity; ///> velocity
+		int         	pValue; ///> status value
+        bool 			pAirborne;
+        bool 			pDoubleJump;
+        float       	pLastUpdate; ///>last update
+		float			pHealth;
+        cpFloat 		u;
+        cpShape 		*pShape;
+        cpVect 			pGroundNormal;
+        cpArray 		*pGroundShapes;
     };
+
+public:
+	////////////////////////////////////////////////////////////
+	/// ctor
+	////////////////////////////////////////////////////////////
+	GameObject():
+		rot_dAngle(0.0f),
+		myStatus(Status())
+	{
+		//void
+	}
+
+	////////////////////////////////////////////////////////////
+	/// copy ctor
+	////////////////////////////////////////////////////////////
+	GameObject(const GameObject &p_Copy) :
+		rot_dAngle(p_Copy.rot_dAngle),
+		myStatus(p_Copy.myStatus)
+	{
+		//void
+	}
 
 public:
 	////////////////////////////////////////////////////////////
@@ -110,10 +194,10 @@ public:
 	////////////////////////////////////////////////////////////
 	/// Spawn object
 	////////////////////////////////////////////////////////////	
-	inline void Spawn(glm::vec3 pos)
+	inline void Spawn(glm::vec3 p_Pos)
     {
-        myStatus.pos = pos;
-        myStatus.val = Status::Unknown;
+        myStatus.pPos = p_Pos;
+        myStatus.pValue = Status::Unknown;
     }
 
 public:
@@ -124,34 +208,21 @@ public:
     }
     inline int& GetStatusValue(void)
     {
-        return myStatus.val;
-    }
-    inline float& GetSleepTimer(void)
-    {
-        return myStatus.SleepTimer;
-    }
-    inline void SetSleepTimer(float& t)
-    {
-        mySleepTimer = t;
+        return myStatus.pValue;
     }
     inline const glm::vec3& GetPosition() const
     {
-        return myStatus.pos;
+        return myStatus.pPos;
     }
+
+	virtual void Damage(float p_Damage)
+	{
+		//void
+	}
 
 public:
     virtual void Move(glm::vec3 pos,float time) = 0;
 	virtual void Impulse(glm::vec3 p_Imp, float p_x, float p_y) =0;
-	
-    inline int& CurrentAction(void)
-    {
-        return mAction;
-    }
-
-	float rot_dAngle; //rotation angle(degrees)
-    bool Airborne;
-    unsigned int id;
-	GameObject::Status      myStatus;///< Internal object status
 	
 protected:
     static inline std::map<int,ObjectCreator*>& CreatorsMap()
@@ -159,11 +230,13 @@ protected:
         static std::map<int,ObjectCreator*> CreatorsMap;
         return CreatorsMap;
     }
+
+public:
     ////////////////////////////////////////////////////////////
-    // Member Data
+    // Data
     ////////////////////////////////////////////////////////////
-    float                   mySleepTimer;       ///< Sleep in seconds
-    int mAction;
+	float 				rot_dAngle; //rotation angle(degrees)
+	GameObject::Status	myStatus;///< Internal object status
 };
 
 #endif //GAME_OBJECTS_HEADER

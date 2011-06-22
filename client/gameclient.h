@@ -60,10 +60,18 @@ struct GameSprites{
 	std::vector<Sprite>	Expl;
 
 	//HUD sprites
-	struct MenuSprites{
-		Sprite	StartGame;
-		Sprite	ExitGame;
-	} menu;
+	struct HUD{
+		enum{
+			FRAME = 0,
+			HEALTH,
+			AMMO,
+			COUNT
+		};
+		std::vector<Sprite>	Object;
+		std::vector<GLuint>	Texture;
+	};
+
+	HUD hud;
 
 	//Map
 	struct MapData{
@@ -98,7 +106,9 @@ public:
 
 	virtual int Connect(std::string server_ip);
 
+#ifdef NDEBUG
 	void DebugDrawPhysics(void);
+#endif
 
 	//Game-step... deprecated
 	//int Execute(void);
@@ -147,6 +157,7 @@ private:
 	////////////////////////////////////////////////////////////
 	/// Load settings
 	////////////////////////////////////////////////////////////
+	void _loadHudSprites(void);
 	void _loadGameSettings(void);
 	void _populateSprites(void);
 	void _loadMap(const char *p_MapPath);
@@ -185,7 +196,7 @@ private:
 private:
 	//NOTE: Remove these
 	float lastupdate;
-	float lastbullet;
+	float wepswitchtimer;
 	float inputupdate;
 	float objectupdate;
 
@@ -244,6 +255,12 @@ private:
 		p_Sprite->pos = p_Pos + (p_Delta * p_Velocity);
 		p_Sprite->Draw();
 	}
+
+private:
+	////////////////////////////////////////////////////////////
+	/// Draw HUD
+	////////////////////////////////////////////////////////////
+	void _drawHud(void);
 
 private:
 	////////////////////////////////////////////////////////////		

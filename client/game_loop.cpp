@@ -40,6 +40,7 @@ void MainClient::Run(const char *p_DemoFile)
 	float oldtime = currentTime;
 	float inputlag = currentTime;
 	float delta = 0.0f;
+	wepswitchtimer = 0.0f;
 
 	printf("Current Time: %f\n", currentTime);
 
@@ -200,6 +201,9 @@ void MainClient::Run(const char *p_DemoFile)
 			//Draw the cursor
 			display->cursor.Draw();
 
+			wepswitchtimer -= delta/20.0f;
+			_drawHud();
+
 			//Draw fps
 			display->drawFPS();
 		}display->endScene();
@@ -249,7 +253,7 @@ bool MainClient::_handleMessages(void)
             {
                 glm::vec3 dest = dmp;
                	Bullet *bullet = mPlayer->Shoot(dest);	
-				if(bullet != NULL)
+				if(NULL != bullet)
 					Bullets.Add(bullet); 
 
 				break;
@@ -262,6 +266,7 @@ bool MainClient::_handleMessages(void)
 			{
 				int i = msgType - message::GMSG_PICKW0;
 				mPlayer->PickWeapon(WeaponInfo[i], i);
+				wepswitchtimer = 1.0f;
 				break;
 			}
 

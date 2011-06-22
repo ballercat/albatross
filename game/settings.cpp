@@ -73,6 +73,26 @@ void MainClient::_loadGameSettings(void)
 } //void MainClient::_loadGameSettings(void)
 
 ////////////////////////////////////////////////////////////
+/// Load HUD sprites
+////////////////////////////////////////////////////////////
+void MainClient::_loadHudSprites(void)
+{
+	gs.hud.Texture.resize(GameSprites::HUD::COUNT, 0);
+	glGenTextures(GameSprites::HUD::COUNT, &gs.hud.Texture[0]);
+
+	LoadTex(gs.hud.Texture[GameSprites::HUD::FRAME],	"assets/interface/frame.png");
+	LoadTex(gs.hud.Texture[GameSprites::HUD::HEALTH],	"assets/interface/health.png");
+	LoadTex(gs.hud.Texture[GameSprites::HUD::AMMO],		"assets/interface/ammo.png");
+
+	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::FRAME]));
+	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::HEALTH]));
+	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::AMMO]));
+
+	gs.hud.Object[GameSprites::HUD::HEALTH].pos = glm::vec3(-50.0f, -250.0f, 0.0f);
+	gs.hud.Object[GameSprites::HUD::AMMO].pos = glm::vec3(-50.0f, -275.0f, 0.0f);
+}
+
+////////////////////////////////////////////////////////////
 /// Populate all the required game sprites
 ////////////////////////////////////////////////////////////
 void MainClient::_populateSprites(void)

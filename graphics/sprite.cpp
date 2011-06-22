@@ -52,6 +52,37 @@ Sprite::Sprite()
 }
 
 ////////////////////////////////////////////////////////////
+/// ctor with no sprh file
+////////////////////////////////////////////////////////////
+Sprite::Sprite(GLuint &p_TextureID)
+{
+	animated = false;
+
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, p_TextureID);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+	glDisable(GL_TEXTURE_2D);
+
+	imgd = glm::vec2(width, height);
+
+	off = glm::vec3(0.0f, 0.0f, 0.0f);
+	pivot = glm::vec3(0.5f, 0.5f, 0.0f);
+	angle = glm::vec3(0,0,0);
+	scale = glm::vec3(1,1,1);
+	color = glm::vec4(1,1,1,1);
+	textureid = p_TextureID;
+
+	mSpeed = 1000.0f;
+	mPosition = 0;
+	mLength = 0;
+	mTime = &timing::GlobalTime::Instance();
+	mLastUpdate = mTime->GetElapsedTime();
+
+	Build();
+}
+
+////////////////////////////////////////////////////////////
 /// ctor with only a .sprh header
 ////////////////////////////////////////////////////////////
 Sprite::Sprite(const char *p_SPRH)

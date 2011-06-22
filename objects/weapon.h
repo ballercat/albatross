@@ -35,7 +35,7 @@ namespace object
 				this->Name 		= p_Copy.Name;
 				this->Clip 		= p_Copy.Clip;
 				this->Ammo 		= p_Copy.Ammo;
-				this->Rate		= p_Copy.Reload;
+				this->Reload	= p_Copy.Reload;
 				this->Rate 		= p_Copy.Rate;
 				this->Speed 	= p_Copy.Speed;
 				this->Dmg 		= p_Copy.Dmg;
@@ -116,6 +116,14 @@ namespace object
 		/// Return apropriate bullet type
 		////////////////////////////////////////////////////////////
 		Bullet* Shoot(void);
+
+		////////////////////////////////////////////////////////////
+		/// Reload
+		////////////////////////////////////////////////////////////
+		inline void Reload(void)
+		{
+			this->pInfo.Clip = this->pInfo.Ammo;
+		}
 
 	public:
 		////////////////////////////////////////////////////////////

@@ -53,6 +53,8 @@ Player::Player()
 	mJumpState		= false;
 	mRunning		= false;
 	pSpawned		= false;
+
+	pHealth			= 100.0f;
 }
 
 ////////////////////////////////////////////////////////////
@@ -91,6 +93,7 @@ Player::Player(GLuint *Texture)
 	mJumpState		= false;
 	mRunning		= false;
 	pSpawned		= false;
+	pHealth			= 100.0f;
 
 	mJetFlames.assign(10, FlameData());
 	mFC = 0;
@@ -107,15 +110,17 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 
 	// Update internal state, get position
 	GameObject::Status stat = MercObject.Update(p_Time - pTime.Current);
-	pPos = stat.pos;
+	pPos = stat.pPos;
 	pPos.z = 0;
-	mVelocity = stat.v;
+	mVelocity = stat.pVelocity;
+	pHealth = stat.pHealth;
 
 	// Adjust sprite angles
 	pAngle = glm::vec3(0,0,0);
 
-	// The player is drawn at 0,0(ALWAYS) so its pretty
+	// The player is drawn at 0,0(ALWAYS*) so its pretty
 	// easy to get the angle here
+	//(*not in the menu)
 	pAngle.z = -glm::atan(cursor.y,cursor.x);
 	mAngleR = pAngle.z;
 
@@ -143,12 +148,19 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 		}
 	}
 
-	if(stat.v.x == 0.0f){
+	if(stat.pVelocity.x == 0.0f){
 		mRunning = false;
 	}
 
 	pBarrelPos.x = 23.0f*(glm::cos(-mAngleR)) + pPos.x;
 	pBarrelPos.y = 23.0f*(glm::sin(-mAngleR)) + pPos.y;
+
+	if(0.0f != pTime.Reload.Stamp){
+		if(pTime.Diff(pTime.Reload.Stamp) >= pWeapon.pInfo.Reload){
+			pTime.Reload.Stamp = 0.0f;
+			pWeapon.Reload();
+		}
+	}
 
 	//Set Apropriate sprite
 	switch(pAction()){
@@ -159,8 +171,8 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 		{
 			mBody = &mRunningSprite;
 			//Adjust running sprite speed
-			float r = (MercObject.myStatus.v.x > 0) ? 1 : -1;
-			mBody->mSpeed = (r * 15.0f)/(MercObject.myStatus.v.x);
+			float r = (MercObject.myStatus.pVelocity.x > 0) ? 1 : -1;
+			mBody->mSpeed = (r * 15.0f)/(MercObject.myStatus.pVelocity.x);
 			break;
 		}
 		case ActState::JETTING:
@@ -309,11 +321,24 @@ Bullet* Player::Shoot(glm::vec3& p_Dest)
 	pTime.Shoot.Timer = pTime.Current;
 
 	Bullet *bullet = pWeapon.Shoot();
-	bullet->pos = pBarrelPos;
-	bullet->des = pBarrelPos + p_Dest;
-	bullet->startV = mVelocity;
-	bullet->pID = pWeaponID;
-	bullet->Initialize();
+
+	if(bullet){
+		bullet->pos = pBarrelPos;
+		bullet->des = pBarrelPos + p_Dest;
+		bullet->startV = mVelocity;
+		bullet->pID = pWeaponID;
+		bullet->Initialize();
+	}
+
+	if(!pWeapon.pInfo.Clip){
+		if(0.0f == pTime.Reload.Stamp){
+			pTime.Reload.Stamp = pTime();
+		}
+		else if(pTime.Diff(pTime.Reload.Stamp) >= pWeapon.pInfo.Reload){
+			pTime.Reload.Stamp = 0.0f;
+			pWeapon.Reload();
+		}
+	}
 
 	return bullet;
 }
@@ -357,6 +382,14 @@ void Player::PickWeapon(object::Weapon::Info& p_Info, int p_ID)
 	pWeapon.pInfo = p_Info;
 
 	pHasWeapon = true;
+}
+
+////////////////////////////////////////////////////////////
+/// Damage the player
+////////////////////////////////////////////////////////////
+void Player::Damage(float damage)
+{
+	MercObject.Damage(damage);
 }
 
 ////////////////////////////////////////////////////////////

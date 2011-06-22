@@ -49,7 +49,6 @@ public:
 		pIPos			= p_Pos;
 		MercObject.Spawn(p_Pos);
 		MercObject.Initialize();
-		MercObject.id = 2;
 		pSpawned = true;
 	}
 
@@ -69,6 +68,7 @@ public:
     void Throw();
 	void Pickup(object::Weapon weapon);
     void PickWeapon(object::Weapon::Info& p_Info, int p_ID);
+	void Damage(float damage);
 
 private:
     void _updatePositions(glm::vec3& npos);
@@ -99,6 +99,7 @@ public:
 		ATimer	Jet;
 		ATimer	Flame;
 		ATimer	Shoot;
+		ATimer	Reload;
 		sf::Clock *pTIMER;
 
 		Timing()
@@ -130,6 +131,7 @@ public:
 		pTime.Shoot.Reset();
 		pTime.Move.Reset();
 		pTime.Jump.Reset();
+		pTime.Reload.Reset();
 	}
 
 public:
@@ -139,6 +141,7 @@ public:
 	glm::vec3	pPos;		//physical position
 	glm::vec3	pIPos;		//interpolated position
 	bool		pSpawned;
+	float		pHealth;
 
 public:
 	int				pWeaponID;

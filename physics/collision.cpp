@@ -82,7 +82,7 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 	Explosive *explosive = (Explosive*)a->data;
 	GameObject *object = (GameObject*)b->data;
 
-	glm::vec3 p_obj = object->GetStatus().pos;
+	glm::vec3 p_obj = object->GetStatus().pPos;
 	glm::vec3 p_aoa = explosive->explosion_pos;
 
 	cpContactPointSet cnt = cpArbiterGetContactPointSet(arb);
@@ -94,6 +94,7 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 
 	float dx = cnt.points[0].point.x - p_aoa.x ;
 	float dy = cnt.points[0].point.y - p_aoa.y ;
+	float damage = 100.0f - glm::distance(p_obj, p_aoa)/500.0f*100.0f;
 
 	if(glm::abs(dx) > 40.0f)
 		dx = (glm::abs(dx)/dx * 52.0f) - dx;
@@ -104,6 +105,8 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 		dy *= 2.0f;
 
 	object->Impulse(glm::vec3((dx*10),(dy*10), 0), bloc.x, bloc.y );
+	std::cout << damage << "\n";
+	object->Damage(damage);
 
 	explosive->Status = BulletStatus::Dead;
 

@@ -29,32 +29,6 @@ class Merc :
     public GameObject
 {
 public:
-    struct  Creator:
-        public ObjectCreator
-    {
-        Creator()
-        {
-            GameObject::CreatorsMap()[Merc::Type] = this;
-        }
-        virtual inline Merc* Create(void) const
-        {
-            return new Merc();
-        }
-    };
-
-    enum
-    {
-        Type = MERC
-    };
-
-    struct Action{
-        enum Code
-        {
-            Still = 0,
-            Running,
-            Airborne
-        };
-    };
     virtual void Initialize(void);
     virtual GameObject::Status& Update(float dt);
 
@@ -65,6 +39,11 @@ public:
     virtual void Right();
     virtual void Left();
     virtual void Jet(void);
+
+	virtual void Damage(float p_Damage)
+	{
+		myStatus.pHealth -= p_Damage;
+	}
 
 public:
 	float	jumpheight;

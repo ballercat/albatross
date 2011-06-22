@@ -39,7 +39,7 @@ Weapon::Weapon(const Weapon::Info& p_Info)
 ////////////////////////////////////////////////////////////
 GameObject::Status& Weapon::Update(float unused)
 {
-	myStatus.pos = m_phBody->GetLocation();
+	myStatus.pPos = m_phBody->GetLocation();
     rot_dAngle = R2D(m_phBody->GetBodyDef().a);
 
 	return myStatus;
@@ -60,8 +60,8 @@ void Weapon::Spawn(glm::vec3 p_Pos)
 	m_phBody = NULL;
 
 	m_phBody = new physics::Rectangle;
-	m_phBody->BuildRect(15.0f, 5.0f, 0.01f, myStatus.pos.x, myStatus.pos.y);
-	myStatus.val = GameObject::Status::Active;
+	m_phBody->BuildRect(15.0f, 5.0f, 0.01f, myStatus.pPos.x, myStatus.pPos.y);
+	myStatus.pValue = GameObject::Status::Active;
 	m_phBody->Spawn(p_Pos);
 	m_phBody->SetShapeData(this);
 	m_phBody->SetGroup(0x02);
@@ -86,7 +86,11 @@ void Weapon::Impulse(glm::vec3 p_Imp, float p_x, float p_y)
 ////////////////////////////////////////////////////////////
 Bullet*	Weapon::Shoot(void)
 {
+	if(pInfo.Clip == 0)
+		return NULL;
+
 	Bullet *bullet = NULL;
+
 	if(!pInfo.Explosive){
 		bullet = new BulletPlain();
 	}
@@ -97,6 +101,7 @@ Bullet*	Weapon::Shoot(void)
 	bullet->pDamage = pInfo.Dmg;
 	bullet->pSpeed = pInfo.Speed;
 
+	pInfo.Clip--;
 
 	return bullet;
 }

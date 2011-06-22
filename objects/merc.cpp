@@ -46,7 +46,7 @@ begin(cpArbiter *arb, cpSpace *space, void *ignore)
 
     cpVect n = cpvneg(cpArbiterGetNormal(arb,0));
     if(n.y > 0.0f){
-        cpArrayPush(player->groundShapes, b);
+        cpArrayPush(player->pGroundShapes, b);
     }
     return cpTrue;
 }
@@ -61,13 +61,13 @@ preSolve(cpArbiter *arb, cpSpace *space, void *ignore)
         a->u = player->u;
 
         cpVect n = cpvneg(cpArbiterGetNormal(arb, 0));
-        if(n.y >= player->groundNormal.y){
-            player->groundNormal = n;
+        if(n.y >= player->pGroundNormal.y){
+            player->pGroundNormal = n;
         }
         if(n.y > 0.50f){
             //0.67f is about as steep a wall that you can jump off
-            player->Airborne = false;
-            player->DoubleJump = false;
+            player->pAirborne = false;
+            player->pDoubleJump = false;
         }
     }
     return cpTrue;
@@ -80,12 +80,12 @@ separate(cpArbiter *arb, cpSpace *space, void *ignore)
     CP_ARBITER_GET_SHAPES(arb, a, b);
     GameObject::Status *player = &((GameObject*)a->data)->myStatus;
 
-    cpArrayDeleteObj(player->groundShapes, b);
+    cpArrayDeleteObj(player->pGroundShapes, b);
 
-    if(player->groundShapes->num == 0){
+    if(player->pGroundShapes->num == 0){
         a->u = 0.0f;
-        player->groundNormal = cpvzero;
-        player->Airborne = true;
+        player->pGroundNormal = cpvzero;
+        player->pAirborne = true;
     }
 
 }
@@ -96,27 +96,26 @@ void Merc::Initialize(void)
 {
     direction = 0;
     lastdirection = 0;
-    myBody.BuildCircle(20.0f,1.0f,myStatus.pos.x,myStatus.pos.y);
-    myBody.Spawn(myStatus.pos);
+    myBody.BuildCircle(20.0f,1.0f,myStatus.pPos.x,myStatus.pPos.y);
+    myBody.Spawn(myStatus.pPos);
 	//myBody.BuildRect(50,50,1.0f,myStatus.pos.x,myStatus.pos.y);
     myBody.SetGroup(0x01);
     myBody.SetCollisionType(MERC);
     myBody.SetShapeData(this);
     myBody.GetBodyDef().velocity_func = mercUpdateVelocity;
 
-    myStatus.shape = myBody.__dbg_get_shape();
-    myStatus.val = GameObject::Status::Active;
-    myStatus.Airborne = true;
-    myStatus.DoubleJump = true;
-	myStatus.groundNormal = cpvzero;
-    applyjump = false;
+    myStatus.pShape = myBody.__dbg_get_shape();
+    myStatus.pValue = GameObject::Status::Active;
+    myStatus.pAirborne = true;
+    myStatus.pDoubleJump = true;
+	myStatus.pGroundNormal = cpvzero;
+	applyjump = false;
 	jets = false;
     jumpheight = 0;
 	dbljumptimer = 0;
 
 	coast = 0;
-    id = 2;
-    myStatus.groundShapes = cpArrayNew(0);
+    myStatus.pGroundShapes = cpArrayNew(0);
     cpSpaceAddCollisionHandler(	myBody.__dbg_get_space(),
 								MERC,
 								MAPPOLYGON,
@@ -131,17 +130,17 @@ void Merc::Initialize(void)
 ////////////////////////////////////////////////////////////
 GameObject::Status& Merc::Update(float dt)
 {
-    myStatus.pos = myBody.GetLocation();
+    myStatus.pPos = myBody.GetLocation();
 	//TODO: get rid of the old Generic Vector template
-	myStatus.v = myBody.GetVelocity();
+	myStatus.pVelocity = myBody.GetVelocity();
 
     cpBody *body = &myBody.GetBodyDef();
-    cpVect groundNormal = myStatus.groundNormal;
+    cpVect groundNormal = myStatus.pGroundNormal;
 
 	//Apply jets
 	if(jets){
 		body->v.y += 15.0f;
-		myStatus.Airborne = true;
+		myStatus.pAirborne = true;
 	}
 	jets = false;
 
@@ -156,7 +155,7 @@ GameObject::Status& Merc::Update(float dt)
 		body->v.x += 15.0f*direction;
 
 		//Set some jump flags
-		myStatus.Airborne = true;
+		myStatus.pAirborne = true;
         applyjump = false;
     }
 	else if(!direction && (groundNormal.y > 0.0f)){
@@ -173,7 +172,7 @@ GameObject::Status& Merc::Update(float dt)
 			//this is a diferent case and one would expect to slide of
 			//something like this
 			if(groundNormal.y > 0.5f)
-				myStatus.shape->surface_v = cpvzero;
+				myStatus.pShape->surface_v = cpvzero;
 		}
 	}
 	//Directional key states
@@ -181,22 +180,22 @@ GameObject::Status& Merc::Update(float dt)
 		if((groundNormal.y > 0.0f)){
 			//Ground velocity is accumulated
 			cpVect r = cpvmult(cpvperp(groundNormal), MERC_HORIZONTALSURFACEMAG*direction);
-			cpVect v = myStatus.shape->surface_v + r;
+			cpVect v = myStatus.pShape->surface_v + r;
 			v.x = cpfclamp(v.x, -400, 400);
-			myStatus.shape->surface_v = v;
-			body->v = -myStatus.shape->surface_v;
+			myStatus.pShape->surface_v = v;
+			body->v = -myStatus.pShape->surface_v;
 		}
 		else{
 			//This little bit of code creates a nice effect i like
 			//this makes the player 'slide' just a little bit after they
 			//land providing for a smooth transition between flying and
 			//landing/running
-			myStatus.shape->surface_v = -body->v; //Yes, velocity has to be negative
+			myStatus.pShape->surface_v = -body->v; //Yes, velocity has to be negative
 		}
 
 		//While in air its usefull to make the player loose some of
 		//the controll they are used to while on the ground (1/5th)
-		if(myStatus.Airborne){
+		if(myStatus.pAirborne){
 			//NOTE: body velocity is pretty different from surface_v(keep in mind)
 			body->v.x += 5.0f*direction;
 		}
@@ -230,7 +229,7 @@ void Merc::Impulse(glm::vec3 i, float p_x, float p_y)
 ////////////////////////////////////////////////////////////
 void Merc::Jump(float howhigh)
 {
-    if(!myStatus.Airborne)
+    if(!myStatus.pAirborne)
     {
 		applyjump = true;
 		doublejump = true;

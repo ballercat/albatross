@@ -56,6 +56,7 @@ MainClient::MainClient(void) :
     	//Quick and dirty texture loading
     	LoadTextures("textures.ini", Texture);
 		_populateSprites();
+		_loadHudSprites();
 
 		//Display settings
 		display->Window->SetFramerateLimit(info.fpslimit);
@@ -74,7 +75,6 @@ MainClient::MainClient(void) :
 
 		//Timing(NOTE: improve/move this)
     	lastupdate = g_timer.GetElapsedTime();
-    	lastbullet = lastupdate;
 		objectupdate = lastupdate;
 
 		//aExplosion = new Sprite("assets/explosions/default.sprh", Texture[EXPL]);
@@ -186,6 +186,83 @@ void MainClient::_drawBullets(float& delta)
 		spr->pos = bullet->pos;
 		drawSpriteInter(spr, bullet->pos, delta, bullet->pVelocity);
 	}
+}
+
+////////////////////////////////////////////////////////////
+/// Draw Hud
+////////////////////////////////////////////////////////////
+void MainClient::_drawHud(void)
+{
+	glPushMatrix();{
+		glLoadIdentity();
+		//Draw actual bars for values
+		{
+			float length;
+			if(0.0f == mPlayer->pTime.Reload.Stamp){
+				length = float(mPlayer->pWeapon.pInfo.Clip)/mPlayer->pWeapon.pInfo.Ammo * 100.0f;
+			}
+			else {
+				length = (mPlayer->pTime.Diff(mPlayer->pTime.Reload.Stamp))/mPlayer->pWeapon.pInfo.Reload * 100.0f;
+			}
+			glBegin(GL_TRIANGLES);{
+				//Ammo
+				glVertex2f(-50.0f, -270.0f);
+				glVertex2f(-50.0f + length, -282.0f);
+				glVertex2f(-50.0f + length, -270.0f);
+
+				glVertex2f(-50.0f, -282.0f);
+				glVertex2f(-50.0f, -270.0f);
+				glVertex2f(-50.0f + length, -282.0f);
+
+				//Health
+				glColor3f(1.0f, 0.3f, 0.3f);
+				glVertex2f(-50.0f, -243.0f);
+				glVertex2f(-50.0f + mPlayer->pHealth, -259.0f);
+				glVertex2f(-50.0f + mPlayer->pHealth, -243.0f);
+
+				glVertex2f(-50.0f, -259.0f);
+				glVertex2f(-50.0f, -243.0f);
+				glVertex2f(-50.0f + mPlayer->pHealth, -259.0f);
+			}glEnd();
+
+		}
+		gs.hud.Object[GameSprites::HUD::FRAME].pos.y = -250.0f;
+		gs.hud.Object[GameSprites::HUD::FRAME].Draw();
+		gs.hud.Object[GameSprites::HUD::HEALTH].Draw();
+
+		gs.hud.Object[GameSprites::HUD::FRAME].pos.y = -275.0f;
+		gs.hud.Object[GameSprites::HUD::FRAME].Draw();
+		gs.hud.Object[GameSprites::HUD::AMMO].Draw();
+
+		//On switch weapon
+		if(wepswitchtimer > 0.0f){
+			Sprite *weapon;
+			glm::vec3 scale;
+			if(mPlayer->pWeaponID > 0){
+				weapon = &gs.Weapon[mPlayer->pWeaponID-1];
+				scale = weapon->scale;
+				weapon->pos = glm::vec3(-80,100,0);
+				weapon->scale = glm::vec3(3,3,3);
+				weapon->color.a = wepswitchtimer/5.0f;
+				weapon->angle = glm::vec3(0,0,0);
+				weapon->Draw();
+
+				weapon->color.a = 1.0f;
+				weapon->scale = scale;
+			}
+			weapon = &gs.Weapon[mPlayer->pWeaponID];
+			scale = weapon->scale;
+			weapon->pos = glm::vec3(0,100,0);
+			weapon->scale = glm::vec3(4,4,4);
+			weapon->color.a = wepswitchtimer;
+			weapon->angle = glm::vec3(0,0,0);
+			weapon->Draw();
+
+			weapon->color.a = 1.0f;
+			weapon->scale = scale;
+		}
+
+	}glPopMatrix();
 }
 
 ////////////////////////////////////////////////////////////
