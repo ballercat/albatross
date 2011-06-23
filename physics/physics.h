@@ -247,15 +247,21 @@ public:
     }
     inline void SetGroup(unsigned int group)
     {
-        myShapeDef->group = group;
+		mGroup = group;
+		if(myShapeDef)
+			myShapeDef->group = group;
     }
     inline void SetCollisionType(unsigned int tp)
     {
-        myShapeDef->collision_type = tp;
+		mType = tp;
+		if(myShapeDef)
+			myShapeDef->collision_type = tp;
     }
     inline void SetShapeData(void *data)
     {
-        myShapeDef->data = data;
+		mShapeData = data;
+		if(myShapeDef)
+			myShapeDef->data = data;
     }
     inline const float& GetMass() const
     {
@@ -266,14 +272,17 @@ public:
         cpVect v = cpBodyGetVel(myBodyDef);
         return glm::vec3(v.x,v.y,0.0f);
     }
-    inline cpSpace* __dbg_get_space() const
-    {
-        return mWorldPtr;
-    }
-    inline cpShape* __dbg_get_shape() const
-    {
-        return myShapeDef;
-    }
+	inline void SetVelFunc(cpBodyVelocityFunc p_Function)
+	{
+		if(NULL != myBodyDef){
+			mVelocityFunction = p_Function;
+			myBodyDef->velocity_func = mVelocityFunction;
+		}
+	}
+	inline cpShape* GetShape(void)
+	{
+		return myShapeDef;
+	}
 protected:
     ////////////////////////////////////////////////////////////
     // Member Data
@@ -282,7 +291,12 @@ protected:
     cpBody*     myBodyDef;
     cpShape*    myShapeDef;
     cpSpace*    mWorldPtr; ///Physics World pointer
+	cpBodyVelocityFunc mVelocityFunction;
 	bool		m_Spawn; //is object added to the space
+	//Info that carrier trough spawns
+	void		*mShapeData;
+	int			mType;
+	int			mGroup;
 };
 
 ////////////////////////////////////////////////////////////
@@ -303,10 +317,6 @@ public:
     { //I think having Build<shape type> name makes for easier to understand final code
         Obj::myMass = mass;//INFINITY;
         m_Radius = radius;
-        Obj::myBodyDef = cpBodyNew(mass, cpMomentForCircle(mass, 0.0f, radius,cpvzero));
-        Obj::myBodyDef->p = cpv(x,y);
-        //Obj::myBodyDef->v = cpv(0,0);
-		cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef);
 	}
 	
 
@@ -318,13 +328,20 @@ public:
 		//Don't do anything if the body already exists
 		if(Obj::m_Spawn)
 			return;
-		
+
+        Obj::myBodyDef = cpBodyNew(Obj::myMass, cpMomentForCircle(Obj::myMass, 0.0f, m_Radius,cpvzero));
 		Obj::myBodyDef->p = cpv(p_Pos.x, p_Pos.y);
+		cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef);
+
 		Obj::myShapeDef = cpSpaceAddShape(Obj::mWorldPtr, cpCircleShapeNew(Obj::myBodyDef, m_Radius, cpvzero));
 		Obj::myShapeDef->e = 0.0f; Obj::myShapeDef->u = 0.0f;
 		myCircle = (cpCircleShape*)Obj::myShapeDef;
 
 		Obj::m_Spawn = true;
+
+		Obj::myShapeDef->data = Obj::mShapeData;
+		Obj::myShapeDef->collision_type = (-1 != Obj::mType) ? Obj::mType : 0;
+		Obj::myShapeDef->group = (-1 != Obj::mGroup) ? Obj::mGroup : 0;
 	}
 
 	inline const float& GetRadius() const
@@ -363,12 +380,6 @@ public:
 		Obj::myMass = mass;
         myWidth = w;
         myHeight = h;
-
-        Obj::myBodyDef = cpBodyNew(mass, cpMomentForPoly(mass, 4, m_Verts, cpvzero));
-        Obj::myBodyDef->p = cpv(x,y);
-        Obj::myBodyDef->v = cpv(0,0);
-
-        cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef); 
     }
 
 	////////////////////////////////////////////////////////////
@@ -376,15 +387,24 @@ public:
 	////////////////////////////////////////////////////////////			
 	void Spawn(glm::vec3 p_Pos)
 	{		
-		Obj::myBodyDef->p = cpv(p_Pos.x, p_Pos.y);
+
 		//Don't do anything if the body already exists
 		if(Obj::m_Spawn)
 			return;
+
+        Obj::myBodyDef = cpBodyNew(Obj::myMass, cpMomentForPoly(Obj::myMass, 4, m_Verts, cpvzero));
+        Obj::myBodyDef->p = cpv(p_Pos.x, p_Pos.y);
+        Obj::myBodyDef->v = cpv(0,0);
+        cpSpaceAddBody(Obj::mWorldPtr, Obj::myBodyDef);
+
 		Obj::myShapeDef = cpSpaceAddShape(Obj::mWorldPtr, 
 										  cpPolyShapeNew(Obj::myBodyDef, 4, m_Verts, cpvzero));
 		Obj::myShapeDef->e = 0.0f; Obj::myShapeDef->u = 0.0f;
 
 		Obj::m_Spawn = true;
+		Obj::myShapeDef->data = Obj::mShapeData;
+		Obj::myShapeDef->collision_type = (-1 != Obj::mType) ? 0 : Obj::mType;
+		Obj::myShapeDef->group = (-1 != Obj::mGroup) ? 0 : Obj::mGroup;
 	}
 
 	inline glm::vec3 GetLocation() const

@@ -126,7 +126,7 @@ int MainClient::Connect(std::string server_ip)
 
 void MainClient::_drawWeapons()
 {
-	if(mPlayer->pHasWeapon){
+	if(mPlayer->pHasWeapon && mPlayer->pHealth > 0.0f){
 		Sprite* weapon = &gs.Weapon[mPlayer->pWeaponID];
 		weapon->pos = mPlayer->pWeaponPos;
 		weapon->angle = mPlayer->pAngle;
@@ -214,6 +214,7 @@ void MainClient::_drawHud(void)
 				glVertex2f(-50.0f + length, -282.0f);
 
 				//Health
+				mPlayer->pHealth = (mPlayer->pHealth < 0.0f) ? 0.0f : mPlayer->pHealth;
 				glColor3f(1.0f, 0.3f, 0.3f);
 				glVertex2f(-50.0f, -243.0f);
 				glVertex2f(-50.0f + mPlayer->pHealth, -259.0f);
@@ -232,6 +233,26 @@ void MainClient::_drawHud(void)
 		gs.hud.Object[GameSprites::HUD::FRAME].pos.y = -275.0f;
 		gs.hud.Object[GameSprites::HUD::FRAME].Draw();
 		gs.hud.Object[GameSprites::HUD::AMMO].Draw();
+
+		//Jets, spawn circle bars
+		{
+			Sprite *bar = &gs.hud.Object[GameSprites::HUD::CIRCLEBAR];
+			bar->pos = glm::vec3(80.0f, -265.0f, 0.0f);
+			bar->scale = glm::vec3(1.2f, 1.2f, 1.2f);
+			bar->angle.z = 0.0f;
+			bar->color = glm::vec4(0.2, 1.0f, 0.5f, 0.7f);
+			if(mPlayer->pJetCounter < (75))
+				bar->color = glm::vec4(0.0f, 1.0f, 1.0f, 0.7f);
+			if(mPlayer->pJetCounter < 40)
+				bar->color = glm::vec4(1.0f, 0.3f, 0.4f, 0.7f);
+
+			float step = 360.0f / 100.0f; // replace 100.0f with the map default
+
+			for(int i=0;i<mPlayer->pJetCounter;i++){
+				bar->angle.z+=step;
+				bar->Draw();
+			}
+		}
 
 		//On switch weapon
 		if(wepswitchtimer > 0.0f){
@@ -264,13 +285,3 @@ void MainClient::_drawHud(void)
 	}glPopMatrix();
 }
 
-cpBool MainClient::w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client)
-{
-	CP_ARBITER_GET_SHAPES(arb, a, b);
-	object::Weapon *weapon = (object::Weapon*)(a->data);
-	MainClient *client = (MainClient*)(p_Client);
-
-	client->mPlayer->Pickup(*weapon);
-
-	return cpFalse;
-}

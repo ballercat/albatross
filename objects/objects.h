@@ -200,6 +200,22 @@ public:
         myStatus.pValue = Status::Unknown;
     }
 
+	////////////////////////////////////////////////////////////
+	/// Damage Object
+	////////////////////////////////////////////////////////////
+	virtual void Damage(const float	&p_Damage)
+	{
+		myStatus.pHealth -= p_Damage;
+	}
+
+	////////////////////////////////////////////////////////////
+	/// Kill object
+	////////////////////////////////////////////////////////////
+	virtual void Kill(void)
+	{
+		//void
+	}
+
 public:
     ///Getters & Setters
     inline const GameObject::Status& GetStatus(void) const
@@ -214,11 +230,6 @@ public:
     {
         return myStatus.pPos;
     }
-
-	virtual void Damage(const float	&p_Damage)
-	{
-		myStatus.pHealth -= p_Damage;
-	}
 
 public:
     virtual void Move(glm::vec3 pos,float time) = 0;

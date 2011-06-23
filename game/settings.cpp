@@ -84,10 +84,14 @@ void MainClient::_loadHudSprites(void)
 	LoadTex(gs.hud.Texture[GameSprites::HUD::FRAME],	"assets/interface/frame.png");
 	LoadTex(gs.hud.Texture[GameSprites::HUD::HEALTH],	"assets/interface/health.png");
 	LoadTex(gs.hud.Texture[GameSprites::HUD::AMMO],		"assets/interface/ammo.png");
+	LoadTex(gs.hud.Texture[GameSprites::HUD::CIRCLEBAR],"assets/interface/circlebar.png");
 
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::FRAME]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::HEALTH]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::AMMO]));
+	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::CIRCLEBAR]));
+	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].pivot = glm::vec3(0.5f,0.0f,0);
+	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].Build();
 
 	gs.hud.Object[GameSprites::HUD::HEALTH].pos = glm::vec3(-50.0f, -250.0f, 0.0f);
 	gs.hud.Object[GameSprites::HUD::AMMO].pos = glm::vec3(-50.0f, -275.0f, 0.0f);
@@ -145,7 +149,6 @@ void MainClient::_populateSprites(void)
 		LoadTex(gs.HitTexture[1], "assets/explosions/default.png");
 		gs.BulletHit.push_back(Sprite());
 		gs.BulletHit.push_back(Sprite("assets/explosions/default.sprh", gs.HitTexture[1]));
-
 	}
 }
 
@@ -299,7 +302,7 @@ void MainClient::_initCollisionHandlers(cpSpace *space)
 	mPhysics->AddCollision(EXPLOSION, PLAYER, this, collision::Begin::ExplosionObject);
 	mPhysics->AddCollision(EXPLOSIVE, PLAYER, this, collision::Begin::ExplosiveObject);
 
-	mPhysics->AddCollision(WEAPON, PLAYER, this, w2p_beginCollision);
+	//mPhysics->AddCollision(WEAPON, PLAYER, this, w2p_beginCollision);
 
 	//Player World Collisions
 	mPhysics->AddCollision(MERC, MAPPOLYGON, this, 	collision::Begin::PlayerWorld,

@@ -60,6 +60,7 @@ void LoadTextures(const char *fpath, GLuint* Texture)
 	texini.LoadFile(fpath);
 	
 	std::string texpath;
+
 	if(!LoadTex(Texture[PLAYER_TORSO], texini.GetValue("Merc", "still")))
 		fprintf(stderr, "Failed loading texture\n");
 	if(!LoadTex(Texture[PLAYER_LEGS], texini.GetValue("Merc", "run")) )

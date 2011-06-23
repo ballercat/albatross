@@ -20,6 +20,7 @@
 #ifdef NDEBUG
 
 #include "gameclient.h"
+#include<cmath>
 
 //Nearly all bellow code is from chipmunk example code
 

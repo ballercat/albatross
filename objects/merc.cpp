@@ -46,25 +46,50 @@ void Merc::Initialize(void)
     direction = 0;
     lastdirection = 0;
     myBody.BuildCircle(20.0f,1.0f,myStatus.pPos.x,myStatus.pPos.y);
-    myBody.Spawn(myStatus.pPos);
+
 	//myBody.BuildRect(50,50,1.0f,myStatus.pos.x,myStatus.pos.y);
     myBody.SetGroup(0x01);
     myBody.SetCollisionType(MERC);
     myBody.SetShapeData(this);
-    myBody.GetBodyDef().velocity_func = mercUpdateVelocity;
+    myBody.SetVelFunc(mercUpdateVelocity);
 
-    myStatus.pShape = myBody.__dbg_get_shape();
-    myStatus.pValue = GameObject::Status::Active;
+	myStatus.pShape = NULL;
+    myStatus.pGroundShapes = NULL;
+	myStatus.pValue = GameObject::Status::Dead;
+}
+
+////////////////////////////////////////////////////////////
+/// Spawn self
+////////////////////////////////////////////////////////////
+void Merc::Spawn(const glm::vec3 &p_Pos)
+{
+	myBody.Spawn(p_Pos);
+	myStatus.pShape = myBody.GetShape();
+
+	myStatus.pValue = GameObject::Status::Active;
     myStatus.pAirborne = true;
     myStatus.pDoubleJump = true;
 	myStatus.pGroundNormal = cpvzero;
+	myStatus.pGroundShapes = cpArrayNew(0);
+	myStatus.pHealth = 100.0f;
+
 	applyjump = false;
 	jets = false;
     jumpheight = 0;
 	dbljumptimer = 0;
-
 	coast = 0;
-    myStatus.pGroundShapes = cpArrayNew(0);
+}
+
+////////////////////////////////////////////////////////////
+/// Kill self
+////////////////////////////////////////////////////////////
+void Merc::Kill(void)
+{
+	myBody.Kill();
+	myStatus.pValue = GameObject::Status::Dead;
+	myStatus.pShape = NULL;
+	myStatus.pGroundNormal = cpvzero;
+	cpArrayDestroy(myStatus.pGroundShapes);
 }
 
 ////////////////////////////////////////////////////////////

@@ -129,7 +129,11 @@ PhysicsObject::PhysicsObject(void) :
     myBodyDef(NULL),
     myShapeDef(NULL),
     mWorldPtr(GenericSingleton<PhysicsSimulator>::Instance().GetWorldHandle()),
-	m_Spawn(false)
+	m_Spawn(false),
+	mVelocityFunction(NULL),
+	mShapeData(NULL),
+	mType(-1),
+	mGroup(-1)
 {
 
 }
@@ -141,6 +145,9 @@ void PhysicsObject::Kill(void)
 {
 	cpSpaceRemoveShape(mWorldPtr, myShapeDef);
 	cpShapeFree(myShapeDef);
+	cpSpaceRemoveBody(mWorldPtr, myBodyDef);
+	cpBodyFree(myBodyDef);
+
 	m_Spawn = false;
 }
 

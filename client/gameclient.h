@@ -49,6 +49,9 @@
 #define PHYSICS_DELTA	FPS40
 #define PHYSICS_PERSTEP	(0.000625f)
 #define INPUT_LATENCY	(FPS50)
+//NOTE: begin test code
+#define SPAWN_TIME	3.0f;
+//NOTE: end test code
 
 ////////////////////////////////////////////////////////////
 /// Sprites required for the game
@@ -65,6 +68,7 @@ struct GameSprites{
 			FRAME = 0,
 			HEALTH,
 			AMMO,
+			CIRCLEBAR,
 			COUNT
 		};
 		std::vector<Sprite>	Object;
@@ -123,12 +127,6 @@ public:
 	////////////////////////////////////////////////////////////
 	void MainMenu();
 
-	////////////////////////////////////////////////////////////
-	/// Collision handlers NOTE:DEPRECTATED
-	////////////////////////////////////////////////////////////
-	static int BeginCollision(cpArbiter *arb,cpSpace *space,void *unused);
-	static cpBool w2p_beginCollision(cpArbiter *arb, cpSpace *space, void *p_Client);
-
 public:
 	////////////////////////////////////////////////////////////
 	/// Game info struct
@@ -183,6 +181,9 @@ private:
 	//Main player data
 	Player*		                    mPlayer;
 	GenericHeap<Bullet>             Bullets;
+	//NOTE: test code ONLY. REMOVE LATER
+	float							mSpawnTimer;
+	//NOTE: end test code
 
 private:
 	//Timing
@@ -199,6 +200,7 @@ private:
 	float wepswitchtimer;
 	float inputupdate;
 	float objectupdate;
+	float jets;
 
 private:
 	//Hacked sprites

@@ -38,7 +38,10 @@ FixedPipeline::FixedPipeline(	unsigned pWidth,
 
 	//Window style
 	unsigned long	windowstyle = (fullscreen) ? sf::Style::Fullscreen : sf::Style::Close;
-
+	if(windowstyle == sf::Style::Fullscreen){
+		_width = sf::VideoMode::GetDesktopMode().Width;
+		_height = sf::VideoMode::GetDesktopMode().Height;
+	}
 	Window = new sf::RenderWindow(sf::VideoMode(_width,_height), name, windowstyle);
 
 	Window->PreserveOpenGLStates(true);

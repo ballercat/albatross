@@ -26,9 +26,8 @@ int main(int argc, char** argv)
 {
     LocalHost  GameServer;
     MainClient GameClient;
-
     printf("%s\n",GameServer.GetServerName().c_str());
-
+	
     GameClient.MainMenu();
 
     return 0;

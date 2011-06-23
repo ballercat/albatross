@@ -72,11 +72,10 @@ public:
 		mPosition(p_Copy.mPosition),
 		mLastUpdate(p_Copy.mLastUpdate),
 		textureid(p_Copy.textureid),
-		texdata(p_Copy.texdata),
-		vertdata(p_Copy.vertdata),
 		mTime(&timing::GlobalTime::Instance())
 		{
-
+			memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
+			memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
 		}
 
 	////////////////////////////////////////////////////////////

@@ -40,6 +40,9 @@ public:
     virtual void Left();
     virtual void Jet(void);
 
+	virtual void Spawn(const glm::vec3 &p_Pos);
+	virtual void Kill(void);
+
 public:
 	float	jumpheight;
 	bool	applyjump;

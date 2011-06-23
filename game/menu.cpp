@@ -63,6 +63,7 @@ void MainClient::MainMenu()
 	mPlayer = new Player(display->Texture);
 	mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y, 0));
 	mPlayer->PickWeapon(WeaponInfo[0],0);
+	mPlayer->SetJetAmmount(100);
 
 	currentTime = mTime->GetElapsedTime();
 	float oldtime = currentTime;
@@ -109,19 +110,17 @@ void MainClient::MainMenu()
 					{
 						display->setCursor(info.cursorfile.c_str());
 						_loadMap(info.mapfile.c_str());
-						mPlayer = new Player(display->Texture);
+						mPlayer->Kill();
 						mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y,0));
-						mPlayer->PickWeapon(WeaponInfo[0],0);
 						Run();
 						//Clear graphics data
 						display->Window->ShowMouseCursor(true);
-						delete mPlayer;
 						_loadMap("assets/maps/mainmenu.bgmf");
 						display->camera = glm::vec3(0,0,0);
 						display->zoom = glm::vec3(1, 1, 1);
-						mPlayer = new Player(display->Texture);
+						mPlayer->Kill();
 						mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y, 0));
-						mPlayer->PickWeapon(WeaponInfo[0],0);
+						mPlayer->ResetTiming();
 						mTime->Reset();
 						currentTime = mTime->GetElapsedTime();
 						oldtime = currentTime;

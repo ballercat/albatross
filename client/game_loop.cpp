@@ -45,14 +45,16 @@ void MainClient::Run(const char *p_DemoFile)
 	printf("Current Time: %f\n", currentTime);
 
 	mPlayer->ResetTiming();
-
+	
 	GameDemo::Command *cmd = NULL;
+	mSpawnTimer = 0;
 
 	glm::vec3 mp, ps;
 
 	//state
 	bool quit = false;
 	Bullet* bullet;
+
 
 	//Main game loop
 	while(!quit){
@@ -124,8 +126,29 @@ void MainClient::Run(const char *p_DemoFile)
 			}
 			Bullets.Flush();
 
-			mPlayer->Step(dmp, currentTime);
-
+			if(mPlayer->pHealth > 0.0f){
+				mPlayer->Step(dmp, currentTime);
+				if(mPlayer->pJetCounter < 100){
+					if(mPlayer->pTime.Current - mPlayer->pTime.Jet.Stamp > 1.0f)
+						mPlayer->pJetCounter++;
+				}
+			}
+			else {
+				if(mPlayer->pSpawned){
+					mPlayer->pHealth = 0.0f;
+					mPlayer->Kill();
+				}
+				if(!mSpawnTimer){
+					mSpawnTimer = SPAWN_TIME;
+				}
+				else {
+					mSpawnTimer -= (currentTime - oldtime);
+					if(mSpawnTimer <= 0){
+						mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y,0));
+						mSpawnTimer = 0.0f;
+					}
+				}
+			}
 			ps = mPlayer->pPos;
 
 			oldtime += FRAME_TIME;
@@ -243,7 +266,7 @@ bool MainClient::_handleMessages(void)
                 break;
             case message::GMSG_MOVE_JETS:
                 mPlayer->Jet();
-                break;
+				break;
             case message::GMSG_FIRE:
             {
                 glm::vec3 dest = dmp;

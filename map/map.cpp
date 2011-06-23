@@ -202,6 +202,8 @@ bgmf* bgmfnew(void)
 	map->hpc = 0;
 	map->hpos = 0;
 	map->vertcount = 0;
+
+	return map;
 }
 
 ////////////////////////////////////////////////////////////

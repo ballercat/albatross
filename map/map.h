@@ -87,6 +87,8 @@ struct bgmf_poly
 	{
 		data.clear();
 		data = p_Swap.data;
+
+		return *this;
 	}
 
 	std::vector<glm::vec3> data;
@@ -108,6 +110,8 @@ struct bgmf_poly_tex
 	{
 		data.clear();
 		data = p_Swap.data;
+
+		return *this;
 	}
 
     std::vector<glm::vec2> data;
@@ -129,6 +133,8 @@ struct bgmf_color
 	{
 		data.clear();
 		data = p_Swap.data;
+
+		return *this;
 	}
 
     std::vector<glm::vec4>	data;
@@ -155,6 +161,8 @@ union bgmf_pmask
 	bgmf_pmask& operator=(const bgmf_pmask& p_Swap)
 	{
 		full = p_Swap.full;
+
+		return *this;
 	}
 
 	uint32_t	full;

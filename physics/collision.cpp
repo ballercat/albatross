@@ -105,7 +105,6 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 		dy *= 2.0f;
 
 	object->Impulse(glm::vec3((dx*10),(dy*10), 0), bloc.x, bloc.y );
-	std::cout << damage << "\n";
 	object->Damage(damage);
 
 	explosive->Status = BulletStatus::Dead;

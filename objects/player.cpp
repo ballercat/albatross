@@ -53,8 +53,12 @@ Player::Player()
 	mJumpState		= false;
 	mRunning		= false;
 	pSpawned		= false;
+	mJetAmmount		= 100;
+	pJetCounter		= 0;
 
 	pHealth			= 100.0f;
+
+	MercObject.Initialize();
 }
 
 ////////////////////////////////////////////////////////////
@@ -94,9 +98,13 @@ Player::Player(GLuint *Texture)
 	mRunning		= false;
 	pSpawned		= false;
 	pHealth			= 100.0f;
+	mJetAmmount		= 100;
+	pJetCounter		= 0;
 
 	mJetFlames.assign(10, FlameData());
 	mFC = 0;
+
+	MercObject.Initialize();
 }
 
 ////////////////////////////////////////////////////////////
@@ -233,15 +241,20 @@ void Player::Jet(void)
 {
 	mJetSprite.Step();
 	pAction[ActState::JETTING] = true;
-	
+
 	// Apply jets if timer allows it 
-	if(pTime.Current - pTime.Jet.Stamp > 0.001){
-		MercObject.Jet();
+	if((pTime.Current - pTime.Jet.Stamp > 0.001)){
+		if(pJetCounter > 0)
+			MercObject.Jet();
 		pTime.Jet.Stamp = pTime.Current;
+
+		pJetCounter--;
+		if(pJetCounter < 0)
+			pJetCounter = 0;
 	}
 
 	// Jet flame timer
-	if(pTime.Current - pTime.Flame.Stamp > 0.03){
+	if(pJetCounter && pTime.Current - pTime.Flame.Stamp > 0.03){
 		//Set jet position, alpha
 		mJetFlames[mFC] = FlameData(1.0f, glm::vec3(pPos.x+(12*mFlip),pPos.y-15,0.0f));
 		mFC = ((mFC+1) > 9) ? 0 : (mFC+1);
@@ -390,6 +403,18 @@ void Player::PickWeapon(object::Weapon::Info& p_Info, int p_ID)
 void Player::Damage(float damage)
 {
 	MercObject.Damage(damage);
+}
+
+////////////////////////////////////////////////////////////
+/// Kill the player
+////////////////////////////////////////////////////////////
+void Player::Kill()
+{
+	if(!pSpawned)
+		return;
+
+	MercObject.Kill();
+	pSpawned = false;
 }
 
 ////////////////////////////////////////////////////////////

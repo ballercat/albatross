@@ -48,7 +48,9 @@ public:
 		pPos			= p_Pos;
 		pIPos			= p_Pos;
 		MercObject.Spawn(p_Pos);
-		MercObject.Initialize();
+		pHealth = 100.0f;
+		pJetCounter = 0;
+		ResetTiming();
 		pSpawned = true;
 	}
 
@@ -69,6 +71,12 @@ public:
 	void Pickup(object::Weapon weapon);
     void PickWeapon(object::Weapon::Info& p_Info, int p_ID);
 	void Damage(float damage);
+	void Kill(void);
+	inline void SetJetAmmount(int p_Amt)
+	{
+		mJetAmmount = p_Amt;
+		pJetCounter = p_Amt;
+	}
 
 private:
     void _updatePositions(glm::vec3& npos);
@@ -142,6 +150,7 @@ public:
 	glm::vec3	pIPos;		//interpolated position
 	bool		pSpawned;
 	float		pHealth;
+	int			pJetCounter;
 
 public:
 	int				pWeaponID;
@@ -163,6 +172,7 @@ private:
 			JUMPING,
 			JETTING,
 			SHOOTING,
+			DEAD,
 			STATECOUNT
 		};
 
@@ -269,6 +279,7 @@ private:
 		glm::vec3	Pos;
 	};
 
+	int		mJetAmmount;
 	std::vector<FlameData>	mJetFlames;
 	size_t	mFC; //flame counter
 
