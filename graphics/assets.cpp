@@ -87,7 +87,6 @@ void LoadTexturesFromData(std::vector<std::string> *tname, GLuint* Texture, GLui
 	}
 }
 
-#if SHADER_PIPELINE
 ////////////////////////////////////////////////////////////
 GLuint CreateShader(const char *fpath, GLuint type)
 {
@@ -299,6 +298,19 @@ void Shader::MVP(GLfloat *mvp)
 	glUniformMatrix4fv(glGetUniformLocation(_program, "MVP"), 1, GL_FALSE, mvp);
 }
 
+void Shader::ProjectMat(GLfloat *p_Matrix)
+{
+	glUniformMatrix4fv(glGetUniformLocation(_program, "ProjectionMatrix"), 1, GL_FALSE, p_Matrix);
+}
+void Shader::ViewMat(GLfloat *p_Matrix)
+{
+	glUniformMatrix4fv(glGetUniformLocation(_program, "ViewMatrix"), 1, GL_FALSE, p_Matrix);
+}
+void Shader::ModelMat(GLfloat *p_Matrix)
+{
+	glUniformMatrix4fv(glGetUniformLocation(_program, "ModelMatrix"), 1, GL_FALSE, p_Matrix);
+}
+
 ////////////////////////////////////////////////////////////
 GLuint& Shader::operator()(void)
 {
@@ -311,4 +323,7 @@ GLuint Shader::operator[](const char *uniform)
 	return glGetUniformLocation(_program, uniform);
 }
 
-#endif //#if SHADER_PIPELINE 1
+GLuint Shader::GetAttrib(const char *p_Attrib)
+{
+	return glGetAttribLocation(_program, p_Attrib);
+}

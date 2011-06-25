@@ -143,45 +143,6 @@ FixedPipeline::FixedPipeline(sf::WindowHandle p_Handle, const char* name)
 }
 
 ////////////////////////////////////////////////////////////
-void FixedPipeline::resizeWindow(int w, int h)
-{
-	//void
-}
-
-////////////////////////////////////////////////////////////
-void FixedPipeline::setCursor(const char* fpath)
-{
-	sf::Image rawimage;
-	if(!rawimage.LoadFromFile(fpath)){
-		fprintf(stderr, "Could not load cursor file:%s\n",fpath);
-		exit(0x205);
-	}
-
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, Texture[GAME_CURSOR]);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rawimage.GetWidth(), rawimage.GetHeight(),
-					0, GL_RGBA, GL_UNSIGNED_BYTE, rawimage.GetPixelsPtr());
-
-	glDisable(GL_TEXTURE_2D);
-
-    cursor.width = rawimage.GetWidth();
-    cursor.height = rawimage.GetHeight();
-    cursor.off = glm::vec3(0,0,0);
-    cursor.scale = glm::vec3(1,1,0);
-    cursor.textureid = Texture[0xFF];
-	cursor.imgd = glm::vec2(10,10);
-	cursor.Build();
-
-	Window->ShowMouseCursor(false);
-}
-
-////////////////////////////////////////////////////////////
 void FixedPipeline::beginScene()
 {
 	_draw_time = _timer->GetElapsedTime();
@@ -198,8 +159,6 @@ void FixedPipeline::beginScene()
 ////////////////////////////////////////////////////////////
 void FixedPipeline::endScene()
 {
-	glFinish();
-
 	if(SkipFrames){
 		if(_skip_frames_counter > SkipFrames ){
 			Window->Display();
@@ -267,42 +226,5 @@ void FixedPipeline::drawText(glm::vec3 pos, const char* text, size_t size)
 ////////////////////////////////////////////////////////////
 void FixedPipeline::drawSprite(Sprite *spr)
 {
-	glEnable(GL_TEXTURE_2D);{
-		glBindTexture(GL_TEXTURE_2D, spr->textureid);
-		//Translate
-		glPushMatrix();{
-			//glLoadIdentity();
-			glTranslated(-spr->pos.x, -spr->pos.y, 0.0f);
-			glScalef(spr->scale.x, spr->scale.y, spr->scale.z);
 
-			//Draw
-			glm::vec2 *tex = spr->texdata;
-			glm::vec3 *vert = spr->vertdata;
-
-			//Color
-			glColor3f(spr->color.x, spr->color.y, spr->color.z );
-
-			//Vertexes
-			glBegin(GL_TRIANGLES);{
-				glTexCoord2i( tex[0].x, tex[1].y );
-				glVertex3f( vert[0].x, vert[0].y, vert[0].z );
-
-				glTexCoord2i( tex[1].x, tex[1].y );
-				glVertex3f( vert[1].x, vert[1].y, vert[1].z );
-
-				glTexCoord2i( tex[2].x, tex[2].y );
-				glVertex3f( vert[2].x, vert[2].y, vert[2].z );
-
-				glTexCoord2i( tex[3].x, tex[3].y );
-				glVertex3f( vert[3].x, vert[3].y, vert[3].z );
-
-				glTexCoord2i( tex[4].x, tex[4].y );
-				glVertex3f( vert[4].x, vert[4].y, vert[4].z );
-
-				glTexCoord2i( tex[5].x, tex[5].y );
-				glVertex3f( vert[5].x, vert[5].y, vert[5].z );
-			}glEnd();
-
-		}glPopMatrix();
-	}glDisable(GL_TEXTURE_2D);
 }

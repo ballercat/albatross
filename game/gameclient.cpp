@@ -39,7 +39,8 @@ MainClient::MainClient(void) :
 
 
     	//Create the display
-		display = new gfx::FixedPipeline(	info.window_width,
+		//display = new gfx::FixedPipeline(	info.window_width,
+		display		= new gfx::ShaderPipeline( info.window_width,
 											info.window_height,
 											"v0.0.5a(Humpback)",
 											info.fullscreen	);
@@ -192,96 +193,97 @@ void MainClient::_drawBullets(float& delta)
 ////////////////////////////////////////////////////////////
 void MainClient::_drawHud(void)
 {
-	glPushMatrix();{
-		glLoadIdentity();
-		//Draw actual bars for values
-		{
-			float length;
-			if(0.0f == mPlayer->pTime.Reload.Stamp){
-				length = float(mPlayer->pWeapon.pInfo.Clip)/mPlayer->pWeapon.pInfo.Ammo * 100.0f;
-			}
-			else {
-				length = (mPlayer->pTime.Diff(mPlayer->pTime.Reload.Stamp))/mPlayer->pWeapon.pInfo.Reload * 100.0f;
-			}
-			glBegin(GL_TRIANGLES);{
-				//Ammo
-				glVertex2f(-50.0f, -270.0f);
-				glVertex2f(-50.0f + length, -282.0f);
-				glVertex2f(-50.0f + length, -270.0f);
+	glm::mat4 save_matrix = gMatrix()[2];
+	gMatrix()[2] = glm::mat4(1.0f);
 
-				glVertex2f(-50.0f, -282.0f);
-				glVertex2f(-50.0f, -270.0f);
-				glVertex2f(-50.0f + length, -282.0f);
-
-				//Health
-				mPlayer->pHealth = (mPlayer->pHealth < 0.0f) ? 0.0f : mPlayer->pHealth;
-				glColor3f(1.0f, 0.3f, 0.3f);
-				glVertex2f(-50.0f, -243.0f);
-				glVertex2f(-50.0f + mPlayer->pHealth, -259.0f);
-				glVertex2f(-50.0f + mPlayer->pHealth, -243.0f);
-
-				glVertex2f(-50.0f, -259.0f);
-				glVertex2f(-50.0f, -243.0f);
-				glVertex2f(-50.0f + mPlayer->pHealth, -259.0f);
-			}glEnd();
-
+	//Draw actual bars for values
+	{
+		float length;
+		if(mPlayer->pWeapon.pInfo.Clip){
+			length = float(mPlayer->pWeapon.pInfo.Clip)/mPlayer->pWeapon.pInfo.Ammo * 100.0f;
 		}
-		gs.hud.Object[GameSprites::HUD::FRAME].pos.y = -250.0f;
-		gs.hud.Object[GameSprites::HUD::FRAME].Draw();
-		gs.hud.Object[GameSprites::HUD::HEALTH].Draw();
-
-		gs.hud.Object[GameSprites::HUD::FRAME].pos.y = -275.0f;
-		gs.hud.Object[GameSprites::HUD::FRAME].Draw();
-		gs.hud.Object[GameSprites::HUD::AMMO].Draw();
-
-		//Jets, spawn circle bars
-		{
-			Sprite *bar = &gs.hud.Object[GameSprites::HUD::CIRCLEBAR];
-			bar->pos = glm::vec3(80.0f, -265.0f, 0.0f);
-			bar->scale = glm::vec3(1.2f, 1.2f, 1.2f);
-			bar->angle.z = 0.0f;
-			bar->color = glm::vec4(0.2, 1.0f, 0.5f, 0.7f);
-			if(mPlayer->pJetCounter < (75))
-				bar->color = glm::vec4(0.0f, 1.0f, 1.0f, 0.7f);
-			if(mPlayer->pJetCounter < 40)
-				bar->color = glm::vec4(1.0f, 0.3f, 0.4f, 0.7f);
-
-			float step = 360.0f / 100.0f; // replace 100.0f with the map default
-
-			for(int i=0;i<mPlayer->pJetCounter;i++){
-				bar->angle.z+=step;
-				bar->Draw();
-			}
+		else {
+			length = (mPlayer->pTime.Diff(mPlayer->pTime.Reload.Stamp))/mPlayer->pWeapon.pInfo.Reload * 100.0f;
 		}
+		glBegin(GL_TRIANGLES);{
+			//Ammo
+			glVertex2f(-50.0f, -270.0f);
+			glVertex2f(-50.0f + length, -282.0f);
+			glVertex2f(-50.0f + length, -270.0f);
 
-		//On switch weapon
-		if(wepswitchtimer > 0.0f){
-			Sprite *weapon;
-			glm::vec3 scale;
-			if(mPlayer->pWeaponID > 0){
-				weapon = &gs.Weapon[mPlayer->pWeaponID-1];
-				scale = weapon->scale;
-				weapon->pos = glm::vec3(-80,100,0);
-				weapon->scale = glm::vec3(3,3,3);
-				weapon->color.a = wepswitchtimer/5.0f;
-				weapon->angle = glm::vec3(0,0,0);
-				weapon->Draw();
+			glVertex2f(-50.0f, -282.0f);
+			glVertex2f(-50.0f, -270.0f);
+			glVertex2f(-50.0f + length, -282.0f);
 
-				weapon->color.a = 1.0f;
-				weapon->scale = scale;
-			}
-			weapon = &gs.Weapon[mPlayer->pWeaponID];
+			//Health
+			mPlayer->pHealth = (mPlayer->pHealth < 0.0f) ? 0.0f : mPlayer->pHealth;
+			glColor3f(1.0f, 0.3f, 0.3f);
+			glVertex2f(-50.0f, -243.0f);
+			glVertex2f(-50.0f + mPlayer->pHealth, -259.0f);
+			glVertex2f(-50.0f + mPlayer->pHealth, -243.0f);
+
+			glVertex2f(-50.0f, -259.0f);
+			glVertex2f(-50.0f, -243.0f);
+			glVertex2f(-50.0f + mPlayer->pHealth, -259.0f);
+		}glEnd();
+
+	}
+	gs.hud.Object[GameSprites::HUD::FRAME].pos.y = -250.0f;
+	gs.hud.Object[GameSprites::HUD::FRAME].Draw();
+	gs.hud.Object[GameSprites::HUD::HEALTH].Draw();
+
+	gs.hud.Object[GameSprites::HUD::FRAME].pos.y = -275.0f;
+	gs.hud.Object[GameSprites::HUD::FRAME].Draw();
+	gs.hud.Object[GameSprites::HUD::AMMO].Draw();
+
+	//Jets, spawn circle bars
+	{
+		Sprite *bar = &gs.hud.Object[GameSprites::HUD::CIRCLEBAR];
+		bar->pos = glm::vec3(80.0f, -265.0f, 0.0f);
+		bar->scale = glm::vec3(1.2f, 1.2f, 1.2f);
+		bar->angle.z = 0.0f;
+		bar->color = glm::vec4(0.2, 1.0f, 0.5f, 0.7f);
+		if(mPlayer->pJetCounter < (75))
+			bar->color = glm::vec4(0.0f, 1.0f, 1.0f, 0.7f);
+		if(mPlayer->pJetCounter < 40)
+			bar->color = glm::vec4(1.0f, 0.3f, 0.4f, 0.7f);
+
+		float step = 360.0f / 100.0f; // replace 100.0f with the map default
+
+		for(int i=0;i<mPlayer->pJetCounter;i++){
+			bar->angle.z+=step;
+			bar->Draw();
+		}
+	}
+
+	//On switch weapon
+	if(wepswitchtimer > 0.0f){
+		Sprite *weapon;
+		glm::vec3 scale;
+		if(mPlayer->pWeaponID > 0){
+			weapon = &gs.Weapon[mPlayer->pWeaponID-1];
 			scale = weapon->scale;
-			weapon->pos = glm::vec3(0,100,0);
-			weapon->scale = glm::vec3(4,4,4);
-			weapon->color.a = wepswitchtimer;
+			weapon->pos = glm::vec3(-80,100,0);
+			weapon->scale = glm::vec3(3,3,3);
+			weapon->color.a = wepswitchtimer/5.0f;
 			weapon->angle = glm::vec3(0,0,0);
 			weapon->Draw();
 
 			weapon->color.a = 1.0f;
 			weapon->scale = scale;
 		}
+		weapon = &gs.Weapon[mPlayer->pWeaponID];
+		scale = weapon->scale;
+		weapon->pos = glm::vec3(0,100,0);
+		weapon->scale = glm::vec3(4,4,4);
+		weapon->color.a = wepswitchtimer;
+		weapon->angle = glm::vec3(0,0,0);
+		weapon->Draw();
 
-	}glPopMatrix();
+		weapon->color.a = 1.0f;
+		weapon->scale = scale;
+	}
+
+	gMatrix()[2] = save_matrix;
 }
 

@@ -373,6 +373,7 @@ void bgmfdelete(bgmf *map)
 		map->Polygon.clear();
 		map->color.clear();
 		map->sprite.clear();
+		map->Data.clear();
     }
 
 	delete map;

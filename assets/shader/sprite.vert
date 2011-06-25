@@ -26,7 +26,6 @@ uniform mat4 ModelMatrix;
 // by calling glVertexPointer(), glNormalPointer(), etc.
 
 in vec3 vPosition;
-in vec4 vColor;
 in vec2 vUV;
 
 // GLSL 1.30 (OpenGL 3.0) also deprecates varying shader variables. This has
@@ -37,7 +36,6 @@ in vec2 vUV;
 // out matching to in).
 
 out vec2 vTexCoord;
-out vec4 theColor;
 
 void main()
 {
@@ -45,6 +43,5 @@ void main()
     mat4 mvpMatrix = ProjectionMatrix * ViewMatrix * ModelMatrix;
     gl_Position = mvpMatrix * pos;
 
-    theColor = vColor;
     vTexCoord = vUV;
 }

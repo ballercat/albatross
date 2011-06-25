@@ -53,9 +53,6 @@ namespace gfx
 		////////////////////////////////////////////////////////////
 		///Scene managment
 		////////////////////////////////////////////////////////////
-		virtual void resizeWindow(int w, int h);
-		virtual void setCursor(const char *fpath);
-
 		virtual void beginScene();
 		virtual void endScene();
 

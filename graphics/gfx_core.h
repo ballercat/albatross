@@ -41,9 +41,37 @@ namespace gfx
 		}
     
     public:
-        ///Scene managment
-        virtual void resizeWindow(int w, int h) = 0;
-        virtual void setCursor(const char *fpath) = 0;
+		void setCursor(const char *fpath)
+		{
+			sf::Image rawimage;
+			if(!rawimage.LoadFromFile(fpath)){
+				fprintf(stderr, "Could not load cursor file:%s\n",fpath);
+				exit(0x205);
+			}
+
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, Texture[GAME_CURSOR]);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rawimage.GetWidth(), rawimage.GetHeight(),
+							0, GL_RGBA, GL_UNSIGNED_BYTE, rawimage.GetPixelsPtr());
+
+			glDisable(GL_TEXTURE_2D);
+
+			cursor.width = rawimage.GetWidth();
+			cursor.height = rawimage.GetHeight();
+			cursor.off = glm::vec3(0,0,0);
+			cursor.scale = glm::vec3(1,1,0);
+			cursor.textureid = Texture[0xFF];
+			cursor.imgd = glm::vec2(10,10);
+			cursor.Build();
+
+			Window->ShowMouseCursor(false);
+		}
 
 		virtual void beginScene() = 0;
 		virtual void endScene() = 0;
@@ -69,6 +97,27 @@ namespace gfx
 
 		inline void clearColor(float r, float g, float b, float a){
 			glClearColor(r, g, b, a);
+		}
+
+	protected:
+		////////////////////////////////////////////////////////////
+		///Set some general settings
+		////////////////////////////////////////////////////////////
+		inline void _InitGeneralSettings(void)
+		{
+			this->camera	= glm::vec3(0,0,0);
+			this->zoom		= glm::vec3(1,1,1);
+
+			glDisable(GL_LIGHTING);
+			glDisable(GL_DITHER);
+			glDisable(GL_DEPTH_TEST);
+
+			glewInit();
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glViewport(0, 0, _width, _height);
 		}
 
 	public:

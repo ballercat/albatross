@@ -330,12 +330,12 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
 		for(int i=0;i<gfx.Scenery.size();i++){
 			sp = &gfx.Scenery[i].spr;
 
-			pick = sf::Rect<float>(sp->pos.x+sp->vertdata[0].x, sp->pos.y+sp->vertdata[0].y,
+			/*pick = sf::Rect<float>(sp->pos.x+sp->vertdata[0].x, sp->pos.y+sp->vertdata[0].y,
 									sp->pos.x+sp->vertdata[4].x, sp->pos.y+sp->vertdata[4].y);
 			if(pick.Contains(mouse.x, mouse.y)){
 				ch->sprite = &gfx.Scenery[i];
 				return true;
-			}
+			}*/
 		}
 
 		ch->sprite = NULL;
@@ -577,12 +577,12 @@ void MapMaker::Step()
 				glLineWidth(2.0f);
 				glPushMatrix();{
 					glTranslatef(change.sprite->ptr->pos.x, change.sprite->ptr->pos.y, 0.0f);
-					glBegin(GL_LINE_LOOP);{
-						glVertex2f(change.sprite->spr.vertdata[0].x, change.sprite->spr.vertdata[0].y);
-						glVertex2f(change.sprite->spr.vertdata[1].x, change.sprite->spr.vertdata[1].y);
-						glVertex2f(change.sprite->spr.vertdata[2].x, change.sprite->spr.vertdata[2].y);
-						glVertex2f(change.sprite->spr.vertdata[5].x, change.sprite->spr.vertdata[5].y);
-					}glEnd();
+					//glBegin(GL_LINE_LOOP);{
+						//glVertex2f(change.sprite->spr.vertdata[0].x, change.sprite->spr.vertdata[0].y);
+						//glVertex2f(change.sprite->spr.vertdata[1].x, change.sprite->spr.vertdata[1].y);
+						//glVertex2f(change.sprite->spr.vertdata[2].x, change.sprite->spr.vertdata[2].y);
+						//glVertex2f(change.sprite->spr.vertdata[5].x, change.sprite->spr.vertdata[5].y);
+					//}glEnd();
 				}glPopMatrix();
 			}
 

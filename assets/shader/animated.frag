@@ -8,6 +8,8 @@
 precision highp float;
 
 uniform sampler2D ColorMapSampler;
+uniform float   StepSize;
+uniform vec4 SpriteColor;
 
 // Fragment shader input variable declarations must exactly match the vertex
 // shader's output variable declarations. The output of the vertex shader and
@@ -16,8 +18,8 @@ uniform sampler2D ColorMapSampler;
 // same name must match in type and qualification (other than out matching to
 // in).
 
-in vec2 vTexCoord;
-in vec4 theColor;
+varying in vec2 vTexCoord;
+
 
 // GLSL 1.3 deprecates gl_FragColor. Its replacement is user defined output
 // variables. Fragment shader output variables can be explicitly bound to a
@@ -29,5 +31,6 @@ out vec4 FragColor;
 
 void main()
 {
-    FragColor = theColor * texture(ColorMapSampler, vTexCoord);
+    vec2 add = vec2(vTexCoord.s + StepSize, vTexCoord.t);
+    FragColor = SpriteColor * texture(ColorMapSampler, add);
 }

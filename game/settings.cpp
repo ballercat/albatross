@@ -250,19 +250,27 @@ void MainClient::_loadMap(const char *p_MapPath)
 	glm::vec2 swap;
 
 	size_t i = 0;
+	GLushort indeces = 0;
+
+	gs.map.Index.clear();
+	map->hpc = 0;
+
 	//Add polygons to the space
 	for(bgmf_poly *p = &map->poly[0];p!=&map->poly[map->header.pc];p++)
 	{
-		if(map->mask[i].bit.hollow)
-			continue;
+
 
 		v0 = p->data[0];
 		v1 = p->data[1];
 		v2 = p->data[2];
 
-		mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
-		mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
-		mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+		if(!map->mask[i].bit.hollow){
+			mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
+			mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
+			mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+		} else if(map->mask[i].bit.hollow && !map->hpc){
+			map->hpc = indeces;
+		}
 
 		swap = _DefaultTC[0];
 		swap.x = swap.x * texstep + map->texture[i] * texstep;
@@ -274,21 +282,66 @@ void MainClient::_loadMap(const char *p_MapPath)
 		swap.x = swap.x * texstep + map->texture[i] * texstep;
 		map->texcoord[i].data[2] = (swap);
 
+		map->Data.push_back(MapVertex(v0, map->texcoord[i].data[0], map->color[i].data[0]));
+		map->Data.push_back(MapVertex(v1, map->texcoord[i].data[1], map->color[i].data[1]));
+		map->Data.push_back(MapVertex(v2, map->texcoord[i].data[2], map->color[i].data[2]));
+
+		gs.map.Index.push_back(indeces);
+		gs.map.Index.push_back(indeces+1);
+		gs.map.Index.push_back(indeces+2);
+		indeces += 3;
+
 		for(int k=3;k<p->data.size();k++){
 			v0 = p->data[k];
 			v1 = p->data[k-1];
 			v2 = p->data[k-2];
 
-			mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
-			mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
-			mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+			if(!map->mask[i].bit.hollow){
+				mPhysics->addStaticSegmentShape(v0, v1, MAPPOLYGON);
+				mPhysics->addStaticSegmentShape(v1, v2, MAPPOLYGON);
+				mPhysics->addStaticSegmentShape(v2, v0, MAPPOLYGON);
+			}
 
 			swap = _DefaultTC[k%4];
 			swap.x = swap.x * texstep + map->texture[i] * texstep;
 			map->texcoord[i].data[k] = (swap);
+
+			map->Data.push_back(MapVertex(v1, map->texcoord[i].data[k-1], map->color[i].data[k-1]));
+			map->Data.push_back(MapVertex(v2, map->texcoord[i].data[k-2], map->color[i].data[k-2]));
+			map->Data.push_back(MapVertex(v0, swap, map->color[i].data[k]));
+
+			gs.map.Index.push_back(indeces);
+			gs.map.Index.push_back(indeces+1);
+			gs.map.Index.push_back(indeces+2);
+			indeces += 3;
 		}
 
 		i++;
+	}
+
+	//Set up the map VBO
+	{
+		gs.map.Shdr = new Shader("assets/shader/default.vert", "assets/shader/default.frag");
+
+		glGenVertexArrays(1, &gs.map.VAO);
+		glBindVertexArray(gs.map.VAO);
+
+		glGenBuffers(1, &gs.map.VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, gs.map.VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(map->Data[0])*map->Data.size(), &map->Data[0], GL_STATIC_DRAW);
+
+		glGenBuffers(1, &gs.map.IVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gs.map.IVBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*gs.map.Index.size(), &gs.map.Index[0], GL_STATIC_DRAW);
+
+		glVertexAttribPointer(gs.map.Shdr->GetAttrib("vPosition"), 3, GL_FLOAT, GL_FALSE, sizeof(MapVertex), BUFFER_OFFSET(0));
+		glEnableVertexAttribArray(gs.map.Shdr->GetAttrib("vPosition"));
+
+		glVertexAttribPointer(gs.map.Shdr->GetAttrib("vUV"), 2, GL_FLOAT, GL_FALSE, sizeof(MapVertex), BUFFER_OFFSET(sizeof(glm::vec3)));
+		glEnableVertexAttribArray(gs.map.Shdr->GetAttrib("vUV"));
+
+		glVertexAttribPointer(gs.map.Shdr->GetAttrib("vColor"), 4, GL_FLOAT, GL_FALSE, sizeof(MapVertex), BUFFER_OFFSET(sizeof(glm::vec3)+sizeof(glm::vec2)));
+		glEnableVertexAttribArray(gs.map.Shdr->GetAttrib("vColor"));
 	}
 }
 

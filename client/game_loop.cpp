@@ -18,8 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 
-#include "gameclient.h"
-#include <cstdio>
+#include"gameclient.h"
+#include<cstdio>
+#include<glm/gtc/type_ptr.hpp>
 
 static glm::vec3 dmp;
 
@@ -54,7 +55,6 @@ void MainClient::Run(const char *p_DemoFile)
 	//state
 	bool quit = false;
 	Bullet* bullet;
-
 
 	//Main game loop
 	while(!quit){
@@ -170,15 +170,26 @@ void MainClient::Run(const char *p_DemoFile)
 		//Draw everything
 		display->beginScene();{
 			if(map){
-				//Draw solid polygons map polygons
-				for(int i=0;i<map->hpos;i++){
-					display->drawArray( &map->poly[i].data[0],
-										&map->texcoord[i].data[0],
-										&map->color[i].data[0],
-										map->poly[i].data.size(),
-										GL_TRIANGLE_STRIP,
-										gs.map.Texture );
-				}
+				gs.map.Shdr->Use();
+				gs.map.Shdr->ProjectMat(glm::value_ptr(gMatrix()[0]));
+				gs.map.Shdr->ViewMat(glm::value_ptr(gMatrix()[2]));
+				gs.map.Shdr->ModelMat(glm::value_ptr(gMatrix()[1]));
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, gs.map.Texture);
+
+				glBindVertexArray(gs.map.VAO);
+				//glDrawElements(GL_TRIANGLES, gs.map.Index.size(), GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
+				glDrawRangeElements(	GL_TRIANGLES,
+										0,
+										map->hpc,
+										map->hpc,
+										GL_UNSIGNED_SHORT,
+										BUFFER_OFFSET(0) );
+				glBindVertexArray(0);
+
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glUseProgram(0);
 			}
 
 			//Draw all the bullets
@@ -206,14 +217,26 @@ void MainClient::Run(const char *p_DemoFile)
 
 			//Draw Hollow Polygons
 			{
-				for(int i=map->hpos;i<map->header.pc;i++){
-					display->drawArray( &map->poly[i].data[0],
-										&map->texcoord[i].data[0],
-										&map->color[i].data[0],
-										map->poly[i].data.size(),
-										GL_TRIANGLE_STRIP,
-										gs.map.Texture );
-				}
+				gs.map.Shdr->Use();
+				gs.map.Shdr->ProjectMat(glm::value_ptr(gMatrix()[0]));
+				gs.map.Shdr->ViewMat(glm::value_ptr(gMatrix()[2]));
+				gs.map.Shdr->ModelMat(glm::value_ptr(gMatrix()[1]));
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, gs.map.Texture);
+
+				glBindVertexArray(gs.map.VAO);
+				//glDrawElements(GL_TRIANGLES, gs.map.Index.size(), GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
+				glDrawRangeElements(	GL_TRIANGLES,
+										map->hpc,
+										gs.map.Index.size(),
+										gs.map.Index.size() - map->hpc,
+										GL_UNSIGNED_SHORT,
+										BUFFER_OFFSET(sizeof(GLushort)*map->hpc) );
+				glBindVertexArray(0);
+
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glUseProgram(0);
 			}
 
 			//Draw the cursor

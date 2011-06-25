@@ -1,20 +1,33 @@
-#version 330
+#version 130
+// Precision qualifiers are added for code portability with OpenGL ES, not for
+// functionality. According to the GLSL 1.30 and later specs: the same object
+// declared in different shaders that are linked together must have the same
+// precision qualification. This applies to inputs, outputs, uniforms, and
+// globals.
 
-smooth in vec4 theColor;
-smooth in vec2 vTexCoord;
+precision highp float;
 
-out vec4 outputColor;
-uniform sampler2D textureMap;
+uniform sampler2D ColorMapSampler;
+uniform vec4 SpriteColor;
+
+// Fragment shader input variable declarations must exactly match the vertex
+// shader's output variable declarations. The output of the vertex shader and
+// the input of the fragment shader form an interface. For this interface,
+// vertex shader output variables and fragment shader input variables of the
+// same name must match in type and qualification (other than out matching to
+// in).
+
+in vec2 vTexCoord;
+
+// GLSL 1.3 deprecates gl_FragColor. Its replacement is user defined output
+// variables. Fragment shader output variables can be explicitly bound to a
+// render target. When a program is linked any output variables without an
+// explicit binding specified through glBindFragDataLocation() will
+// automatically be bound to fragment colors by the GL.
+
+out vec4 FragColor;
 
 void main()
 {
-    //gl_FragColor = vec4(0.0,0.0,1.0f,1.0f);
-    //float lerpValue = gl_FragCoord.y / 600.0f;
-    
-    //outputColor = mix(vec4(1.0f,1.0f,1.0f,1.0f),
-                    //vec4(0.2f,0.2f,0.2f,1.0f), lerpValue);
-    
-    //outputColor = theColor;
-    outputColor = theColor * texture(textureMap, vTexCoord);
-    
+    FragColor = SpriteColor * texture(ColorMapSampler, vTexCoord);
 }

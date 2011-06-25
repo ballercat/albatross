@@ -72,10 +72,16 @@ public:
 		mPosition(p_Copy.mPosition),
 		mLastUpdate(p_Copy.mLastUpdate),
 		textureid(p_Copy.textureid),
-		mTime(&timing::GlobalTime::Instance())
+		mTime(&timing::GlobalTime::Instance()),
+		pIndexVBO(p_Copy.pIndexVBO),
+		pVertexVAO(p_Copy.pVertexVAO),
+		pVertexVBO(p_Copy.pVertexVBO),
+		pShader(p_Copy.pShader),
+		ColorLoc(p_Copy.ColorLoc),
+		StepLoc(p_Copy.StepLoc)
 		{
-			memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
-			memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
+			//memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
+			//memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
 		}
 
 	////////////////////////////////////////////////////////////
@@ -100,9 +106,14 @@ public:
 		this->mLastUpdate	= p_Copy.mLastUpdate;
 		this->textureid		= p_Copy.textureid;
 		this->mTime			= &timing::GlobalTime::Instance();
+		this->pIndexVBO		= p_Copy.pIndexVBO;
+		this->pVertexVAO	= p_Copy.pVertexVAO;
+		this->pVertexVBO	= p_Copy.pVertexVBO;
+		this->pShader		= p_Copy.pShader;
+		this->ColorLoc		= p_Copy.ColorLoc;
 
-		memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
-		memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
+		//memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
+		//memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
 
 		return *this;
 	}
@@ -139,12 +150,7 @@ public:
     glm::vec3   scale;
     float       xstart;
     glm::vec4   color;
-
-#ifdef SHADER_PIPELINE
-public:
-	glm::mat4	mvp,proj,model,view;
-	GLuint		_mvp;
-#endif
+	glm::mat4	pViewMatrix;
 
 public:
     ///Animation controll
@@ -155,8 +161,18 @@ public:
 	float   mLastUpdate;
     int		textureid;
 
-	glm::vec2 texdata[6];
-	glm::vec3 vertdata[6];
+	//glm::vec2 texdata[6];
+	//glm::vec3 vertdata[6];
+
+	//VBOVertex 	vbodata[6];
+	//GLushort	vboindx[6];
+
+	GLuint		pIndexVBO;
+	GLuint		pVertexVBO;
+	GLuint		pVertexVAO;
+	GLuint		ColorLoc;
+	GLuint		StepLoc;
+	Shader		*pShader;
 
 protected:
 	////////////////////////////////////////////////////////////
@@ -167,11 +183,6 @@ protected:
 protected:
 	///Data
 	sf::Clock*	mTime;
-#ifdef SHADER_PIPELINE
-	glm::vec2 texcoord[6];
-	glm::vec3 vcoord[6];
-	VertexArray _quad;
-#endif
 };
 
 

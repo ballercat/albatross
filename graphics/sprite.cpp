@@ -49,6 +49,7 @@ Sprite::Sprite()
     mLength = 0;
 	mTime	= &timing::GlobalTime::Instance();
     mLastUpdate = mTime->GetElapsedTime();
+	pShader = NULL;
 }
 
 ////////////////////////////////////////////////////////////
@@ -78,6 +79,7 @@ Sprite::Sprite(GLuint &p_TextureID)
 	mLength = 0;
 	mTime = &timing::GlobalTime::Instance();
 	mLastUpdate = mTime->GetElapsedTime();
+	pShader = NULL;
 
 	Build();
 }
@@ -88,7 +90,7 @@ Sprite::Sprite(GLuint &p_TextureID)
 Sprite::Sprite(const char *p_SPRH)
 {
 	textureid = -1; //This sprite is invalid at the moment
-
+	pShader = NULL;
 	//Parese sprh file	
 	_parseInfo(p_SPRH);
 
@@ -106,6 +108,7 @@ Sprite::Sprite(const char *fpath, GLuint texid)
 	 * this really cuts down on having to compile
 	 * in all the sprite information every time */
 	_parseInfo(fpath);
+	pShader = NULL;
 
 	textureid = texid;
 
@@ -162,15 +165,16 @@ void Sprite::_parseInfo(const char *fpath)
 ////////////////////////////////////////////////////////////
 void Sprite::Build()
 {
-	//Vertex data
-	//Triangle 0
-	vertdata[0] = glm::vec3(-pivot.x * width, -pivot.y * height, 0);
-	vertdata[1] = glm::vec3(-pivot.x * width,(1 - pivot.y) * height,0);
-	vertdata[2] = glm::vec3((1 - pivot.x) * width, (1 - pivot.y) * height,0);
+	VBOVertex vbodata[6];
+	GLushort vboindx[] = { 0, 1, 2, 3, 4, 5 };
+
+	vbodata[0].v = glm::vec3(-pivot.x * width, -pivot.y * height, 0);
+	vbodata[1].v = glm::vec3(-pivot.x * width,(1 - pivot.y) * height,0);
+	vbodata[2].v = glm::vec3((1 - pivot.x) * width, (1 - pivot.y) * height,0);
 	//Triangle 1
-	vertdata[3] = glm::vec3(-pivot.x * width, -pivot.y * height, 0);
-	vertdata[4] = glm::vec3((1 - pivot.x) * width, (1 - pivot.y) * height,0);
-	vertdata[5] = glm::vec3((1 - pivot.x) * width, -pivot.y * height,0);
+	vbodata[3].v = glm::vec3(-pivot.x * width, -pivot.y * height, 0);
+	vbodata[4].v = glm::vec3((1 - pivot.x) * width, (1 - pivot.y) * height,0);
+	vbodata[5].v = glm::vec3((1 - pivot.x) * width, -pivot.y * height,0);
 
 	//Texture coordinates
 	float zrx = off.x/imgd.x;
@@ -178,31 +182,43 @@ void Sprite::Build()
 	float h = height/imgd.y;
 	float w = width/imgd.x;
 	//Triangle 0
-	texdata[0] = glm::vec2(zrx, zry + h);
-	texdata[1] = glm::vec2(zrx, zry);
-	texdata[2] = glm::vec2(zrx + w, zry);
+	vbodata[0].t = glm::vec2(zrx, zry + h);
+	vbodata[1].t = glm::vec2(zrx, zry);
+	vbodata[2].t = glm::vec2(zrx + w, zry);
 	//Triangle 1
-	texdata[3] = glm::vec2(zrx, zry + h);
-	texdata[4] = glm::vec2(zrx + w, zry);
-	texdata[5] = glm::vec2(zrx + w, zry + h);
+	vbodata[3].t = glm::vec2(zrx, zry + h);
+	vbodata[4].t = glm::vec2(zrx + w, zry);
+	vbodata[5].t = glm::vec2(zrx + w, zry + h);
 
-#ifdef SHADER_PIPELINE
-	glm::vec4 vColor[] = { color, color, color, color, color, color };
+	if(animated){
+		pShader = new Shader("assets/shader/default.vert", "assets/shader/animated.frag");
+	}
+	else{
+		pShader = new Shader("assets/shader/default.vert", "assets/shader/sprite.frag");
+	}
+	glGenVertexArrays(1, &pVertexVAO);
+	glBindVertexArray(pVertexVAO);
 
-	_quad.Init(textureid, 6, GlobalShader()[0]);
-	_quad.VertexPointer(vertdata, 6*sizeof(glm::vec3));
-	_quad.ColorPointer(vColor, 6*sizeof(glm::vec4));
-	_quad.TexturePointer(texdata, 6*sizeof(glm::vec2));
-	_quad.Bind();
+	glGenBuffers(1, &pVertexVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, pVertexVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vbodata), vbodata, GL_STATIC_DRAW);
 
-	view = glm::mat4(1.0f);
-	proj = glm::mat4(1.0f);
-	proj = glm::ortho(-512.0f,512.0f,-300.0f,300.0f,-1.0f,1.0f);
-	model = glm::mat4(1.0f);
-	mvp = model * view * proj;
+	glGenBuffers(1, &pIndexVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexVBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vboindx), vboindx, GL_STATIC_DRAW);
 
-	_mvp = glGetUniformLocation(GlobalShader()[0], "MVP");
-#endif
+	glVertexAttribPointer(pShader->GetAttrib("vPosition"), 3, GL_FLOAT, GL_FALSE, sizeof(VBOVertex), BUFFER_OFFSET(0));
+	glEnableVertexAttribArray(pShader->GetAttrib("vPosition"));
+
+	glVertexAttribPointer(pShader->GetAttrib("vUV"), 2, GL_FLOAT, GL_FALSE, sizeof(VBOVertex), BUFFER_OFFSET(sizeof(glm::vec3)));
+	glEnableVertexAttribArray(pShader->GetAttrib("vUV"));
+
+	//glVertexAttribPointer(pShader->GetAttrib("vColor"), 4, GL_FLOAT, GL_FALSE, sizeof(VBOVertex), BUFFER_OFFSET(sizeof(glm::vec3)+sizeof(glm::vec2)));
+	//glEnableVertexAttribArray(pShader->GetAttrib("vColor"));
+
+	pShader->Use();
+	StepLoc  = (*pShader)["StepSize"];
+	ColorLoc = (*pShader)["SpriteColor"];
 }
 
 ////////////////////////////////////////////////////////////
@@ -229,78 +245,41 @@ void Sprite::Step(void)
 			mPosition = 0;
 		}
         mLastUpdate = t;
-
-        off.x = xstart + (mPosition*width);
-
-		float zrx = off.x/imgd.x;
-		float zry = off.y/imgd.y;
-		float h = height/imgd.y;
-		float w = width/imgd.x;
-		texdata[0] = glm::vec2(zrx, zry + h);
-		texdata[1] = glm::vec2(zrx, zry);
-		texdata[2] = glm::vec2(zrx + w, zry);
-		texdata[3] = glm::vec2(zrx, zry + h);
-		texdata[4] = glm::vec2(zrx + w, zry);
-		texdata[5] = glm::vec2(zrx + w, zry + h);
-#ifdef SHADER_PIPELINE
-		_quad.TexturePointer(texdatacoord, 6*sizeof(glm::vec2));
-#endif
     }
 
 }
 
 void Sprite::Draw()
 {
-#ifdef SHADER_PIPELINE
-	view = glm::translate(gMatrix()[3], pos);
+	assert(textureid != -1);
+
+	glm::mat4 view = glm::translate(gMatrix()[2], pos);
 	view = glm::scale(view, scale);
 	view = glm::rotate(view, angle.z, glm::vec3(0,0,1));
 	view = glm::rotate(view, angle.x, glm::vec3(0,1,0));
-	mvp = view;
-	glUseProgram(GlobalShader()[0]);
-	glUniformMatrix4fv(_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
-	_quad.Draw();
-#endif
-	assert(textureid != -1);
 
-	glEnable(GL_TEXTURE_2D);{
-		glBindTexture(GL_TEXTURE_2D, textureid);
-		//Translate
-		glPushMatrix();{
+	glm::mat4 model(1.0f);
+	pShader->Use();
 
-			glTranslated(pos.x, pos.y, 0.0f);
+	if(animated){
+		float step = (xstart + (mPosition*width))/imgd.x;
+		glUniform1f((*pShader)["StepSize"], step);
+		//glUniform1f(StepLoc, step);
+	}
+	//glUniform4fv((*pShader)["SpriteColor"], 1, &color.r);
+	glUniform4fv(ColorLoc, 1, &color.r);
+	pShader->ProjectMat(glm::value_ptr(gMatrix()[0]));
+	pShader->ViewMat(glm::value_ptr(view));
+	pShader->ModelMat(glm::value_ptr(model));
 
-			glScalef(scale.x, scale.y, scale.z);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureid);
 
-			glRotatef(angle.x, 0.0f, -1.0f, 0.0f);
-			glRotatef(angle.z, 0.0f, 0.0f, 1.0f);
+	glBindVertexArray(pVertexVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
+	glBindVertexArray(0);
 
-			//Color
-			glColor4f( color.x, color.y, color.z, color.a );
-
-			//Draw the triangles
-			glBegin(GL_TRIANGLES);{
-				glTexCoord2f( texdata[0].x, texdata[0].y );
-				glVertex3f( vertdata[0].x, vertdata[0].y, vertdata[0].z );
-
-				glTexCoord2f( texdata[1].x, texdata[1].y );
-				glVertex3f( vertdata[1].x, vertdata[1].y, vertdata[1].z );
-
-				glTexCoord2f( texdata[2].x, texdata[2].y );
-				glVertex3f( vertdata[2].x, vertdata[2].y, vertdata[2].z );
-
-				glTexCoord2f( texdata[3].x, texdata[3].y );
-				glVertex3f( vertdata[3].x, vertdata[3].y, vertdata[3].z );
-
-				glTexCoord2f( texdata[4].x, texdata[4].y );
-				glVertex3f( vertdata[4].x, vertdata[4].y, vertdata[4].z );
-
-				glTexCoord2f( texdata[5].x, texdata[5].y );
-				glVertex3f( vertdata[5].x, vertdata[5].y, vertdata[5].z );
-			}glEnd();
-
-		}glPopMatrix();
-	}glDisable(GL_TEXTURE_2D);
-
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUseProgram(0);
 }
 

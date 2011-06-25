@@ -137,6 +137,7 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 	if(cursor.x > 0){
 		pAngle.x = 180;
 		mFlip = -1;
+		pAngle.z = -pAngle.z;
 	} else {
 		mFlip = 1;
 		//float x = cursor.x + d*2;
@@ -163,7 +164,7 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 	pBarrelPos.x = 23.0f*(glm::cos(-mAngleR)) + pPos.x;
 	pBarrelPos.y = 23.0f*(glm::sin(-mAngleR)) + pPos.y;
 
-	if(0.0f != pTime.Reload.Stamp){
+	if(!pWeapon.pInfo.Clip){
 		if(pTime.Diff(pTime.Reload.Stamp) >= pWeapon.pInfo.Reload){
 			pTime.Reload.Stamp = 0.0f;
 			pWeapon.Reload();
@@ -239,13 +240,13 @@ void Player::Draw(float interpolate)
 ////////////////////////////////////////////////////////////
 void Player::Jet(void)
 {
-	mJetSprite.Step();
-	pAction[ActState::JETTING] = true;
-
 	// Apply jets if timer allows it 
 	if((pTime.Current - pTime.Jet.Stamp > 0.001)){
-		if(pJetCounter > 0)
+		if(pJetCounter > 0){
 			MercObject.Jet();
+			mJetSprite.Step();
+			pAction[ActState::JETTING] = true;
+		}
 		pTime.Jet.Stamp = pTime.Current;
 
 		pJetCounter--;

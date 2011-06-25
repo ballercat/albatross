@@ -51,6 +51,9 @@ public:
 		pHealth = 100.0f;
 		pJetCounter = 0;
 		ResetTiming();
+		pTime.Jet.Stamp = -2.0f;
+		pWeapon.pInfo.Clip = 0;
+		pTime.Reload.Stamp = pTime();
 		pSpawned = true;
 	}
 

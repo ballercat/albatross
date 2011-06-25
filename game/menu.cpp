@@ -20,6 +20,7 @@
 #include "gameclient.h"
 #include <string>
 #include <cstdio>
+#include<glm/gtc/type_ptr.hpp>
 
 static bool
 SameSide(glm::vec3 p1,glm::vec3 p2,glm::vec3 a, glm::vec3 b)
@@ -83,14 +84,20 @@ void MainClient::MainMenu()
 		}
         display->beginScene();{
 
-			for(int i=0;i<map->hpos;i++){
-				display->drawArray( &map->poly[i].data[0],
-									&map->texcoord[i].data[0],
-									&map->color[i].data[0],
-									map->poly[i].data.size(),
-									GL_TRIANGLE_STRIP,
-									gs.map.Texture );
-			}
+			gs.map.Shdr->Use();
+			gs.map.Shdr->ProjectMat(glm::value_ptr(gMatrix()[0]));
+			gs.map.Shdr->ViewMat(glm::value_ptr(gMatrix()[2]));
+			gs.map.Shdr->ModelMat(glm::value_ptr(gMatrix()[1]));
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, gs.map.Texture);
+
+			glBindVertexArray(gs.map.VAO);
+			glDrawElements(GL_TRIANGLES, gs.map.Index.size(), GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
+			glBindVertexArray(0);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glUseProgram(0);
 
 			//Draw scenery
 			if(map->header.sprc){
@@ -98,6 +105,7 @@ void MainClient::MainMenu()
 					gs.map.Scenery[i].Draw();
 				}
 			}
+
 
 			delta = currentTime - oldtime;
 			mPlayer->Draw(delta);

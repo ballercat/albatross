@@ -34,6 +34,28 @@
 
 #define BGMF_VERSION	0x01
 
+struct MapVertex
+{
+	MapVertex() :
+		v(glm::vec3()),
+		t(glm::vec2()),
+		c(glm::vec4())
+		{
+
+		}
+	MapVertex(glm::vec3 &p_Vert, glm::vec2 &p_Tc, glm::vec4 &p_Col) :
+		v(p_Vert),
+		t(p_Tc),
+		c(p_Col)
+		{
+
+		}
+
+	glm::vec3	v;
+	glm::vec2	t;
+	glm::vec4	c;
+};
+
 ////////////////////////////////////////////////////////////
 /// glm::vec3(x,y,unused) Polygon-Vertex
 /// Not actually used in the map representation
@@ -299,6 +321,8 @@ struct bgmf
 
 	uint32_t					error;
 	uint32_t					vertcount;
+
+	std::vector<MapVertex>		Data;
 /*
 	///Static sprites/scenery data
 	std::vector<bgmf_sprite>	sprite;

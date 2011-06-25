@@ -23,6 +23,7 @@
 #define GAME_CLIENT_HEADER_GUARD
 
 #include "fixed_pipeline.h"
+#include "shader_pipeline.h"
 #include "client.h"
 #include "input.h"
 #include "inputhandler.h"
@@ -82,6 +83,11 @@ struct GameSprites{
 		GLuint				Texture; //polygon textures
 		std::vector<GLuint>	SceneryTextures; //scenery textures
 		std::vector<Sprite>	Scenery;	 //sprites
+		std::vector<GLushort> Index;
+		GLuint				VAO;
+		GLuint				VBO;
+		GLuint				IVBO;
+		Shader				*Shdr;
 	};
 	MapData map;
 
@@ -160,7 +166,6 @@ private:
 	void _populateSprites(void);
 	void _loadMap(const char *p_MapPath);
 
-
 ////////////////////////////////////////////////////////////
 ///Member Data
 ////////////////////////////////////////////////////////////
@@ -171,7 +176,8 @@ private:
 private:
 	//IO
 	InputHandlerMixin<Input>*       mInput;
-	gfx::FixedPipeline*    			display;
+	//gfx::FixedPipeline*    			display;
+	gfx::ShaderPipeline				*display;
 
 private:
 	//Physics
