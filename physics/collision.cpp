@@ -94,7 +94,7 @@ cpBool Begin::ExplosionObject(BEGINVARS)
 
 	float dx = cnt.points[0].point.x - p_aoa.x ;
 	float dy = cnt.points[0].point.y - p_aoa.y ;
-	float damage = 100.0f - glm::distance(p_obj, p_aoa)/500.0f*100.0f;
+	float damage = 100.0f - glm::distance(p_obj, p_aoa);//250.0f;
 
 	if(glm::abs(dx) > 40.0f)
 		dx = (glm::abs(dx)/dx * 52.0f) - dx;

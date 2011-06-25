@@ -314,8 +314,8 @@ void Player::jumpBegin()
 void Player::jumpEnd()
 {
 	if(mJumpState){
-		if((pTime.Diff(pTime.Jump.Stamp)) >= 0.030f){
-			MercObject.Jump((pTime.Diff(pTime.Jump.Stamp)) * 1000.0f );
+		if((pTime.Diff(pTime.Jump.Stamp)) >= 0.020f){
+			MercObject.Jump((pTime.Diff(pTime.Jump.Stamp)) * 1500.0f );
 		}
 	}
 

@@ -90,7 +90,7 @@ void MainClient::_loadHudSprites(void)
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::HEALTH]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::AMMO]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::CIRCLEBAR]));
-	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].pivot = glm::vec3(0.5f,0.0f,0);
+	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].pivot = glm::vec3(0.0f,0.0f,0);
 	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].Build();
 
 	gs.hud.Object[GameSprites::HUD::HEALTH].pos = glm::vec3(-50.0f, -250.0f, 0.0f);
