@@ -19,6 +19,7 @@
 
 
 #include"shader_pipeline.h"
+#include"renderhooks.h"
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
@@ -149,12 +150,11 @@ void ShaderPipeline::spriteBuild(Sprite *p_sprPtr)
 	vbodata[4].t = glm::vec2(zrx + w, zry);
 	vbodata[5].t = glm::vec2(zrx + w, zry + h);
 
-	if(p_sprPtr->pInfo.animated){
-		p_sprPtr->pInfo.shdProgram = new Shader("assets/shader/default.vert", "assets/shader/animated.frag");
-	}
-	else{
-		p_sprPtr->pInfo.shdProgram = new Shader("assets/shader/default.vert", "assets/shader/sprite.frag");
-	}
+	if(p_sprPtr->pInfo.animated)
+		p_sprPtr->pInfo.shdProgram = Link::Instance().glsl.sprAnimated;
+	else
+		p_sprPtr->pInfo.shdProgram = Link::Instance().glsl.sprDefault;
+
 	glGenVertexArrays(1, &p_sprPtr->pInfo.vaoVertex);
 	glBindVertexArray(p_sprPtr->pInfo.vaoVertex);
 
@@ -192,13 +192,9 @@ void ShaderPipeline::spriteDraw(Sprite *p_sprPtr)
 
 	if(p_sprPtr->pInfo.animated){
 		float step = (p_sprPtr->pInfo.aniPosition*p_sprPtr->pInfo.w)/p_sprPtr->pInfo.imgWidth;
-		//glUniform1f((*p_sprPtr->pInfo.shdProgram)["StepSize"], step);
-		//glUniform1f(StepLoc, step);
 		glUniform1f(p_sprPtr->pInfo.shdAniStep_loc, step);
 	}
-	//glUniform4fv((*pShader)["SpriteColor"], 1, &color.r);
 	glUniform4fv(p_sprPtr->pInfo.shdColor_loc, 1, &p_sprPtr->pInfo.color.r);
-	//glUniform4fv((*p_sprPtr->pInfo.shdProgram)["SpriteColor"], 1, &p_sprPtr->pInfo.color.r);
 	p_sprPtr->pInfo.shdProgram->ProjectMat(glm::value_ptr(gMatrix()[0]));
 	p_sprPtr->pInfo.shdProgram->ViewMat(glm::value_ptr(view));
 	p_sprPtr->pInfo.shdProgram->ModelMat(glm::value_ptr(model));

@@ -54,11 +54,15 @@ namespace gfx
 
 			//Create the rendering pipleine
 			Core *pipeline = NULL;
-			renderFunctionPointers *hooks = &Link::Instance();
+			renderPointers *hooks = &Link::Instance();
 			if(GLEW_VERSION_3_0){
 				pipeline = new ShaderPipeline(context);
+
 				hooks->spriteBuild = &ShaderPipeline::spriteBuild;
 				hooks->spriteDraw = &ShaderPipeline::spriteDraw;
+				hooks->glsl.Default = new Shader("assets/shader/default.vert", "assets/shader/default.frag");
+				hooks->glsl.sprDefault = new Shader("assets/shader/default.vert", "assets/shader/sprite.frag");
+				hooks->glsl.sprAnimated = new Shader("assets/shader/default.vert", "assets/shader/animated.frag");
 			} else if(GLEW_VERSION_1_3){
 				pipeline = new FixedPipeline(context);
 			}

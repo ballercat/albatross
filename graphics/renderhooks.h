@@ -6,13 +6,21 @@
 
 namespace gfx
 {
-	struct renderFunctionPointers
+	struct renderPointers
 	{
 		void (*spriteBuild)(Sprite *);
 		void (*spriteDraw)(Sprite *);
+
+		struct globalShaders_t{
+			Shader	*sprDefault;
+			Shader	*sprAnimated;
+			Shader	*Default;
+		};
+
+		globalShaders_t glsl;
 	};
 
-	typedef GenericSingleton<renderFunctionPointers> Link;
+	typedef GenericSingleton<renderPointers> Link;
 }
 
 #endif //RENDERHOOKS_HEADER_GUARD
