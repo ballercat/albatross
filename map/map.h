@@ -97,7 +97,7 @@ struct bgmf_poly
 		if(test.data.size() != data.size())
 			return false;
 
-		for(int i =0;i<data.size();i++){
+		for(unsigned i =0;i<data.size();i++){
 			if(data[i] != test.data[i])
 				return false;
 		}

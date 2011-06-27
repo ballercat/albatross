@@ -71,13 +71,15 @@ void ShaderPipeline::beginScene()
 	View = glm::scale(glm::mat4(1.0f), zoom);
 	View = glm::translate(View, -camera);
 
-	MVP = Model * View * Projection;
+	MVP = Model * View * Projection;/*
 	gMatrix()[0] = Projection;
 	gMatrix()[1] = Model;
 	gMatrix()[2] = View;
 	gMatrix()[3] = MVP;
 
-	gTransform()[0] = camera;
+	gTransform()[0] = camera; */
+
+	gMatrix()[2] = View;
 }
 
 void ShaderPipeline::endScene()
@@ -187,17 +189,16 @@ void ShaderPipeline::spriteDraw(Sprite *p_sprPtr)
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.z, glm::vec3(0,0,1));
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.x, glm::vec3(0,1,0));
 
-	glm::mat4 model(1.0f);
 	p_sprPtr->pInfo.shdProgram->Use();
 
 	if(p_sprPtr->pInfo.animated){
 		float step = (p_sprPtr->pInfo.aniPosition*p_sprPtr->pInfo.w)/p_sprPtr->pInfo.imgWidth;
 		glUniform1f(p_sprPtr->pInfo.shdAniStep_loc, step);
 	}
+
 	glUniform4fv(p_sprPtr->pInfo.shdColor_loc, 1, &p_sprPtr->pInfo.color.r);
-	p_sprPtr->pInfo.shdProgram->ProjectMat(glm::value_ptr(gMatrix()[0]));
 	p_sprPtr->pInfo.shdProgram->ViewMat(glm::value_ptr(view));
-	p_sprPtr->pInfo.shdProgram->ModelMat(glm::value_ptr(model));
+
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, p_sprPtr->pInfo.txrId);

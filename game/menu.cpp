@@ -84,10 +84,8 @@ void MainClient::MainMenu()
 		}
         display->beginScene();{
 
-			gs.map.Shdr->Use();
-			gs.map.Shdr->ProjectMat(glm::value_ptr(gMatrix()[0]));
-			gs.map.Shdr->ViewMat(glm::value_ptr(gMatrix()[2]));
-			gs.map.Shdr->ModelMat(glm::value_ptr(gMatrix()[1]));
+			gfx::Link::Instance().glsl.Default->Use();
+			gfx::Link::Instance().glsl.Default->ViewMat(glm::value_ptr(display->View));
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, gs.map.Texture);

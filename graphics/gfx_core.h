@@ -151,16 +151,15 @@ namespace gfx
 		glm::mat4 MVP;
 		float 	FrameTime;
 		size_t 	SkipFrames;
+		glm::mat4	Projection;
+		glm::mat4	View;
+		glm::mat4	Model;
 
 	protected:
 		///Protected data
 		sf::String _text;
 		sf::String _fps;
 		int			fps;
-
-		glm::mat4	Projection;
-		glm::mat4	View;
-		glm::mat4	Model;
 
 		sf::Clock*	_timer;
 		float		_draw_time;

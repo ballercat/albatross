@@ -65,10 +65,7 @@ MainClient::MainClient(void) :
 		display->Window->SetFramerateLimit(info.fpslimit);
 
 		//Physics
-    	cpShape *shape;
 		cpSpace* space = mPhysics->GetWorldHandle();
-    	cpBody *staticBody = &space->staticBody;
-
 
 		map = NULL;
 
@@ -246,11 +243,34 @@ void MainClient::_drawHud(void)
 
 	float step = 360.0f / 100.0f; // replace 100.0f with the map default
 
+	//We manualy draw the circle bar here to save fps
+	bar->pInfo.shdProgram->Use();
+
+	glm::mat4 rotate(1.0f);
+	glm::mat4 scale = glm::translate(glm::mat4(1.0f), bar->pInfo.pos);
+	scale = glm::scale(scale, bar->pInfo.scale);
+
+	glUniform4fv(bar->pInfo.shdColor_loc, 1, &bar->pInfo.color.r);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, bar->pInfo.txrId);
+
+	glBindVertexArray(bar->pInfo.vaoVertex);
+
+	//Draw the bars
 	for(int i=0;i<mPlayer->pJetCounter;i++){
 		bar->pInfo.angle.z+=step;
-		bar->Draw();
+		rotate = glm::rotate(scale, bar->pInfo.angle.z, glm::vec3(0,0,1));
+
+		bar->pInfo.shdProgram->ViewMat(glm::value_ptr(rotate));
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
 	}
 
+	glBindVertexArray(0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUseProgram(0);
 
 	//On switch weapon
 	if(wepswitchtimer > 0.0f){

@@ -133,10 +133,10 @@ public:
 		////////////////////////////////////////////////////////////
 		glm::vec3    	pDest; ///> destination
         glm::vec3    	pPos; ///> postion
-		glm::vec3		pVelocity; ///> velocity
 		int         	pValue; ///> status value
-        bool 			pAirborne;
+		glm::vec3		pVelocity;
         bool 			pDoubleJump;
+		bool 			pAirborne;
         float       	pLastUpdate; ///>last update
 		float			pHealth;
         cpFloat 		u;

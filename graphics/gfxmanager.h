@@ -25,6 +25,7 @@
 #include"fixed_pipeline.h"
 #include"shader_pipeline.h"
 #include"renderhooks.h"
+#include<glm/gtc/type_ptr.hpp>
 
 namespace gfx
 {
@@ -56,13 +57,30 @@ namespace gfx
 			Core *pipeline = NULL;
 			renderPointers *hooks = &Link::Instance();
 			if(GLEW_VERSION_3_0){
+
 				pipeline = new ShaderPipeline(context);
 
+				//Setup Sprite function pointers
 				hooks->spriteBuild = &ShaderPipeline::spriteBuild;
 				hooks->spriteDraw = &ShaderPipeline::spriteDraw;
+
+				//Setup Shaders
 				hooks->glsl.Default = new Shader("assets/shader/default.vert", "assets/shader/default.frag");
 				hooks->glsl.sprDefault = new Shader("assets/shader/default.vert", "assets/shader/sprite.frag");
 				hooks->glsl.sprAnimated = new Shader("assets/shader/default.vert", "assets/shader/animated.frag");
+
+				hooks->glsl.Default->Use();
+				hooks->glsl.Default->ModelMat(glm::value_ptr(pipeline->Model));
+				hooks->glsl.Default->ProjectMat(glm::value_ptr(pipeline->Projection));
+
+				hooks->glsl.sprDefault->Use();
+				hooks->glsl.sprDefault->ModelMat(glm::value_ptr(pipeline->Model));
+				hooks->glsl.sprDefault->ProjectMat(glm::value_ptr(pipeline->Projection));
+
+				hooks->glsl.sprAnimated->Use();
+				hooks->glsl.sprAnimated->ModelMat(glm::value_ptr(pipeline->Model));
+				hooks->glsl.sprAnimated->ProjectMat(glm::value_ptr(pipeline->Projection));
+				glUseProgram(0);
 			} else if(GLEW_VERSION_1_3){
 				pipeline = new FixedPipeline(context);
 			}
