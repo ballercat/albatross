@@ -52,6 +52,13 @@ void MainClient::Run(const char *p_DemoFile)
 
 	glm::vec3 mp, ps;
 
+	float		lasthp = 100.0f;
+	float		dtimer = 0.0f;
+	sf::String	damage;
+	damage.SetColor(sf::Color(255,0,0));
+	damage.SetSize(12);
+	damage.SetPosition(505.0f, 300.0f);
+
 	//state
 	bool quit = false;
 	Bullet* bullet;
@@ -115,7 +122,7 @@ void MainClient::Run(const char *p_DemoFile)
 					if(bullet->Type == EXPLOSIVE){
 						//Sprite hit = EXPLOSIONSPRITE;
 						Sprite hit = gs.BulletHit[1];
-						hit.pos = bullet->Hit.Pos;
+						hit.pInfo.pos = bullet->Hit.Pos;
 						bulletHits.push_back(hit);
 					}
 					Bullets.Delete();
@@ -162,7 +169,7 @@ void MainClient::Run(const char *p_DemoFile)
 		//NOT physical position
 		display->camera = mPlayer->pIPos;
 
-		display->cursor.pos = dmp + mPlayer->pIPos;
+		display->cursor.pInfo.pos = dmp + mPlayer->pIPos;
 		//display->cursor.pos /= display->zoom;
 
 		delta = currentTime - oldtime;
@@ -202,6 +209,24 @@ void MainClient::Run(const char *p_DemoFile)
 
 			//Draw the player with interpolate
 			mPlayer->Draw(delta);
+			if(lasthp != mPlayer->pHealth){
+				char d[12];
+				int diff = mPlayer->pHealth - lasthp;
+				sprintf(d,"%d", diff);
+				lasthp = mPlayer->pHealth;
+				damage.SetText(d);
+				dtimer = 15.0f;
+
+				if(diff > 0)
+					damage.SetColor(sf::Color(0,255,0));
+				else
+					damage.SetColor(sf::Color(255,0,0));
+			}
+			if(dtimer > 0){
+				damage.SetY(280+dtimer);
+				display->Window->Draw(damage);
+				dtimer -= delta;
+			}
 
 			_drawWeapons();
 

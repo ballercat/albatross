@@ -90,11 +90,11 @@ void MainClient::_loadHudSprites(void)
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::HEALTH]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::AMMO]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::CIRCLEBAR]));
-	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].pivot = glm::vec3(0.0f,0.0f,0);
-	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].Build();
+	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].pInfo.pivot = glm::vec2(0.0f);
+	gfx::Link::Instance().spriteBuild(&gs.hud.Object[GameSprites::HUD::CIRCLEBAR]);
 
-	gs.hud.Object[GameSprites::HUD::HEALTH].pos = glm::vec3(-50.0f, -250.0f, 0.0f);
-	gs.hud.Object[GameSprites::HUD::AMMO].pos = glm::vec3(-50.0f, -275.0f, 0.0f);
+	gs.hud.Object[GameSprites::HUD::HEALTH].pInfo.pos = glm::vec3(-50.0f, -250.0f, 0.0f);
+	gs.hud.Object[GameSprites::HUD::AMMO].pInfo.pos = glm::vec3(-50.0f, -275.0f, 0.0f);
 }
 
 ////////////////////////////////////////////////////////////
@@ -233,7 +233,7 @@ void MainClient::_loadMap(const char *p_MapPath)
 				i = map->sprite[k].id;
 				fpath = "assets/scenery/" + map->sprheader[i];
 				Sprite spr(fpath.c_str(), gs.map.SceneryTextures[i]);
-				spr.pos = map->sprite[k].pos;
+				spr.pInfo.pos = map->sprite[k].pos;
 				gs.map.Scenery.push_back(spr);
 			}
 		}

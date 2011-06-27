@@ -25,6 +25,9 @@
 
 using namespace gfx;
 
+////////////////////////////////////////////////////////////
+/// default ctor
+////////////////////////////////////////////////////////////
 ShaderPipeline::ShaderPipeline(	unsigned p_Width,
 								unsigned p_Height,
 								const char* p_Name,
@@ -32,42 +35,37 @@ ShaderPipeline::ShaderPipeline(	unsigned p_Width,
 {
 	_width	= p_Width;
 	_height	= p_Height;
-	_timer	= &timing::GlobalTime::Instance();
 	unsigned window_style = (p_Fullscreen) ? sf::Style::Fullscreen : sf::Style::Close;
 
 	Window 	= new sf::RenderWindow(sf::VideoMode(_width, _height), p_Name, window_style);
 
-	camera	= glm::vec3(0,0,0);
-	zoom	= glm::vec3(1,1,1);
+	_InitGeneralSettings();
+
+	Projection = glm::ortho(_width/-2.0f, _width/2.0f, _height/-2.0f, _height/2.0f, -5.0f, 5.0f);
+	MVP		= Model * View * Projection;
+}
+
+////////////////////////////////////////////////////////////
+/// ctor with a window handle from a manager
+////////////////////////////////////////////////////////////
+ShaderPipeline::ShaderPipeline(sf::RenderWindow *p_WindowHandle)
+{
+	Window 	= p_WindowHandle;
+
+	_width 	= Window->GetWidth();
+	_height = Window->GetHeight();
 
 	_InitGeneralSettings();
 
-	MVP		= glm::mat4();
-	View	= glm::mat4(1.0f);
-	Model	= glm::mat4(1.0f);
 	Projection = glm::ortho(_width/-2.0f, _width/2.0f, _height/-2.0f, _height/2.0f, -5.0f, 5.0f);
 	MVP		= Model * View * Projection;
-
-	//general text
-	_text.SetText("NULL");
-	_text.SetPosition(0,0);
-	_text.SetColor(sf::Color(0,0,0));
-	//Fps
-	_fps.SetText("0");
-	_fps.SetPosition(0,0);
-	_fps.SetColor(sf::Color(0,255,0));
-	_fps.SetSize(14);
-
-	FrameTime = 0.0f;
-	_skip_frames_counter = 0;
-	_draw_time = _timer->GetElapsedTime();
 }
 
 void ShaderPipeline::beginScene()
 {
 	_draw_time = _timer->GetElapsedTime();
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	View = glm::scale(glm::mat4(1.0f), zoom);
 	View = glm::translate(View, -camera);
@@ -120,21 +118,96 @@ void ShaderPipeline::drawText(glm::vec3 pos, const char* text, size_t size)
     Window->Draw(_text);
 }
 
-////////////////////////////////////////////////////////////
-void ShaderPipeline::drawSprite(Sprite *spr)
+void ShaderPipeline::spriteBuild(Sprite *p_sprPtr)
 {
-	if(NULL == spr)
-		return;
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), spr->pos);
-	spr->pShader->Use();
-	spr->pShader->ProjectMat(glm::value_ptr(Projection));
-	spr->pShader->ViewMat(glm::value_ptr(view));
-	spr->pShader->ModelMat(glm::value_ptr(Model));
+	VBOVertex vbodata[6];
+	GLushort vboindx[] = { 0, 1, 2, 3, 4, 5 };
+	float px = p_sprPtr->pInfo.pivot.x;
+	float py = p_sprPtr->pInfo.pivot.y;
+	float w = p_sprPtr->pInfo.w;
+	float h = p_sprPtr->pInfo.h;
+
+	vbodata[0].v = glm::vec3(-px * w, -py * h, 0.0f);
+	vbodata[1].v = glm::vec3(-px * w,(1 - py) * h,0.0f);
+	vbodata[2].v = glm::vec3((1 - px) * w, (1 - py) * h,0.0f);
+	//Triangle 1
+	vbodata[3].v = glm::vec3(-px * w, -py * h, 0.0f);
+	vbodata[4].v = glm::vec3((1 - px) * w, (1 - py) * h,0.0f);
+	vbodata[5].v = glm::vec3((1 - px) * w, -py * h,0.0f);
+
+	//Texture coordinates
+	float zrx = 0.0f;
+	float zry = 0.0f;
+	h = h/p_sprPtr->pInfo.imgHeight;
+	w = w/p_sprPtr->pInfo.imgWidth;
+	//Triangle 0
+	vbodata[0].t = glm::vec2(zrx, zry + h);
+	vbodata[1].t = glm::vec2(zrx, zry);
+	vbodata[2].t = glm::vec2(zrx + w, zry);
+	//Triangle 1
+	vbodata[3].t = glm::vec2(zrx, zry + h);
+	vbodata[4].t = glm::vec2(zrx + w, zry);
+	vbodata[5].t = glm::vec2(zrx + w, zry + h);
+
+	if(p_sprPtr->pInfo.animated){
+		p_sprPtr->pInfo.shdProgram = new Shader("assets/shader/default.vert", "assets/shader/animated.frag");
+	}
+	else{
+		p_sprPtr->pInfo.shdProgram = new Shader("assets/shader/default.vert", "assets/shader/sprite.frag");
+	}
+	glGenVertexArrays(1, &p_sprPtr->pInfo.vaoVertex);
+	glBindVertexArray(p_sprPtr->pInfo.vaoVertex);
+
+	glGenBuffers(1, &p_sprPtr->pInfo.vboVertex);
+	glBindBuffer(GL_ARRAY_BUFFER, p_sprPtr->pInfo.vboVertex);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vbodata), vbodata, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &p_sprPtr->pInfo.vboIndex);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, p_sprPtr->pInfo.vboIndex);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vboindx), vboindx, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(	p_sprPtr->pInfo.shdProgram->GetAttrib("vPosition"),
+							3, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
+							BUFFER_OFFSET(0));
+	glEnableVertexAttribArray(p_sprPtr->pInfo.shdProgram->GetAttrib("vPosition"));
+
+	glVertexAttribPointer(	p_sprPtr->pInfo.shdProgram->GetAttrib("vUV"),
+							2, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
+							BUFFER_OFFSET(sizeof(glm::vec3)));
+	glEnableVertexAttribArray(p_sprPtr->pInfo.shdProgram->GetAttrib("vUV"));
+
+	p_sprPtr->pInfo.shdAniStep_loc  = (*p_sprPtr->pInfo.shdProgram)["StepSize"];
+	p_sprPtr->pInfo.shdColor_loc = (*p_sprPtr->pInfo.shdProgram)["SpriteColor"];
+}
+
+void ShaderPipeline::spriteDraw(Sprite *p_sprPtr)
+{
+	glm::mat4 view = glm::translate(gMatrix()[2], p_sprPtr->pInfo.pos);
+	view = glm::scale(view, p_sprPtr->pInfo.scale);
+	view = glm::rotate(view, p_sprPtr->pInfo.angle.z, glm::vec3(0,0,1));
+	view = glm::rotate(view, p_sprPtr->pInfo.angle.x, glm::vec3(0,1,0));
+
+	glm::mat4 model(1.0f);
+	p_sprPtr->pInfo.shdProgram->Use();
+
+	if(p_sprPtr->pInfo.animated){
+		float step = (p_sprPtr->pInfo.aniPosition*p_sprPtr->pInfo.w)/p_sprPtr->pInfo.imgWidth;
+		//glUniform1f((*p_sprPtr->pInfo.shdProgram)["StepSize"], step);
+		//glUniform1f(StepLoc, step);
+		glUniform1f(p_sprPtr->pInfo.shdAniStep_loc, step);
+	}
+	//glUniform4fv((*pShader)["SpriteColor"], 1, &color.r);
+	glUniform4fv(p_sprPtr->pInfo.shdColor_loc, 1, &p_sprPtr->pInfo.color.r);
+	//glUniform4fv((*p_sprPtr->pInfo.shdProgram)["SpriteColor"], 1, &p_sprPtr->pInfo.color.r);
+	p_sprPtr->pInfo.shdProgram->ProjectMat(glm::value_ptr(gMatrix()[0]));
+	p_sprPtr->pInfo.shdProgram->ViewMat(glm::value_ptr(view));
+	p_sprPtr->pInfo.shdProgram->ModelMat(glm::value_ptr(model));
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, spr->textureid);
+	glBindTexture(GL_TEXTURE_2D, p_sprPtr->pInfo.txrId);
 
-	glBindVertexArray(spr->pVertexVAO);
+	glBindVertexArray(p_sprPtr->pInfo.vaoVertex);
+
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
 	glBindVertexArray(0);
 

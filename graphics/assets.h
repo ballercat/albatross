@@ -93,6 +93,8 @@ public:
 		_fs = p_Copy._fs;
 		_vs = p_Copy._vs;
 		_program = p_Copy._program;
+
+		return *this;
 	}
 
 public:

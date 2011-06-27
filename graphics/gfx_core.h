@@ -62,13 +62,14 @@ namespace gfx
 
 			glDisable(GL_TEXTURE_2D);
 
-			cursor.width = rawimage.GetWidth();
+			/*cursor.width = rawimage.GetWidth();
 			cursor.height = rawimage.GetHeight();
 			cursor.off = glm::vec3(0,0,0);
 			cursor.scale = glm::vec3(1,1,0);
 			cursor.textureid = Texture[0xFF];
 			cursor.imgd = glm::vec2(10,10);
-			cursor.Build();
+			cursor.Build();*/
+			cursor = Sprite(Texture[0xFF]);
 
 			Window->ShowMouseCursor(false);
 		}
@@ -80,7 +81,6 @@ namespace gfx
 		///Rendering helper functions
 		virtual void drawArray(GLvoid *v, GLvoid *t, GLvoid *c, GLuint size, GLuint type, GLuint texid) = 0;
 		virtual void drawText(glm::vec3 pos, const char *text,size_t size) = 0;
-		virtual void drawSprite(Sprite *spr) = 0;
 
 	public:
 		///General Helper functions
@@ -108,7 +108,7 @@ namespace gfx
 			this->camera	= glm::vec3(0,0,0);
 			this->zoom		= glm::vec3(1,1,1);
 
-			glDisable(GL_LIGHTING);
+			//glDisable(GL_LIGHTING);
 			glDisable(GL_DITHER);
 			glDisable(GL_DEPTH_TEST);
 
@@ -118,6 +118,26 @@ namespace gfx
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glViewport(0, 0, _width, _height);
+
+			MVP		= glm::mat4();
+			View	= glm::mat4(1.0f);
+			Model	= glm::mat4(1.0f);
+
+			_timer	= &timing::GlobalTime::Instance();
+
+			//general text
+			_text.SetText("NULL");
+			_text.SetPosition(0,0);
+			_text.SetColor(sf::Color(0,0,0));
+			//Fps
+			_fps.SetText("0");
+			_fps.SetPosition(0,0);
+			_fps.SetColor(sf::Color(0,255,0));
+			_fps.SetSize(14);
+
+			FrameTime = 0.0f;
+			_skip_frames_counter = 0;
+			_draw_time = _timer->GetElapsedTime();
 		}
 
 	public:

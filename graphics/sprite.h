@@ -32,20 +32,73 @@
 struct Sprite
 {
 public:
+	typedef struct spriteInfo_t{
+		spriteInfo_t(void) :
+			w(0),
+			h(0),
+			pos(glm::vec3(0.0f)),
+			angle(glm::vec3(0.0f)),
+			pivot(glm::vec2(0.5f, 0.5f)),
+			scale(glm::vec3(1.0f, 1.0f, 1.0f)),
+			color(glm::vec4(1,1,1,1)),
+			imgWidth(0.0f),
+			imgHeight(0.0f),
+			txrId(-1),
+			animated(false),
+			aniSpeed(0.0f),
+			aniPosition(0),
+			aniLength(0),
+			aniUpdate(0.0f),
+			vboIndex(0),
+			vboVertex(0),
+			vaoVertex(0),
+			shdProgram(NULL),
+			shdColor_loc(0),
+			shdAniStep_loc(0)
+			{
+
+			}
+
+		//data
+		GLint	 w, h;
+		glm::vec3 pos;
+		glm::vec3 angle;
+		glm::vec2 pivot;
+		glm::vec3 scale;
+		glm::vec4 color;
+		float	imgWidth, imgHeight;
+		int		txrId;
+		bool	animated;
+		float	aniSpeed;
+		int		aniPosition;
+		int		aniLength;
+		float	aniUpdate;
+
+		GLuint	vboIndex;
+		GLuint	vboVertex;
+		GLuint	vaoVertex;
+
+		Shader* shdProgram;
+		GLuint	shdColor_loc;
+		GLuint	shdAniStep_loc;
+	}Info;
+
+public:
+	////////////////////////////////////////////////////////////
+	///Default constructor
+	////////////////////////////////////////////////////////////
+	Sprite() :
+	Builder(NULL),
+	Renderer(NULL),
+	mTime(&timing::GlobalTime::Instance())
+	{
+
+	}
+
 	////////////////////////////////////////////////////////////
 	///Constructor, from .sprh file and a texture id
 	////////////////////////////////////////////////////////////
     Sprite(const char *fpath, GLuint texid);
-
-	////////////////////////////////////////////////////////////
-	///Default constructor
-	////////////////////////////////////////////////////////////
-	Sprite();
-
-	////////////////////////////////////////////////////////////
-	/// ctor with only a .sprh file
-	////////////////////////////////////////////////////////////		
-	Sprite(const char *p_SPRH);
 
 	////////////////////////////////////////////////////////////
 	/// ctor without a sprh file, default settings, no animation
@@ -56,79 +109,28 @@ public:
 	/// Copy Constructor
 	////////////////////////////////////////////////////////////
 	Sprite(const Sprite& p_Copy) :
-		animated(p_Copy.animated),
-		height(p_Copy.height),
-		width(p_Copy.width),
-		imgd(p_Copy.imgd),
-		angle(p_Copy.angle),
-		pos(p_Copy.pos),
-		pivot(p_Copy.pivot),
-		off(p_Copy.off),
-		scale(p_Copy.scale),
-		xstart(p_Copy.xstart),
-		color(p_Copy.color),
-		mLength(p_Copy.mLength),
-		mSpeed(p_Copy.mSpeed),
-		mPosition(p_Copy.mPosition),
-		mLastUpdate(p_Copy.mLastUpdate),
-		textureid(p_Copy.textureid),
-		mTime(&timing::GlobalTime::Instance()),
-		pIndexVBO(p_Copy.pIndexVBO),
-		pVertexVAO(p_Copy.pVertexVAO),
-		pVertexVBO(p_Copy.pVertexVBO),
-		pShader(p_Copy.pShader),
-		ColorLoc(p_Copy.ColorLoc),
-		StepLoc(p_Copy.StepLoc)
-		{
-			//memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
-			//memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
-		}
+	pInfo(p_Copy.pInfo),
+	Builder(p_Copy.Builder),
+	Renderer(p_Copy.Renderer),
+	mTime(&timing::GlobalTime::Instance())
+	{
+
+	}
 
 	////////////////////////////////////////////////////////////
 	/// Asignment operator
 	////////////////////////////////////////////////////////////
 	inline Sprite& operator=(const Sprite& p_Copy)
 	{
-		this->animated		= p_Copy.animated;
-		this->height 		= p_Copy.height;
-		this->width 		= p_Copy.width;
-		this->imgd			= p_Copy.imgd;
-		this->angle			= p_Copy.angle;
-		this->pos			= p_Copy.pos;
-		this->pivot			= p_Copy.pivot;
-		this->off			= p_Copy.off;
-		this->scale			= p_Copy.scale;
-		this->xstart		= p_Copy.xstart;
-		this->color			= p_Copy.color;
-		this->mLength		= p_Copy.mLength;
-		this->mSpeed		= p_Copy.mSpeed;
-		this->mPosition		= p_Copy.mPosition;
-		this->mLastUpdate	= p_Copy.mLastUpdate;
-		this->textureid		= p_Copy.textureid;
+		this->pInfo			= p_Copy.pInfo;
+		this->Builder		= p_Copy.Builder;
+		this->Renderer		= p_Copy.Renderer;
 		this->mTime			= &timing::GlobalTime::Instance();
-		this->pIndexVBO		= p_Copy.pIndexVBO;
-		this->pVertexVAO	= p_Copy.pVertexVAO;
-		this->pVertexVBO	= p_Copy.pVertexVBO;
-		this->pShader		= p_Copy.pShader;
-		this->ColorLoc		= p_Copy.ColorLoc;
-
-		//memcpy(this->texdata, p_Copy.texdata, sizeof(glm::vec2)*6);
-		//memcpy(this->vertdata, p_Copy.vertdata, sizeof(glm::vec3)*6);
 
 		return *this;
 	}
 
-    inline const void* getPixelpointer(void)
-    {
-        return NULL;
-    }
-
 public:
-	////////////////////////////////////////////////////////////
-	///Build vertex & texture coordinates
-	////////////////////////////////////////////////////////////
-	void Build();
-
 	////////////////////////////////////////////////////////////
 	///Step trough frames
 	////////////////////////////////////////////////////////////
@@ -140,39 +142,9 @@ public:
 	void Draw();
 
 public:
-    //Sprite & animation information
-    GLint		height,width;
-	glm::vec2	imgd;
-    glm::vec3   angle;
-    glm::vec3   pos;
-    glm::vec3   pivot;
-    glm::vec3   off;
-    glm::vec3   scale;
-    float       xstart;
-    glm::vec4   color;
-	glm::mat4	pViewMatrix;
-
-public:
-    ///Animation controll
-	bool	animated;
-    size_t  mLength;
-    float   mSpeed;
-    size_t  mPosition;
-	float   mLastUpdate;
-    int		textureid;
-
-	//glm::vec2 texdata[6];
-	//glm::vec3 vertdata[6];
-
-	//VBOVertex 	vbodata[6];
-	//GLushort	vboindx[6];
-
-	GLuint		pIndexVBO;
-	GLuint		pVertexVBO;
-	GLuint		pVertexVAO;
-	GLuint		ColorLoc;
-	GLuint		StepLoc;
-	Shader		*pShader;
+	Info		pInfo;
+	void		(*Builder)(Sprite *);
+	void		(*Renderer)(Sprite *);
 
 protected:
 	////////////////////////////////////////////////////////////

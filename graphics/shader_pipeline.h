@@ -28,11 +28,19 @@ namespace gfx
 class ShaderPipeline : public Core
 {
     public:
-        ShaderPipeline( unsigned p_Width,
+        ////////////////////////////////////////////////////////////
+		/// ctor
+		////////////////////////////////////////////////////////////
+		ShaderPipeline( unsigned p_Width,
                         unsigned p_Height,
                         const char *p_Name="humpback(0.0.5a)",
                         bool p_Fullscreen=false);
-        
+
+		////////////////////////////////////////////////////////////
+		/// ctor with a handler from a graphics manager
+		////////////////////////////////////////////////////////////
+		ShaderPipeline(sf::RenderWindow *p_WindowHandle);
+
     public:
         virtual void beginScene();
         virtual void endScene();
@@ -40,7 +48,10 @@ class ShaderPipeline : public Core
     public:
         virtual void drawArray(GLvoid *v, GLvoid *t, GLvoid *c, GLuint size, GLuint type, GLuint texid);
 		virtual void drawText(glm::vec3 pos, const char *text,size_t size);
-        virtual void drawSprite(Sprite *spr);
+
+	public:
+		static void	spriteBuild(Sprite *p_sprPtr);
+		static void spriteDraw(Sprite *p_sprPtr);
 
 	private:
 		VertexArray	*mArray;

@@ -475,7 +475,7 @@ void MapMaker::Step()
 
 		ApplyChange(&change, input->IsMouseButtonDown(Input::Mouse::Left));
 	}
-
+	glUseProgram(0);
 	glClearColor(0.5f,0.7f,0.8f,1.0f);
 	display->beginScene();{
 
@@ -598,10 +598,10 @@ void MapMaker::Step()
 			{
 
 				for(int i = 0;i < map->redspawn.size();i++){
-					//glVertex2f(map->redspawn[i].x, map->redspawn[i].y);
 					SpawnPoint->pos = glm::vec3(map->redspawn[i].x, map->redspawn[i].y, 0.0f);
 					SpawnPoint->color = glm::vec4(5.0f, 0.0f, 0.0f, 1.0f);
 					SpawnPoint->Draw();
+
 				}
 
 				glBegin(GL_POINTS);{

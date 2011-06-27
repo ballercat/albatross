@@ -22,8 +22,7 @@
 #ifndef GAME_CLIENT_HEADER_GUARD
 #define GAME_CLIENT_HEADER_GUARD
 
-#include "fixed_pipeline.h"
-#include "shader_pipeline.h"
+#include"gfxmanager.h"
 #include "client.h"
 #include "input.h"
 #include "inputhandler.h"
@@ -140,7 +139,7 @@ public:
 	struct GameInfo
 	{
 		bool debug;
-		
+
 		std::string mapfile;	//bgmf file path
 		std::string cursorfile;	//cursor .png file path
 		std::string	demoFile;	//bgdf file path
@@ -177,7 +176,8 @@ private:
 	//IO
 	InputHandlerMixin<Input>*       mInput;
 	//gfx::FixedPipeline*    			display;
-	gfx::ShaderPipeline				*display;
+	//gfx::ShaderPipeline				*display;
+	gfx::Core						*display;
 
 private:
 	//Physics
@@ -260,7 +260,7 @@ private:
 								float& p_Delta,
 								glm::vec3& p_Velocity)
 	{
-		p_Sprite->pos = p_Pos + (p_Delta * p_Velocity);
+		p_Sprite->pInfo.pos = p_Pos + (p_Delta * p_Velocity);
 		p_Sprite->Draw();
 	}
 
@@ -271,9 +271,9 @@ private:
 	void _drawHud(void);
 
 private:
-	////////////////////////////////////////////////////////////		
-	/// Set up Collision handlers	
-	////////////////////////////////////////////////////////////	
+	////////////////////////////////////////////////////////////
+	/// Set up Collision handlers
+	////////////////////////////////////////////////////////////
 	void _initCollisionHandlers(cpSpace *space);
 
 private:

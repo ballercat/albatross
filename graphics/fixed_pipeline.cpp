@@ -127,6 +127,7 @@ FixedPipeline::FixedPipeline(sf::WindowHandle p_Handle, const char* name)
 	Model = View = glm::mat4();
 	Projection = glm::ortho(-(_width/2),(_width/2),-(_height/2),(_height/2),-5.0f, 5.0f);
 
+
 	//general text
 	_text.SetText("NULL");
 	_text.SetPosition(0,0);
@@ -148,6 +149,11 @@ void FixedPipeline::beginScene()
 	_draw_time = _timer->GetElapsedTime();
 
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	View = glm::scale(glm::mat4(1.0f), zoom);
+	View = glm::translate(View, -camera);
+	gMatrix()[2] = View;
+	gMatrix()[0] = Projection;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -223,8 +229,3 @@ void FixedPipeline::drawText(glm::vec3 pos, const char* text, size_t size)
     Window->Draw(_text);
 }
 
-////////////////////////////////////////////////////////////
-void FixedPipeline::drawSprite(Sprite *spr)
-{
-
-}

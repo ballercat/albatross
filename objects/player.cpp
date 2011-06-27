@@ -30,10 +30,10 @@ Player::Player()
 	pTime.Jet		= ATimer();
 	pTime.Shoot		= ATimer();
 
-	mRunningSprite	= Sprite("assets/sprite/merc/run.sprh");
-	mIdleSprite		= Sprite("assets/sprite/merc/still.sprh");
-	mJetSprite		= Sprite("assets/sprite/merc/jet.sprh");	
-	mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh");
+	//mRunningSprite	= Sprite();
+	//mIdleSprite		= Sprite("assets/sprite/merc/still.sprh");
+	//mJetSprite		= Sprite("assets/sprite/merc/jet.sprh");
+	//mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh");
 
 	mBody			= NULL;
 	mSparks			= NULL;
@@ -181,7 +181,7 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 			mBody = &mRunningSprite;
 			//Adjust running sprite speed
 			float r = (MercObject.myStatus.pVelocity.x > 0) ? 1 : -1;
-			mBody->mSpeed = (r * 15.0f)/(MercObject.myStatus.pVelocity.x);
+			mBody->pInfo.aniSpeed = (r * 15.0f)/(MercObject.myStatus.pVelocity.x);
 			break;
 		}
 		case ActState::JETTING:
@@ -204,13 +204,13 @@ void Player::Draw(float interpolate)
 
 	for(size_t k = 0; k < 10; k++){
 		if(mJetFlames[k].Alpha > 0.0f){
-			mJetFlameSprite.color.a = mJetFlames[k].Alpha;
-			mJetFlameSprite.pos 	= mJetFlames[k].Pos;
-			mJetFlameSprite.angle.z	+= dt*80.0f;
+			mJetFlameSprite.pInfo.color.a = mJetFlames[k].Alpha;
+			mJetFlameSprite.pInfo.pos 	= mJetFlames[k].Pos;
+			mJetFlameSprite.pInfo.angle.z	+= dt*80.0f;
 			mJetFlameSprite.Draw();
 
-			mJetFlameSprite.pos.x += 3*mFlip;
-			mJetFlameSprite.pos.y += 8.0f;
+			mJetFlameSprite.pInfo.pos.x += 3*mFlip;
+			mJetFlameSprite.pInfo.pos.y += 8.0f;
 			mJetFlameSprite.Draw();
 
 			mJetFlames[k].Update(dt, dt*50.0f);
@@ -228,8 +228,8 @@ void Player::Draw(float interpolate)
 	}
 
 	//Set sprite position, angle. Draw
-	mBody->pos = pIPos;
-	mBody->angle.x = pAngle.x;
+	mBody->pInfo.pos = pIPos;
+	mBody->pInfo.angle.x = pAngle.x;
 	mBody->Step();
 	mBody->Draw();
 

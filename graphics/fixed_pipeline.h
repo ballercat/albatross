@@ -23,9 +23,6 @@
 
 #include "gfx_core.h"
 
-#define FIXED_PIPELINE 1
-#define SHADER_PIPELINE 0
-
 namespace gfx
 {
 	////////////////////////////////////////////////////////////
@@ -60,7 +57,6 @@ namespace gfx
 		///Rendering helper functions
 		virtual void drawArray(GLvoid *v, GLvoid *t, GLvoid *c, GLuint size, GLuint type, GLuint texid);
 		virtual void drawText(glm::vec3 pos, const char *text,size_t size);
-		virtual void drawSprite(Sprite *spr);
 
 	};
 }
