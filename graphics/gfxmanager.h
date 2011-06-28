@@ -66,11 +66,10 @@ namespace gfx
 
 				//Setup Shaders
 				hooks->glsl.Default = new Shader("assets/shader/default.vert", "assets/shader/default.frag");
-				hooks->glsl.sprDefault = new Shader("assets/shader/default.vert", "assets/shader/sprite.frag");
-				hooks->glsl.sprAnimated = new Shader("assets/shader/default.vert", "assets/shader/animated.frag");
+				hooks->glsl.sprDefault = new Shader("assets/shader/sprite.vert", "assets/shader/sprite.frag");
+				hooks->glsl.sprAnimated = new Shader("assets/shader/sprite.vert", "assets/shader/animated.frag");
 
 				hooks->glsl.Default->Use();
-				hooks->glsl.Default->ModelMat(glm::value_ptr(pipeline->Model));
 				hooks->glsl.Default->ProjectMat(glm::value_ptr(pipeline->Projection));
 
 				hooks->glsl.sprDefault->Use();
@@ -80,6 +79,8 @@ namespace gfx
 				hooks->glsl.sprAnimated->Use();
 				hooks->glsl.sprAnimated->ModelMat(glm::value_ptr(pipeline->Model));
 				hooks->glsl.sprAnimated->ProjectMat(glm::value_ptr(pipeline->Projection));
+
+				ShaderPipeline::setupBuffers();
 				glUseProgram(0);
 			} else if(GLEW_VERSION_1_3){
 				pipeline = new FixedPipeline(context);

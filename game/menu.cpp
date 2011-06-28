@@ -99,7 +99,7 @@ void MainClient::MainMenu()
 
 			//Draw scenery
 			if(map->header.sprc){
-				for(int i=0;i<gs.map.Scenery.size();i++){
+				for(unsigned i=0;i<gs.map.Scenery.size();i++){
 					//gs.map.Scenery[i].pInfo.color = glm::vec4(1,1,1,1);
 					gs.map.Scenery[i].Draw();
 				}

@@ -8,7 +8,8 @@
 precision highp float;
 
 uniform sampler2D ColorMapSampler;
-uniform float   StepSize;
+uniform float   AnimationPosition;
+uniform float   AnimationLength;
 uniform vec4 SpriteColor;
 
 // Fragment shader input variable declarations must exactly match the vertex
@@ -31,6 +32,8 @@ out vec4 FragColor;
 
 void main()
 {
-    vec2 add = vec2(vTexCoord.s + StepSize, vTexCoord.t);
+    float ani_pos = 1/AnimationLength * AnimationPosition;
+    vec2 add = vTexCoord;
+    add.x = add.x*(1/AnimationLength)+ani_pos;
     FragColor = SpriteColor * texture(ColorMapSampler, add);
 }

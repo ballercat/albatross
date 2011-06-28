@@ -24,8 +24,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-static sf::Clock g_timer;
-
 ////////////////////////////////////////////////////////////
 ///Constructor
 ////////////////////////////////////////////////////////////
@@ -50,7 +48,7 @@ MainClient::MainClient(void) :
 														info.fullscreen );
     	GLuint *Texture = display->Texture;
 		display->clearColor(0.5f, 0.7f, 0.8f, 1.0f);
-
+		display->clearColor(0,0,0,0);
    		mInput = new InputHandlerMixin<Input>(&mMessageQueue);
     	mInput->Window = display->Window;
 
@@ -71,13 +69,7 @@ MainClient::MainClient(void) :
 
 		//Bind bullet collision handlers
 		_initCollisionHandlers(space);
-		
 
-		//Timing(NOTE: improve/move this)
-    	lastupdate = g_timer.GetElapsedTime();
-		objectupdate = lastupdate;
-
-		//aExplosion = new Sprite("assets/explosions/default.sprh", Texture[EXPL]);
 	}
 
 	//Fatal error handling
@@ -224,6 +216,8 @@ void MainClient::_drawHud(void)
 
 	gs.hud.Object[GameSprites::HUD::FRAME].pInfo.pos.y = -250.0f;
 	gs.hud.Object[GameSprites::HUD::FRAME].Draw();
+	glm::vec3 hscale = glm::vec3(mPlayer->pHealth/100.0f,mPlayer->pHealth/100.0f,mPlayer->pHealth/100.0f);
+	gs.hud.Object[GameSprites::HUD::HEALTH].pInfo.scale = hscale;
 	gs.hud.Object[GameSprites::HUD::HEALTH].Draw();
 
 	gs.hud.Object[GameSprites::HUD::FRAME].pInfo.pos.y = -275.0f;
@@ -246,9 +240,8 @@ void MainClient::_drawHud(void)
 	//We manualy draw the circle bar here to save fps
 	bar->pInfo.shdProgram->Use();
 
-	glm::mat4 rotate(1.0f);
-	glm::mat4 scale = glm::translate(glm::mat4(1.0f), bar->pInfo.pos);
-	scale = glm::scale(scale, bar->pInfo.scale);
+	glm::mat4 barview(1.0f);
+	glm::mat4 barscale = glm::translate(barview, bar->pInfo.pos);
 
 	glUniform4fv(bar->pInfo.shdColor_loc, 1, &bar->pInfo.color.r);
 
@@ -260,9 +253,9 @@ void MainClient::_drawHud(void)
 	//Draw the bars
 	for(int i=0;i<mPlayer->pJetCounter;i++){
 		bar->pInfo.angle.z+=step;
-		rotate = glm::rotate(scale, bar->pInfo.angle.z, glm::vec3(0,0,1));
-
-		bar->pInfo.shdProgram->ViewMat(glm::value_ptr(rotate));
+		barview = glm::rotate(barscale, bar->pInfo.angle.z, glm::vec3(0,0,1));
+		barview = glm::scale(barview, bar->pInfo.scale * glm::vec3(bar->pInfo.w, bar->pInfo.h,1));
+		bar->pInfo.shdProgram->ViewMat(glm::value_ptr(barview));
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
 	}

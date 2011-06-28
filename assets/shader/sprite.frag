@@ -1,4 +1,4 @@
-#version 130
+#version 140
 // Precision qualifiers are added for code portability with OpenGL ES, not for
 // functionality. According to the GLSL 1.30 and later specs: the same object
 // declared in different shaders that are linked together must have the same
@@ -8,7 +8,7 @@
 precision highp float;
 
 uniform sampler2D ColorMapSampler;
-uniform vec4 SpriteColor;
+uniform vec4 SpriteColor = vec4(1.0);
 
 // Fragment shader input variable declarations must exactly match the vertex
 // shader's output variable declarations. The output of the vertex shader and
@@ -29,5 +29,7 @@ out vec4 FragColor;
 
 void main()
 {
-    FragColor = SpriteColor * texture(ColorMapSampler, vTexCoord);
+    vec4 colorout = SpriteColor;
+
+    FragColor = colorout * texture(ColorMapSampler, vTexCoord);
 }

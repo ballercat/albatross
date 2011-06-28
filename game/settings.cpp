@@ -90,7 +90,7 @@ void MainClient::_loadHudSprites(void)
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::HEALTH]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::AMMO]));
 	gs.hud.Object.push_back(Sprite(gs.hud.Texture[GameSprites::HUD::CIRCLEBAR]));
-	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].pInfo.pivot = glm::vec2(0.0f);
+	gs.hud.Object[GameSprites::HUD::CIRCLEBAR].pInfo.pivot = glm::vec3(0.0f);
 	gfx::Link::Instance().spriteBuild(&gs.hud.Object[GameSprites::HUD::CIRCLEBAR]);
 
 	gs.hud.Object[GameSprites::HUD::HEALTH].pInfo.pos = glm::vec3(-50.0f, -250.0f, 0.0f);
@@ -171,7 +171,6 @@ void MainClient::_loadMap(const char *p_MapPath)
 	{
 		//Generate polygon texture(s)
 		float	tsz	= map->texpath.size();
-		size_t	psz	= map->header.pc;
 		float tw	= tsz*128.0f;
 		float th	= 128.0f;
 		sf::Image	texturedata(tw, th);
@@ -229,7 +228,7 @@ void MainClient::_loadMap(const char *p_MapPath)
 			}
 
 			//Fling sprite objects into existance
-			for(int k=0;k<map->header.sprc;k++){
+			for(unsigned k=0;k<map->header.sprc;k++){
 				i = map->sprite[k].id;
 				fpath = "assets/scenery/" + map->sprheader[i];
 				Sprite spr(fpath.c_str(), gs.map.SceneryTextures[i]);
@@ -291,7 +290,7 @@ void MainClient::_loadMap(const char *p_MapPath)
 		gs.map.Index.push_back(indeces+2);
 		indeces += 3;
 
-		for(int k=3;k<p->data.size();k++){
+		for(unsigned k=3;k<p->data.size();k++){
 			v0 = p->data[k];
 			v1 = p->data[k-1];
 			v2 = p->data[k-2];

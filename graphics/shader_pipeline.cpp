@@ -26,6 +26,8 @@
 
 using namespace gfx;
 
+static GLuint	sprVert_vao, sprVert_vbo, sprIndx_vbo;
+
 ////////////////////////////////////////////////////////////
 /// default ctor
 ////////////////////////////////////////////////////////////
@@ -71,17 +73,62 @@ void ShaderPipeline::beginScene()
 	View = glm::scale(glm::mat4(1.0f), zoom);
 	View = glm::translate(View, -camera);
 
-	MVP = Model * View * Projection;/*
-	gMatrix()[0] = Projection;
-	gMatrix()[1] = Model;
-	gMatrix()[2] = View;
-	gMatrix()[3] = MVP;
-
-	gTransform()[0] = camera; */
+	MVP = Model * View * Projection;
 
 	gMatrix()[2] = View;
 }
 
+void ShaderPipeline::setupBuffers()
+{
+	VBOVertex vbodata[6];
+	GLushort vboindx[] = { 0, 1, 2, 3, 4, 5 };
+	vbodata[0].v = glm::vec3( 0.0f, 0.0f, 0.0f);
+	vbodata[1].v = glm::vec3( 0.0f, 1.0f, 0.0f);
+	vbodata[2].v = glm::vec3( 1.0f, 1.0f, 0.0f);
+	//Triangle 2
+	vbodata[3].v = glm::vec3( 0.0f, 0.0f, 0.0f);
+	vbodata[4].v = glm::vec3( 1.0f, 1.0f, 0.0f);
+	vbodata[5].v = glm::vec3( 1.0f, 0.0f, 0.0f);
+
+	//Texture coordinates
+	vbodata[0].t = glm::vec2(0, 1);
+	vbodata[1].t = glm::vec2(0, 0);
+	vbodata[2].t = glm::vec2(1, 0);
+	//Triangle 2
+	vbodata[3].t = glm::vec2(0, 1);
+	vbodata[4].t = glm::vec2(1, 0);
+	vbodata[5].t = glm::vec2(1, 1);
+
+	glGenVertexArrays(1, &sprVert_vao);
+	glBindVertexArray(sprVert_vao);
+
+	glGenBuffers(1, &sprVert_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, sprVert_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vbodata), vbodata, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &sprIndx_vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprIndx_vbo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vboindx), vboindx, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(Link::Instance().glsl.sprAnimated->GetAttrib("vPosition"),
+						3, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
+						BUFFER_OFFSET(0));
+	glVertexAttribPointer(Link::Instance().glsl.sprDefault->GetAttrib("vPosition"),
+						3, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
+						BUFFER_OFFSET(0));
+
+	glVertexAttribPointer(Link::Instance().glsl.sprAnimated->GetAttrib("vUV"),
+						2, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
+						BUFFER_OFFSET(sizeof(glm::vec3)));
+	glVertexAttribPointer(Link::Instance().glsl.sprDefault->GetAttrib("vPosition"),
+						3, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
+						BUFFER_OFFSET(0));
+
+	glEnableVertexAttribArray(Link::Instance().glsl.sprDefault->GetAttrib("vUV"));
+	glEnableVertexAttribArray(Link::Instance().glsl.sprDefault->GetAttrib("vPosition"));
+	glEnableVertexAttribArray(Link::Instance().glsl.sprAnimated->GetAttrib("vUV"));
+	glEnableVertexAttribArray(Link::Instance().glsl.sprAnimated->GetAttrib("vPosition"));
+}
 void ShaderPipeline::endScene()
 {
 	if(SkipFrames){
@@ -123,82 +170,39 @@ void ShaderPipeline::drawText(glm::vec3 pos, const char* text, size_t size)
 
 void ShaderPipeline::spriteBuild(Sprite *p_sprPtr)
 {
-	VBOVertex vbodata[6];
-	GLushort vboindx[] = { 0, 1, 2, 3, 4, 5 };
-	float px = p_sprPtr->pInfo.pivot.x;
-	float py = p_sprPtr->pInfo.pivot.y;
-	float w = p_sprPtr->pInfo.w;
-	float h = p_sprPtr->pInfo.h;
-
-	vbodata[0].v = glm::vec3(-px * w, -py * h, 0.0f);
-	vbodata[1].v = glm::vec3(-px * w,(1 - py) * h,0.0f);
-	vbodata[2].v = glm::vec3((1 - px) * w, (1 - py) * h,0.0f);
-	//Triangle 1
-	vbodata[3].v = glm::vec3(-px * w, -py * h, 0.0f);
-	vbodata[4].v = glm::vec3((1 - px) * w, (1 - py) * h,0.0f);
-	vbodata[5].v = glm::vec3((1 - px) * w, -py * h,0.0f);
-
-	//Texture coordinates
-	float zrx = 0.0f;
-	float zry = 0.0f;
-	h = h/p_sprPtr->pInfo.imgHeight;
-	w = w/p_sprPtr->pInfo.imgWidth;
-	//Triangle 0
-	vbodata[0].t = glm::vec2(zrx, zry + h);
-	vbodata[1].t = glm::vec2(zrx, zry);
-	vbodata[2].t = glm::vec2(zrx + w, zry);
-	//Triangle 1
-	vbodata[3].t = glm::vec2(zrx, zry + h);
-	vbodata[4].t = glm::vec2(zrx + w, zry);
-	vbodata[5].t = glm::vec2(zrx + w, zry + h);
-
 	if(p_sprPtr->pInfo.animated)
 		p_sprPtr->pInfo.shdProgram = Link::Instance().glsl.sprAnimated;
 	else
 		p_sprPtr->pInfo.shdProgram = Link::Instance().glsl.sprDefault;
 
-	glGenVertexArrays(1, &p_sprPtr->pInfo.vaoVertex);
-	glBindVertexArray(p_sprPtr->pInfo.vaoVertex);
-
-	glGenBuffers(1, &p_sprPtr->pInfo.vboVertex);
-	glBindBuffer(GL_ARRAY_BUFFER, p_sprPtr->pInfo.vboVertex);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vbodata), vbodata, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &p_sprPtr->pInfo.vboIndex);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, p_sprPtr->pInfo.vboIndex);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vboindx), vboindx, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(	p_sprPtr->pInfo.shdProgram->GetAttrib("vPosition"),
-							3, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
-							BUFFER_OFFSET(0));
-	glEnableVertexAttribArray(p_sprPtr->pInfo.shdProgram->GetAttrib("vPosition"));
-
-	glVertexAttribPointer(	p_sprPtr->pInfo.shdProgram->GetAttrib("vUV"),
-							2, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
-							BUFFER_OFFSET(sizeof(glm::vec3)));
-	glEnableVertexAttribArray(p_sprPtr->pInfo.shdProgram->GetAttrib("vUV"));
-
-	p_sprPtr->pInfo.shdAniStep_loc  = (*p_sprPtr->pInfo.shdProgram)["StepSize"];
+	p_sprPtr->pInfo.vaoVertex = sprVert_vao;
+	p_sprPtr->pInfo.shdAniPos_loc  = (*p_sprPtr->pInfo.shdProgram)["AnimationPosition"];
+	p_sprPtr->pInfo.shdAniLength_loc = (*p_sprPtr->pInfo.shdProgram)["AnimationLength"];
 	p_sprPtr->pInfo.shdColor_loc = (*p_sprPtr->pInfo.shdProgram)["SpriteColor"];
 }
 
 void ShaderPipeline::spriteDraw(Sprite *p_sprPtr)
 {
-	glm::mat4 view = glm::translate(gMatrix()[2], p_sprPtr->pInfo.pos);
-	view = glm::scale(view, p_sprPtr->pInfo.scale);
+	glm::mat4 view;
+	view = gMatrix()[2];
+	view = glm::translate(view, p_sprPtr->pInfo.pos);
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.z, glm::vec3(0,0,1));
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.x, glm::vec3(0,1,0));
+	view = glm::scale(view, glm::vec3(p_sprPtr->pInfo.w, p_sprPtr->pInfo.h, 1));
+	view = glm::scale(view, p_sprPtr->pInfo.scale);
+	view = glm::translate(view, -p_sprPtr->pInfo.pivot);//*glm::vec3(-p_sprPtr->pInfo.w, -p_sprPtr->pInfo.h,0));
 
 	p_sprPtr->pInfo.shdProgram->Use();
 
 	if(p_sprPtr->pInfo.animated){
-		float step = (p_sprPtr->pInfo.aniPosition*p_sprPtr->pInfo.w)/p_sprPtr->pInfo.imgWidth;
-		glUniform1f(p_sprPtr->pInfo.shdAniStep_loc, step);
+		glUniform1f(p_sprPtr->pInfo.shdAniPos_loc, p_sprPtr->pInfo.aniPosition);
+		glUniform1f(p_sprPtr->pInfo.shdAniLength_loc, p_sprPtr->pInfo.aniLength+1);
 	}
 
-	glUniform4fv(p_sprPtr->pInfo.shdColor_loc, 1, &p_sprPtr->pInfo.color.r);
-	p_sprPtr->pInfo.shdProgram->ViewMat(glm::value_ptr(view));
 
+	glUniform4fv(p_sprPtr->pInfo.shdColor_loc, 1, &p_sprPtr->pInfo.color.r);
+
+	p_sprPtr->pInfo.shdProgram->ViewMat(glm::value_ptr(view));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, p_sprPtr->pInfo.txrId);

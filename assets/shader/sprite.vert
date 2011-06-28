@@ -1,4 +1,4 @@
-#version 130
+#version 140
 
 // Precision qualifiers are added for code portability with OpenGL ES, not for
 // functionality. According to the GLSL 1.30 and later specs: the same object
@@ -42,6 +42,6 @@ void main()
     vec4 pos    = vec4(vPosition, 1.0);
     mat4 mvpMatrix = ProjectionMatrix * ViewMatrix * ModelMatrix;
     gl_Position = mvpMatrix * pos;
-
+    
     vTexCoord = vUV;
 }

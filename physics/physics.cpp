@@ -129,8 +129,8 @@ PhysicsObject::PhysicsObject(void) :
     myBodyDef(NULL),
     myShapeDef(NULL),
     mWorldPtr(GenericSingleton<PhysicsSimulator>::Instance().GetWorldHandle()),
-	m_Spawn(false),
 	mVelocityFunction(NULL),
+	m_Spawn(false),
 	mShapeData(NULL),
 	mType(-1),
 	mGroup(-1)

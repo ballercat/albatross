@@ -32,15 +32,15 @@
 struct Sprite
 {
 public:
-	typedef struct spriteInfo_t{
-		spriteInfo_t(void) :
+	struct Info{
+		Info(void) :
 			w(0),
 			h(0),
 			pos(glm::vec3(0.0f)),
 			angle(glm::vec3(0.0f)),
-			pivot(glm::vec2(0.5f, 0.5f)),
+			pivot(glm::vec3(0.5f, 0.5f, 0.0f)),
 			scale(glm::vec3(1.0f, 1.0f, 1.0f)),
-			color(glm::vec4(1,1,1,1)),
+			color(glm::vec4(0.9,0.9,0.9,0.9)),
 			imgWidth(0.0f),
 			imgHeight(0.0f),
 			txrId(-1),
@@ -54,7 +54,8 @@ public:
 			vaoVertex(0),
 			shdProgram(NULL),
 			shdColor_loc(0),
-			shdAniStep_loc(0)
+			shdAniLength_loc(0),
+			shdAniPos_loc(0)
 			{
 
 			}
@@ -63,7 +64,7 @@ public:
 		GLint	 w, h;
 		glm::vec3 pos;
 		glm::vec3 angle;
-		glm::vec2 pivot;
+		glm::vec3 pivot;
 		glm::vec3 scale;
 		glm::vec4 color;
 		float	imgWidth, imgHeight;
@@ -80,8 +81,9 @@ public:
 
 		Shader* shdProgram;
 		GLuint	shdColor_loc;
-		GLuint	shdAniStep_loc;
-	}Info;
+		GLuint	shdAniLength_loc;
+		GLuint	shdAniPos_loc;
+	};
 
 public:
 	////////////////////////////////////////////////////////////

@@ -230,7 +230,7 @@ void MainClient::Run(const char *p_DemoFile)
 
 			//Draw scenery
 			if(map->header.sprc){
-				for(int i=0;i<gs.map.Scenery.size();i++){
+				for(unsigned i=0;i<gs.map.Scenery.size();i++){
 					gs.map.Scenery[i].Draw();
 				}
 			}
@@ -245,7 +245,6 @@ void MainClient::Run(const char *p_DemoFile)
 				glBindTexture(GL_TEXTURE_2D, gs.map.Texture);
 
 				glBindVertexArray(gs.map.VAO);
-				//glDrawElements(GL_TRIANGLES, gs.map.Index.size(), GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
 				glDrawRangeElements(	GL_TRIANGLES,
 										map->hpc,
 										gs.map.Index.size(),
@@ -279,7 +278,6 @@ void MainClient::Run(const char *p_DemoFile)
 ////////////////////////////////////////////////////////////
 bool MainClient::_handleMessages(void)
 {
-	float t;
     if(mMessageQueue.Size())
     {
         while(mMessageQueue.Size()){

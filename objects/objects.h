@@ -58,8 +58,8 @@ public:
 		Status(void):
 			pDest(glm::vec3()),
 			pPos(glm::vec3()),
-			pVelocity(glm::vec3()),
 			pValue(0),
+			pVelocity(glm::vec3()),
 			pAirborne(false),
 			pDoubleJump(false),
 			pLastUpdate(0.0f),
@@ -80,14 +80,14 @@ public:
 			pPos(p_Copy.pPos),
 			pValue(p_Copy.pValue),
 			pVelocity(p_Copy.pVelocity),
-			u(p_Copy.u),
-			pShape(p_Copy.pShape),
-			pGroundNormal(p_Copy.pGroundNormal),
-			pGroundShapes(p_Copy.pGroundShapes),
 			pAirborne(p_Copy.pAirborne),
 			pDoubleJump(p_Copy.pDoubleJump),
 			pLastUpdate(p_Copy.pLastUpdate),
-			pHealth(p_Copy.pHealth)
+			pHealth(p_Copy.pHealth),
+			u(p_Copy.u),
+			pShape(p_Copy.pShape),
+			pGroundNormal(p_Copy.pGroundNormal),
+			pGroundShapes(p_Copy.pGroundShapes)
 		{
 			//void
 		}
@@ -135,8 +135,8 @@ public:
         glm::vec3    	pPos; ///> postion
 		int         	pValue; ///> status value
 		glm::vec3		pVelocity;
-        bool 			pDoubleJump;
 		bool 			pAirborne;
+		bool 			pDoubleJump;
         float       	pLastUpdate; ///>last update
 		float			pHealth;
         cpFloat 		u;

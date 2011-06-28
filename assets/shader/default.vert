@@ -1,4 +1,4 @@
-#version 130
+#version 140
 
 // Precision qualifiers are added for code portability with OpenGL ES, not for
 // functionality. According to the GLSL 1.30 and later specs: the same object
@@ -14,9 +14,9 @@ precision highp float;
 // need to supply projection, view, and model matrices in order to transform
 // vertices from model space to clip space.
 
-uniform mat4 ProjectionMatrix;
-uniform mat4 ViewMatrix;
-uniform mat4 ModelMatrix;
+uniform mat4 ProjectionMatrix = mat4(1.0);
+uniform mat4 ViewMatrix = mat4(1.0);
+uniform mat4 ModelMatrix = mat4(1.0);
 
 // GLSL 1.30 (OpenGL 3.0) deprecates vertex shader attribute variables. They
 // have been replaced with user-defined generic shader input variables. The

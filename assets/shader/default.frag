@@ -1,4 +1,4 @@
-#version 130
+#version 140
 // Precision qualifiers are added for code portability with OpenGL ES, not for
 // functionality. According to the GLSL 1.30 and later specs: the same object
 // declared in different shaders that are linked together must have the same
@@ -29,5 +29,14 @@ out vec4 FragColor;
 
 void main()
 {
-    FragColor = theColor * texture(ColorMapSampler, vTexCoord);
+    vec4 colorout = theColor;
+    /*float d = distance(gl_FragCoord.xy, vec2(512,300));
+    if(d > 200.0f){
+        colorout.rgb = vec3(0);
+    }
+    colorout.a -= d/200;
+    */
+    
+        
+    FragColor = colorout * texture(ColorMapSampler, vTexCoord);
 }

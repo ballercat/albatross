@@ -50,6 +50,7 @@ class ShaderPipeline : public Core
 		virtual void drawText(glm::vec3 pos, const char *text,size_t size);
 
 	public:
+		static void setupBuffers();
 		static void	spriteBuild(Sprite *p_sprPtr);
 		static void spriteDraw(Sprite *p_sprPtr);
 
