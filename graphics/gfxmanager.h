@@ -56,7 +56,7 @@ namespace gfx
 			//Create the rendering pipleine
 			Core *pipeline = NULL;
 			renderPointers *hooks = &Link::Instance();
-			if(GLEW_VERSION_3_0){
+			if(GLEW_VERSION_3_1){
 
 				pipeline = new ShaderPipeline(context);
 

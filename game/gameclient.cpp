@@ -69,7 +69,7 @@ MainClient::MainClient(void) :
 
 		//Bind bullet collision handlers
 		_initCollisionHandlers(space);
-
+	
 	}
 
 	//Fatal error handling

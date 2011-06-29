@@ -81,6 +81,7 @@ void ShaderPipeline::beginScene()
 void ShaderPipeline::setupBuffers()
 {
 	VBOVertex vbodata[6];
+
 	GLushort vboindx[] = { 0, 1, 2, 3, 4, 5 };
 	vbodata[0].v = glm::vec3( 0.0f, 0.0f, 0.0f);
 	vbodata[1].v = glm::vec3( 0.0f, 1.0f, 0.0f);
@@ -120,9 +121,9 @@ void ShaderPipeline::setupBuffers()
 	glVertexAttribPointer(Link::Instance().glsl.sprAnimated->GetAttrib("vUV"),
 						2, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
 						BUFFER_OFFSET(sizeof(glm::vec3)));
-	glVertexAttribPointer(Link::Instance().glsl.sprDefault->GetAttrib("vPosition"),
-						3, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
-						BUFFER_OFFSET(0));
+	glVertexAttribPointer(Link::Instance().glsl.sprDefault->GetAttrib("vUV"),
+						2, GL_FLOAT, GL_FALSE, sizeof(VBOVertex),
+						BUFFER_OFFSET(sizeof(glm::vec3)));
 
 	glEnableVertexAttribArray(Link::Instance().glsl.sprDefault->GetAttrib("vUV"));
 	glEnableVertexAttribArray(Link::Instance().glsl.sprDefault->GetAttrib("vPosition"));
@@ -183,15 +184,15 @@ void ShaderPipeline::spriteBuild(Sprite *p_sprPtr)
 
 void ShaderPipeline::spriteDraw(Sprite *p_sprPtr)
 {
-	glm::mat4 view;
+	glm::mat4 view(1.0f);
+	//view = gMatrix()[2];
 	view = gMatrix()[2];
 	view = glm::translate(view, p_sprPtr->pInfo.pos);
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.z, glm::vec3(0,0,1));
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.x, glm::vec3(0,1,0));
 	view = glm::scale(view, glm::vec3(p_sprPtr->pInfo.w, p_sprPtr->pInfo.h, 1));
 	view = glm::scale(view, p_sprPtr->pInfo.scale);
-	view = glm::translate(view, -p_sprPtr->pInfo.pivot);//*glm::vec3(-p_sprPtr->pInfo.w, -p_sprPtr->pInfo.h,0));
-
+	view = glm::translate(view, -p_sprPtr->pInfo.pivot);
 	p_sprPtr->pInfo.shdProgram->Use();
 
 	if(p_sprPtr->pInfo.animated){

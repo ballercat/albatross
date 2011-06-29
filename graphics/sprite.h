@@ -49,6 +49,7 @@ public:
 			aniPosition(0),
 			aniLength(0),
 			aniUpdate(0.0f),
+			ViewMatrix(1.0f),
 			vboIndex(0),
 			vboVertex(0),
 			vaoVertex(0),
@@ -74,6 +75,8 @@ public:
 		int		aniPosition;
 		int		aniLength;
 		float	aniUpdate;
+
+		glm::mat4	ViewMatrix;
 
 		GLuint	vboIndex;
 		GLuint	vboVertex;

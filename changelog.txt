@@ -60,12 +60,7 @@ alpha 0.0.2 -> alpha 0.0.3
     Version 'Beluga' to 'Bowhead':
         -Removed SFML gfx code
         -Removed old object handling
-        -Replaced sfml sprite code with OGL code:
-            (NOTE) A few problems with the way sfml does
-            its sprite code, almost all are workable. 
-            Except for the way it rotates/draws the sprites
-            they rotate around a vertex instead of the center
-            in SFML 1.6.
+        -Replaced sfml sprite code with OGL code
         -Simpler more straight forward sprite code
         -Started to use sprite sheets
         -SFML is used to display text

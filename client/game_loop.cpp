@@ -72,7 +72,7 @@ void MainClient::Run(const char *p_DemoFile)
 		//Input updates
 		while((currentTime - inputlag) >= INPUT_LATENCY){
 			mp = mInput->InputState().mouse.pos;
-
+			
 			if(info.demoPlay){
 
 
@@ -140,9 +140,33 @@ void MainClient::Run(const char *p_DemoFile)
 					if(mPlayer->pTime.Current - mPlayer->pTime.Jet.Stamp > 1.0f)
 						mPlayer->pJetCounter++;
 				}
+				if(lasthp != mPlayer->pHealth){
+					char d[12];
+					int diff = mPlayer->pHealth - lasthp;
+					sprintf(d,"%d", diff);
+					lasthp = mPlayer->pHealth;
+					damage.SetText(d);
+					dtimer = 15.0f;
+
+					if(diff > 0)
+						damage.SetColor(sf::Color(0,255,0));
+					else
+						damage.SetColor(sf::Color(255,0,0));
+				}
 			}
 			else {
 				if(mPlayer->pSpawned){
+					char d[12];
+					int diff = lasthp;
+					sprintf(d,"%d", diff);
+					lasthp = 0;
+					damage.SetText(d);
+					dtimer = 15.0f;
+
+					if(diff > 0)
+						damage.SetColor(sf::Color(0,255,0));
+					else
+						damage.SetColor(sf::Color(255,0,0));
 					mPlayer->pHealth = 0.0f;
 					mPlayer->Kill();
 				}
@@ -207,19 +231,6 @@ void MainClient::Run(const char *p_DemoFile)
 
 			//Draw the player with interpolate
 			mPlayer->Draw(delta);
-			if(lasthp != mPlayer->pHealth){
-				char d[12];
-				int diff = mPlayer->pHealth - lasthp;
-				sprintf(d,"%d", diff);
-				lasthp = mPlayer->pHealth;
-				damage.SetText(d);
-				dtimer = 15.0f;
-
-				if(diff > 0)
-					damage.SetColor(sf::Color(0,255,0));
-				else
-					damage.SetColor(sf::Color(255,0,0));
-			}
 			if(dtimer > 0){
 				damage.SetY(280+dtimer);
 				display->Window->Draw(damage);

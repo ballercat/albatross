@@ -66,8 +66,6 @@ void BulletPlain::Initialize(void)
 	glm::vec3 dn = pos - des;
 	pAngle = -glm::degrees(-glm::atan(dn.y, dn.x));
 
-
-
     myStatus.lastup = gclock.GetElapsedTime();
     lastpos = pos;
 
