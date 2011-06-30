@@ -19,6 +19,7 @@
 
 #include "mmgui.h"
 #include "inputhandler.h"
+#include "gfxmanager.h"
 #include <cstdio>
 
 ////////////////////////////////////////////////////////////
@@ -37,9 +38,9 @@ wxControl(p_Parent, p_Id, p_Position, p_Size, p_Style)
 		gtk_widget_set_double_buffered(m_wxwindow, false);
 		GdkWindow* Win = GTK_PIZZA(m_wxwindow)->bin_window;
 		XFlush(GDK_WINDOW_XDISPLAY(Win));
-		mContext = new gfx::FixedPipeline(GDK_WINDOW_XWINDOW(Win));
+		mContext = gfx::Manager::NewFixedContext(GDK_WINDOW_XWINDOW(Win));
 	#else
-		mContext = new gfx::FixedPipeline(GetHandle());
+		mContext = gfx::Manager::NewFixedContext(GetHandle());
 	#endif
 
 	LoadTextures("textures.ini", mContext->Texture);

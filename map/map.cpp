@@ -147,11 +147,19 @@ bgmf* bgmfopen(const char *fpath)
 		fread(&temp, sizeof(uint32_t), 1, mapfile);
 		map->poly[i].data.resize(temp, glm::vec3());
 		fread(&map->poly[i].data[0], sizeof(glm::vec3), temp, mapfile);
-
 		//Resize the tex coordinates while at it
 		map->texcoord[i].data.resize(temp, glm::vec2(0.0f,0.0f));
 
 		map->vertcount += temp;
+
+		for(unsigned k = 0;k < temp;k++){
+			Vertex v;
+			v.v = map->poly[i].data[k];
+			v.t = map->texcoord[i].data[k];
+			v.c = map->color[i].data[k];
+			map->verts.push_back(v);
+			map->indx.push_back(map->indx.size());
+		}
 	}
     //fread(&map->poly[0], sizeof(bgmf_poly) * map->header.pc, 1, mapfile);
 

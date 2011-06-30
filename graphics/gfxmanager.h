@@ -47,6 +47,38 @@ namespace gfx
 											p_WindowName,
 											windowstyle );
 
+			return _buildContext(context);
+		}
+
+		static Core*
+		NewContext(sf::WindowHandle p_Handle){
+			sf::RenderWindow *context = NULL;
+
+			context = new sf::RenderWindow(p_Handle);
+
+			return _buildContext(context);
+		}
+
+		static Core*
+		NewFixedContext(sf::WindowHandle p_Handle){
+			sf::RenderWindow *context = NULL;
+
+			context = new sf::RenderWindow(p_Handle);
+
+			Core *pipeline = new FixedPipeline(context);
+
+			renderPointers *hooks = &Link::Instance();
+
+			hooks->spriteBuild = &FixedPipeline::spriteBuild;
+			hooks->spriteDraw = &FixedPipeline::spriteDraw;
+
+			FixedPipeline::setupBuffers();
+
+			return pipeline;
+		}
+
+		static Core* _buildContext(sf::RenderWindow *context)
+		{
 			GLuint glew_error = glewInit();
 			if(GLEW_OK != glew_error){
 				//failed to init glew exiting

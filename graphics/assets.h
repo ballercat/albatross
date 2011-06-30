@@ -20,6 +20,7 @@
 
 #ifndef ASSETS_HEADER_GUARD
 #define ASSETS_HEADER_GUARD
+#include"vertbuffer.h"
 #include <GL/gl.h>
 #include <glm/glm.hpp>
 
@@ -37,7 +38,6 @@ enum TextureID
 
 //Helper macross
 #define EXPLOSIONSPRITE Sprite("assets/explosions/default.sprh", display->Texture[EXPL])
-#define BUFFER_OFFSET(i)	((char*)NULL + (i))
 
 extern void LoadTextures(const char *fpath, GLuint* texture);
 extern bool LoadTex(GLuint texid, const char *fpath);
@@ -51,6 +51,7 @@ struct VBOVertex
 	glm::vec3	v;
 	glm::vec2	t;
 	glm::vec4	c;
+	glm::vec3	n;
 };
 
 struct Shader

@@ -30,13 +30,11 @@ out vec4 FragColor;
 void main()
 {
     vec4 colorout = theColor;
-    /*float d = distance(gl_FragCoord.xy, vec2(512,300));
+    float d = distance(gl_FragCoord.xy, vec2(512,300));
     if(d > 200.0f){
         colorout.rgb = vec3(0);
     }
     colorout.a -= d/200;
-    */
-    
-        
+   
     FragColor = colorout * texture(ColorMapSampler, vTexCoord);
 }

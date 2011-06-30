@@ -24,6 +24,9 @@
 
 using namespace gfx;
 
+static glm::vec3 sprv[6];
+static glm::vec2 sprt[6];
+
 ////////////////////////////////////////////////////////////
 /// Create render contex
 ////////////////////////////////////////////////////////////
@@ -94,9 +97,9 @@ FixedPipeline::FixedPipeline(	unsigned pWidth,
 ////////////////////////////////////////////////////////////
 /// ctor from a window handle
 ////////////////////////////////////////////////////////////
-FixedPipeline::FixedPipeline(sf::WindowHandle p_Handle, const char* name)
+FixedPipeline::FixedPipeline(sf::RenderWindow *p_Window)
 {
-	Window 	= new sf::RenderWindow(p_Handle);
+	Window 	= p_Window;
 	Window->PreserveOpenGLStates(true);
 
 	_timer 	= &timing::GlobalTime::Instance();
@@ -229,3 +232,61 @@ void FixedPipeline::drawText(glm::vec3 pos, const char* text, size_t size)
     Window->Draw(_text);
 }
 
+void FixedPipeline::setupBuffers()
+{
+	sprv[0] = glm::vec3( 0.0f, 0.0f, 0.0f);
+	sprv[1] = glm::vec3( 0.0f, 1.0f, 0.0f);
+	sprv[2] = glm::vec3( 1.0f, 1.0f, 0.0f);
+	//Triangle 2
+	sprv[3] = glm::vec3( 0.0f, 0.0f, 0.0f);
+	sprv[4] = glm::vec3( 1.0f, 1.0f, 0.0f);
+	sprv[5] = glm::vec3( 1.0f, 0.0f, 0.0f);
+
+	//Texture coordinates
+	sprt[0] = glm::vec2(0, 1);
+	sprt[1] = glm::vec2(0, 0);
+	sprt[2] = glm::vec2(1, 0);
+	//Triangle 2
+	sprt[3] = glm::vec2(0, 1);
+	sprt[4] = glm::vec2(1, 0);
+	sprt[5] = glm::vec2(1, 1);
+}
+
+void FixedPipeline::spriteBuild(Sprite *spr)
+{
+
+}
+
+void FixedPipeline::spriteDraw(Sprite *spr)
+{
+	glPushMatrix();{
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, spr->pInfo.txrId);
+
+		glTranslatef(spr->pInfo.pos.x, spr->pInfo.pos.y, spr->pInfo.pos.z);
+		glRotatef(spr->pInfo.angle.z, 0, 0, 1);
+		glRotatef(spr->pInfo.angle.x, 1, 0, 0);
+		glScalef(spr->pInfo.w, spr->pInfo.h, 1);
+		glScalef(spr->pInfo.scale.x, spr->pInfo.scale.y, spr->pInfo.scale.z);
+		glTranslatef(-spr->pInfo.pivot.x, -spr->pInfo.pivot.y, -spr->pInfo.pivot.z);
+
+		glColor4f(spr->pInfo.color.r, spr->pInfo.color.g, spr->pInfo.color.b, spr->pInfo.color.a);
+		glBegin(GL_TRIANGLES);{
+			glTexCoord2f(sprt[0].x, sprt[0].y);
+			glVertex3f(sprv[0].x, sprv[0].y, sprv[0].z);
+			glTexCoord2f(sprt[1].x, sprt[1].y);
+			glVertex3f(sprv[1].x, sprv[1].y, sprv[1].z);
+			glTexCoord2f(sprt[2].x, sprt[2].y);
+			glVertex3f(sprv[2].x, sprv[2].y, sprv[2].z);
+
+			glTexCoord2f(sprt[3].x, sprt[3].y);
+			glVertex3f(sprv[3].x, sprv[3].y, sprv[3].z);
+			glTexCoord2f(sprt[4].x, sprt[4].y);
+			glVertex3f(sprv[4].x, sprv[4].y, sprv[4].z);
+			glTexCoord2f(sprt[5].x, sprt[5].y);
+			glVertex3f(sprv[5].x, sprv[5].y, sprv[5].z);
+		}glEnd();
+
+		glDisable(GL_TEXTURE_2D);
+	}glPopMatrix();
+}

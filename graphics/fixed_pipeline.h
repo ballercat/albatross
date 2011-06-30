@@ -43,8 +43,7 @@ namespace gfx
 		////////////////////////////////////////////////////////////
 		/// ctor from a window handle
 		////////////////////////////////////////////////////////////
-		FixedPipeline( 	sf::WindowHandle p_HWD,
-						const char *name="finback(0.0.4a)" );
+		FixedPipeline( sf::RenderWindow *p_Window);
 
 	public:
 		////////////////////////////////////////////////////////////
@@ -58,6 +57,9 @@ namespace gfx
 		virtual void drawArray(GLvoid *v, GLvoid *t, GLvoid *c, GLuint size, GLuint type, GLuint texid);
 		virtual void drawText(glm::vec3 pos, const char *text,size_t size);
 
+		static void setupBuffers();
+		static void spriteBuild(Sprite *spr);
+		static void spriteDraw(Sprite *spr);
 	};
 }
 

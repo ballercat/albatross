@@ -31,7 +31,7 @@ public:
 	MapMaker	mm;
 
 private:
-	gfx::FixedPipeline*	mContext;
+	gfx::Core*			mContext;
 	Input*				mInput;
 	message::Queue		mMessageQueue;
 };

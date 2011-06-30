@@ -20,6 +20,7 @@
 #ifndef MAP_HEADER_GUARD
 #define MAP_HEADER_GUARD
 
+#include"vertbuffer.h"
 #include<glm/glm.hpp>
 #include<stdint.h>
 #include<vector>
@@ -323,6 +324,8 @@ struct bgmf
 	uint32_t					vertcount;
 
 	std::vector<MapVertex>		Data;
+	std::vector<Vertex>			verts;
+	std::vector<GLushort>		indx;
 /*
 	///Static sprites/scenery data
 	std::vector<bgmf_sprite>	sprite;

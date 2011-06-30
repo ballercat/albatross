@@ -77,7 +77,6 @@ public:
 			return false;
 		}
 
-
         return true;
     }
 
@@ -225,6 +224,8 @@ public:
     bool load;
     bool vertex_snap;
 	std::vector<glm::vec3> vertex;
+	std::vector<Vertex>		nverts;
+	std::vector<GLushort>	nindx;
 	bgmf_poly_tex texcoord;
 	glm::vec2				_DefaultTC[4];
 	bgmf_poly	 polynew;
@@ -236,9 +237,8 @@ public:
 public:
 	/// Events & IO
     Input				*input;
-    gfx::FixedPipeline	*display;
+    gfx::Core			*display;
 	EventQueue			pEvents;
-
 };
 
 

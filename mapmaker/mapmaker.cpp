@@ -197,7 +197,7 @@ void MapMaker::loadSpriteData()
 			i = map->sprite[k].id;
 			fpath = pWorkingDir + "/assets/scenery/" + map->sprheader[i];
 			Sprite scnr(fpath.c_str(), gfx.SpriteTextures[i]);
-			scnr.pos = map->sprite[k].pos;
+			scnr.pInfo.pos = map->sprite[k].pos;
 
 			spriteView spr;
 			spr.ptr = &map->sprite[k];
@@ -330,12 +330,14 @@ bool MapMaker::Pick(change_struct *ch, size_t range)
 		for(int i=0;i<gfx.Scenery.size();i++){
 			sp = &gfx.Scenery[i].spr;
 
-			/*pick = sf::Rect<float>(sp->pos.x+sp->vertdata[0].x, sp->pos.y+sp->vertdata[0].y,
-									sp->pos.x+sp->vertdata[4].x, sp->pos.y+sp->vertdata[4].y);
+			pick = sf::Rect<float>(	sp->pInfo.pos.x+(-sp->pInfo.pivot.x*sp->pInfo.w),
+									sp->pInfo.pos.y+(-sp->pInfo.pivot.y*sp->pInfo.h),
+									sp->pInfo.pos.x+( sp->pInfo.pivot.x*sp->pInfo.w),
+									sp->pInfo.pos.y+( sp->pInfo.pivot.y*sp->pInfo.h) );
 			if(pick.Contains(mouse.x, mouse.y)){
 				ch->sprite = &gfx.Scenery[i];
 				return true;
-			}*/
+			}
 		}
 
 		ch->sprite = NULL;
@@ -475,7 +477,7 @@ void MapMaker::Step()
 
 		ApplyChange(&change, input->IsMouseButtonDown(Input::Mouse::Left));
 	}
-	glUseProgram(0);
+
 	glClearColor(0.5f,0.7f,0.8f,1.0f);
 	display->beginScene();{
 
@@ -498,7 +500,7 @@ void MapMaker::Step()
 			}
 
 			for(int i=0;i<gfx.Scenery.size();i++){
-				gfx.Scenery[i].spr.pos = gfx.Scenery[i].ptr->pos;
+				gfx.Scenery[i].spr.pInfo.pos = gfx.Scenery[i].ptr->pos;
 				gfx.Scenery[i].spr.Draw();
 			}
 
@@ -575,14 +577,20 @@ void MapMaker::Step()
 			if(change.sprite){
 				glColor3f(0.0f, 1.0f, 0.0f);
 				glLineWidth(2.0f);
+				Sprite *sp = &change.sprite->spr;
+				float x = change.sprite->ptr->pos.x;
+				float y = change.sprite->ptr->pos.y;
+				float w = sp->pInfo.pivot.x*sp->pInfo.w;
+				float h = sp->pInfo.pivot.y*sp->pInfo.h;
 				glPushMatrix();{
 					glTranslatef(change.sprite->ptr->pos.x, change.sprite->ptr->pos.y, 0.0f);
-					//glBegin(GL_LINE_LOOP);{
-						//glVertex2f(change.sprite->spr.vertdata[0].x, change.sprite->spr.vertdata[0].y);
-						//glVertex2f(change.sprite->spr.vertdata[1].x, change.sprite->spr.vertdata[1].y);
-						//glVertex2f(change.sprite->spr.vertdata[2].x, change.sprite->spr.vertdata[2].y);
-						//glVertex2f(change.sprite->spr.vertdata[5].x, change.sprite->spr.vertdata[5].y);
-					//}glEnd();
+					glBegin(GL_LINE_LOOP);{
+						glVertex2f(x - w, y - h);
+						glVertex2f(x - w, y + h);
+						glVertex2f(x + w, y + w);
+						glVertex2f(x + w, y - h);
+					}glEnd();
+
 				}glPopMatrix();
 			}
 
@@ -598,8 +606,8 @@ void MapMaker::Step()
 			{
 
 				for(int i = 0;i < map->redspawn.size();i++){
-					SpawnPoint->pos = glm::vec3(map->redspawn[i].x, map->redspawn[i].y, 0.0f);
-					SpawnPoint->color = glm::vec4(5.0f, 0.0f, 0.0f, 1.0f);
+					SpawnPoint->pInfo.pos = glm::vec3(map->redspawn[i].x, map->redspawn[i].y, 0.0f);
+					SpawnPoint->pInfo.color = glm::vec4(5.0f, 0.0f, 0.0f, 1.0f);
 					SpawnPoint->Draw();
 
 				}

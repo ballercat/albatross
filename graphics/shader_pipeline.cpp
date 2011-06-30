@@ -62,6 +62,10 @@ ShaderPipeline::ShaderPipeline(sf::RenderWindow *p_WindowHandle)
 
 	Projection = glm::ortho(_width/-2.0f, _width/2.0f, _height/-2.0f, _height/2.0f, -5.0f, 5.0f);
 	MVP		= Model * View * Projection;
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-(_width/2),(_width/2),-(_height/2),(_height/2),-5.0f, 5.0f);
 }
 
 void ShaderPipeline::beginScene()
@@ -158,7 +162,30 @@ void ShaderPipeline::endScene()
 
 void ShaderPipeline::drawArray(GLvoid *v,GLvoid *t,GLvoid *c,GLuint size,GLuint type,GLuint texid)
 {
+    if(t){
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, 0, t);
+        glBindTexture(GL_TEXTURE_2D, texid);
+    }
+    if(c){
+        glEnableClientState(GL_COLOR_ARRAY);
+        glColorPointer(4, GL_FLOAT, 0, c);
+    }
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+	glActiveTexture(GL_TEXTURE0);
+    glVertexPointer(3, GL_FLOAT, 0, v);
+    glDrawArrays(type, 0, size);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    if(t){
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        glDisable(GL_TEXTURE_2D);
+    }
+    if(c)
+        glDisableClientState(GL_COLOR_ARRAY);
 }
 
 void ShaderPipeline::drawText(glm::vec3 pos, const char* text, size_t size)
