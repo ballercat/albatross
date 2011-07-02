@@ -37,25 +37,17 @@ MainClient::MainClient(void) :
 
 
     	//Create the display
-		/*display = new gfx::FixedPipeline(	info.window_width,
-		display		= new gfx::ShaderPipeline( info.window_width,
-											info.window_height,
-											"v0.0.5a(Humpback)",
-											info.fullscreen	);
-		*/
 		display = gfx::Manager::NewContext(glm::vec2(info.window_width,info.window_height),
 														"v0.0.5a(Humpback)",
 														info.fullscreen );
-    	GLuint *Texture = display->Texture;
 		display->clearColor(0.5f, 0.7f, 0.8f, 1.0f);
-		display->clearColor(0,0,0,0);
    		mInput = new InputHandlerMixin<Input>(&mMessageQueue);
     	mInput->Window = display->Window;
 
     	mIP = network::GetLocalIP();
 
-    	//Quick and dirty texture loading
-    	LoadTextures("textures.ini", Texture);
+		//Load GFX data
+		_loadObjectSprites();
 		_populateSprites();
 		_loadHudSprites();
 

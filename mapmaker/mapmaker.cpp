@@ -458,7 +458,7 @@ void MapMaker::Step()
 	{
 		//picks
 		if(input->mState.mouse.left){
-			input->mState.mouse.left = !Pick(&change, 10);
+			input->mState.mouse.left = !Pick(&change, 10/display->zoom.x);
 
 			if(input->mState.mouse.left){
 
@@ -489,14 +489,14 @@ void MapMaker::Step()
 									&map->texcoord[i].data[0],
 									&map->color[i].data[0],
 									map->poly[i].data.size(),
-									GL_TRIANGLE_STRIP,
+									GL_POLYGON,
 									gfx.Texture);
 			}
 
 
 			if(polynew.data.size() > 2){
 				glColor4f(0.0f, 1.0f, 0.0f, 0.5f);
-				display->drawArray( &polynew.data[0], NULL, NULL, polynew.data.size(), GL_TRIANGLE_STRIP, 0);
+				display->drawArray( &polynew.data[0], NULL, NULL, polynew.data.size(), GL_POLYGON, 0);
 			}
 
 			for(int i=0;i<gfx.Scenery.size();i++){

@@ -61,6 +61,7 @@ struct GameSprites{
 	std::vector<Sprite>	Bullet;
 	std::vector<Sprite>	Weapon;
 	std::vector<Sprite>	BulletHit;
+	mercGFX				MercSprite;
 
 	//HUD sprites
 	struct HUD{
@@ -94,6 +95,7 @@ struct GameSprites{
 	std::vector<GLuint>	bulletTex;
 	std::vector<GLuint>	weaponTex;
 	std::vector<GLuint> HitTexture;
+	std::vector<GLuint>	MercTexture;
 };
 
 ////////////////////////////////////////////////////////////
@@ -145,6 +147,8 @@ public:
 		std::string	demoFile;	//bgdf file path
 		bool		demoPlay;
 		bool		demoRecord;
+		std::string texturefile; //thexture.ini file path
+
 
 		int			fpslimit;	//Frame Rate Limit(0 to disable)
 		int			frameskip;	//Number skipping(0 to disable)
@@ -160,6 +164,7 @@ private:
 	////////////////////////////////////////////////////////////
 	/// Load settings
 	////////////////////////////////////////////////////////////
+	void _loadObjectSprites(void);
 	void _loadHudSprites(void);
 	void _loadGameSettings(void);
 	void _populateSprites(void);
@@ -175,8 +180,6 @@ private:
 private:
 	//IO
 	InputHandlerMixin<Input>*       mInput;
-	//gfx::FixedPipeline*    			display;
-	//gfx::ShaderPipeline				*display;
 	gfx::Core						*display;
 
 private:

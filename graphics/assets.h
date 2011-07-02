@@ -24,22 +24,6 @@
 #include <GL/gl.h>
 #include <glm/glm.hpp>
 
-enum TextureID
-{
-    PLAYER_TORSO = 0,
-    PLAYER_LEGS,
-    PLAYER_JETS,
-    WORLD_PLAIN,
-	AK47_FIRE,
-	JET_FLAME,
-    GAME_CURSOR = 0xFF,
-    TEXTUREID_COUNT
-};
-
-//Helper macross
-#define EXPLOSIONSPRITE Sprite("assets/explosions/default.sprh", display->Texture[EXPL])
-
-extern void LoadTextures(const char *fpath, GLuint* texture);
 extern bool LoadTex(GLuint texid, const char *fpath);
 extern GLuint CreateShader(const char *fpath, GLuint type);
 extern GLuint* GlobalShader();
@@ -103,50 +87,6 @@ public:
 	GLuint _program;
 };
 
-////////////////////////////////////////////////////////////
-/// OGL vertex array helper class
-////////////////////////////////////////////////////////////
-struct VertexArray
-{
-public:
-	VertexArray(GLuint texid, GLuint size, GLuint program)
-	{
-		Init(texid, size, program);
-	}
-	VertexArray(){}
-	virtual ~VertexArray();
-
-	void VertexPointer(GLvoid *ptr,GLuint size);
-	void ColorPointer(GLvoid *ptr,GLuint size);
-	void TexturePointer(GLvoid *ptr,GLuint size);
-
-	void Init(GLuint texid, GLuint size, GLuint program);
-	void Bind();
-
-	void Draw(GLuint ptype = 0);
-
-	inline GLuint& operator()(void)
-	{
-		return _id;
-	}
-
-public:
-	inline void setSize(GLuint psize){
-		_size = psize;
-	}
-
-private:
-	GLuint _size;
-
-	GLuint _vbo;
-	GLuint _cbo;
-	GLuint _tbo;
-	GLuint _id;
-	GLuint _program;
-	GLuint _texid;
-
-	GLuint _vUV, _vColor, _vPosition;
-};
 
 
 #endif //ASSETS_HEADER_GUARD

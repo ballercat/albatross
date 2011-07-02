@@ -49,8 +49,11 @@ namespace gfx
 				exit(0x205);
 			}
 
+			glDeleteTextures(1, &cursorTexture);
+			glGenTextures(1, &cursorTexture);
+
 			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, Texture[GAME_CURSOR]);
+			glBindTexture(GL_TEXTURE_2D, cursorTexture);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -62,14 +65,7 @@ namespace gfx
 
 			glDisable(GL_TEXTURE_2D);
 
-			/*cursor.width = rawimage.GetWidth();
-			cursor.height = rawimage.GetHeight();
-			cursor.off = glm::vec3(0,0,0);
-			cursor.scale = glm::vec3(1,1,0);
-			cursor.textureid = Texture[0xFF];
-			cursor.imgd = glm::vec2(10,10);
-			cursor.Build();*/
-			cursor = Sprite(Texture[0xFF]);
+			cursor = Sprite(cursorTexture);
 
 			Window->ShowMouseCursor(false);
 		}
@@ -143,7 +139,6 @@ namespace gfx
 	public:
 		///Public data
 		sf::RenderWindow *Window;
-		GLuint Texture[256];
 
 		Sprite cursor;
 		glm::vec3 camera;
@@ -157,6 +152,7 @@ namespace gfx
 
 	protected:
 		///Protected data
+		GLuint		cursorTexture;
 		sf::String _text;
 		sf::String _fps;
 		int			fps;

@@ -64,21 +64,23 @@ Player::Player()
 ////////////////////////////////////////////////////////////
 ///Constructor
 ////////////////////////////////////////////////////////////
-Player::Player(GLuint *Texture)
+Player::Player(mercGFX& p_mercData) :
+	mSprite(p_mercData)
 {
 	pTime.Current	= 0.0f;
 	pTime.Jump		= ATimer();
 	pTime.Move		= ATimer();
 	pTime.Jet		= ATimer();
 	pTime.Shoot		= ATimer();
-
+/*
 	mRunningSprite	= Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]);
 	mIdleSprite		= Sprite("assets/sprite/merc/still.sprh", Texture[PLAYER_TORSO]);
 	mJetSprite		= Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]);	
 	mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
-
-	mBody			= &mIdleSprite;
-	mSparks			= &mJetFlameSprite;
+*/
+	mSprite			= p_mercData;
+	mBody			= &mSprite.Idle;
+	mSparks			= &mSprite.JetFlame;
 
 
 	pAngle			= glm::vec3(0.f,0.f,0.f); 
@@ -174,18 +176,18 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 	//Set Apropriate sprite
 	switch(pAction()){
 		case ActState::IDLE:
-			mBody = &mIdleSprite;
+			mBody = &mSprite.Idle;
 			break;
 		case ActState::RUNNING:
 		{
-			mBody = &mRunningSprite;
+			mBody = &mSprite.Run;
 			//Adjust running sprite speed
 			float r = (MercObject.myStatus.pVelocity.x > 0) ? 1 : -1;
 			mBody->pInfo.aniSpeed = (r * 15.0f)/(MercObject.myStatus.pVelocity.x);
 			break;
 		}
 		case ActState::JETTING:
-			mBody = &mJetSprite;
+			mBody = &mSprite.Jet;
 			break;
 	}
 }
@@ -204,14 +206,14 @@ void Player::Draw(float interpolate)
 
 	for(size_t k = 0; k < 10; k++){
 		if(mJetFlames[k].Alpha > 0.0f){
-			mJetFlameSprite.pInfo.color.a = mJetFlames[k].Alpha;
-			mJetFlameSprite.pInfo.pos 	= mJetFlames[k].Pos;
-			mJetFlameSprite.pInfo.angle.z	+= dt*80.0f;
-			mJetFlameSprite.Draw();
+			mSprite.JetFlame.pInfo.color.a = mJetFlames[k].Alpha;
+			mSprite.JetFlame.pInfo.pos 	= mJetFlames[k].Pos;
+			mSprite.JetFlame.pInfo.angle.z	+= dt*80.0f;
+			mSprite.JetFlame.Draw();
 
-			mJetFlameSprite.pInfo.pos.x += 3*mFlip;
-			mJetFlameSprite.pInfo.pos.y += 8.0f;
-			mJetFlameSprite.Draw();
+			mSprite.JetFlame.pInfo.pos.x += 3*mFlip;
+			mSprite.JetFlame.pInfo.pos.y += 8.0f;
+			mSprite.JetFlame.Draw();
 
 			mJetFlames[k].Update(dt, dt*50.0f);
 		}
@@ -244,7 +246,7 @@ void Player::Jet(void)
 	if((pTime.Current - pTime.Jet.Stamp > 0.001)){
 		if(pJetCounter > 0){
 			MercObject.Jet();
-			mJetSprite.Step();
+			mSprite.Jet.Step();
 			pAction[ActState::JETTING] = true;
 		}
 		pTime.Jet.Stamp = pTime.Current;
@@ -270,7 +272,7 @@ void Player::Jet(void)
 ////////////////////////////////////////////////////////////
 void Player::Right(void)
 {
-	mRunningSprite.Step();
+	mSprite.Run.Step();
 	pAction[ActState::RUNNING] = true;
 
 	if(pTime.Diff(pTime.Move.Stamp) > 0.001f){
@@ -284,7 +286,7 @@ void Player::Right(void)
 ////////////////////////////////////////////////////////////
 void Player::Left(void)
 {
-	mRunningSprite.Step();
+	mSprite.Run.Step();
 	pAction[ActState::RUNNING] = true;
 	
 	if(pTime.Diff(pTime.Move.Stamp) > 0.001f){

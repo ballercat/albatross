@@ -215,6 +215,7 @@ void ShaderPipeline::spriteDraw(Sprite *p_sprPtr)
 	//view = gMatrix()[2];
 	view = gMatrix()[2];
 	view = glm::translate(view, p_sprPtr->pInfo.pos);
+	//view[3] = glm::vec4(p_sprPtr->pInfo.pos, 1.0f);
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.z, glm::vec3(0,0,1));
 	view = glm::rotate(view, p_sprPtr->pInfo.angle.x, glm::vec3(0,1,0));
 	view = glm::scale(view, glm::vec3(p_sprPtr->pInfo.w, p_sprPtr->pInfo.h, 1));

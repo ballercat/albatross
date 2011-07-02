@@ -78,6 +78,8 @@ public:
         pVertexPos = p_Copy.pVertexPos;
         pTexturePos = p_Copy.pTexturePos;
         pColorPos = p_Copy.pColorPos;
+
+		return *this;
     }
 
     GenericBuffer(Vertex *p_Data, GLushort *p_Index, GLuint indx_size, GLuint vert_size):

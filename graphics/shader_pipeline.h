@@ -53,9 +53,6 @@ class ShaderPipeline : public Core
 		static void setupBuffers();
 		static void	spriteBuild(Sprite *p_sprPtr);
 		static void spriteDraw(Sprite *p_sprPtr);
-
-	private:
-		VertexArray	*mArray;
 };
 
 }

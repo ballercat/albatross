@@ -38,6 +38,7 @@ void MainClient::_loadGameSettings(void)
 	info.demoFile		= ini.GetValue("Settings", "demo");
 	info.demoPlay		= ini.GetBoolValue("Settings", "play");
 	info.demoRecord		= ini.GetBoolValue("Settings", "record");
+	info.texturefile	= ini.GetValue("Settings", "textures");
 
 	info.fullscreen 	= ini.GetBoolValue("Window", "fullscreen");
 	info.window_width	= ini.GetLongValue("Window", "width");
@@ -73,6 +74,28 @@ void MainClient::_loadGameSettings(void)
 
 } //void MainClient::_loadGameSettings(void)
 
+void MainClient::_loadObjectSprites(void)
+{
+	gs.MercTexture.resize(mercGFX::COUNT, 0);
+    glGenTextures(mercGFX::COUNT, &gs.MercTexture[0]);
+
+	CSimpleIniA texini;
+	texini.LoadFile(info.texturefile.c_str());
+
+	std::string texpath;
+
+	//Manualy load merc sprites into one default mercGFX object
+	LoadTex(gs.MercTexture[mercGFX::IDLE], texini.GetValue("Merc", "still"));
+	LoadTex(gs.MercTexture[mercGFX::RUN], texini.GetValue("Merc", "run"));
+	LoadTex(gs.MercTexture[mercGFX::JET], texini.GetValue("Merc", "jets"));
+	LoadTex(gs.MercTexture[mercGFX::JETFLAME], texini.GetValue("Merc", "jetflame"));
+	LoadTex(gs.MercTexture[mercGFX::SHOOT], texini.GetValue("Merc", "shoot"));
+
+	gs.MercSprite.Idle = Sprite("assets/sprite/merc/still.sprh", gs.MercTexture[mercGFX::IDLE]);
+	gs.MercSprite.Run = Sprite("assets/sprite/merc/run.sprh", gs.MercTexture[mercGFX::RUN]);
+	gs.MercSprite.Jet = Sprite("assets/sprite/merc/jet.sprh", gs.MercTexture[mercGFX::JET]);
+	gs.MercSprite.JetFlame = Sprite("assets/sprite/merc/jetflame.sprh", gs.MercTexture[mercGFX::JETFLAME]);
+}
 ////////////////////////////////////////////////////////////
 /// Load HUD sprites
 ////////////////////////////////////////////////////////////

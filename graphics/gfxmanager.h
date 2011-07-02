@@ -50,6 +50,9 @@ namespace gfx
 			return _buildContext(context);
 		}
 
+		////////////////////////////////////////////////////////////
+		/// Create a context froma window handle)
+		////////////////////////////////////////////////////////////
 		static Core*
 		NewContext(sf::WindowHandle p_Handle){
 			sf::RenderWindow *context = NULL;
@@ -59,6 +62,9 @@ namespace gfx
 			return _buildContext(context);
 		}
 
+		////////////////////////////////////////////////////////////
+		/// Create a fixed context from a window handle
+		////////////////////////////////////////////////////////////
 		static Core*
 		NewFixedContext(sf::WindowHandle p_Handle){
 			sf::RenderWindow *context = NULL;
@@ -77,6 +83,9 @@ namespace gfx
 			return pipeline;
 		}
 
+		////////////////////////////////////////////////////////////
+		/// Generic context builder
+		////////////////////////////////////////////////////////////
 		static Core* _buildContext(sf::RenderWindow *context)
 		{
 			GLuint glew_error = glewInit();

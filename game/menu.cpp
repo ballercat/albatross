@@ -61,7 +61,7 @@ void MainClient::MainMenu()
 	glm::vec3 mouse = glm::vec3(0,0,0);
 
 	_loadMap("assets/maps/mainmenu.bgmf");
-	mPlayer = new Player(display->Texture);
+	mPlayer = new Player(gs.MercSprite);
 	mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y, 0));
 	mPlayer->PickWeapon(WeaponInfo[0],0);
 	mPlayer->SetJetAmmount(100);

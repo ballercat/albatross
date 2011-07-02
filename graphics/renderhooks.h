@@ -3,9 +3,14 @@
 
 #include"generics.h"
 #include"sprite.h"
+#include<string>
+#include<vector>
 
 namespace gfx
 {
+	////////////////////////////////////////////////////////////
+	/// Global render pointers
+	////////////////////////////////////////////////////////////
 	struct renderPointers
 	{
 		void (*spriteBuild)(Sprite *);

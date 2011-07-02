@@ -28,6 +28,48 @@
 #include <vector>
 #include <iostream>
 
+////////////////////////////////////////////////////////////
+/// Mercinary object sprite data
+////////////////////////////////////////////////////////////
+struct mercGFX
+{
+public:
+	mercGFX(){}
+	mercGFX(const mercGFX &p_Copy) :
+		Idle(p_Copy.Idle),
+		Run(p_Copy.Run),
+		Jet(p_Copy.Jet),
+		JetFlame(p_Copy.JetFlame),
+		Shoot(p_Copy.Shoot)
+		{}
+	mercGFX& operator=(const mercGFX &p_Copy)
+	{
+		Idle = p_Copy.Idle;
+		Run = p_Copy.Run;
+		Jet = p_Copy.Jet;
+		JetFlame = p_Copy.JetFlame;
+		Shoot = p_Copy.Shoot;
+
+		return *this;
+	}
+public:
+	enum IDs{
+		IDLE = 0,
+		RUN,
+		JET,
+		JETFLAME,
+		SHOOT,
+		COUNT
+	};
+
+public:
+	Sprite 	Idle;
+	Sprite	Run;
+	Sprite	Jet;
+	Sprite	JetFlame;
+	Sprite	Shoot;
+};
+
 class Player
 {
 public:
@@ -39,7 +81,7 @@ public:
 	////////////////////////////////////////////////////////////
 	/// ctor with location and texture pointer
 	////////////////////////////////////////////////////////////		
-	Player(GLuint* p_Texture);
+	Player(mercGFX &p_mercData);
 
 	inline void Spawn(glm::vec3 p_Pos)
 	{
@@ -239,10 +281,8 @@ private:
 	bool		mRunning;
 
 private:
-	Sprite		mRunningSprite;
-	Sprite		mIdleSprite;
-	Sprite		mJetSprite;
-	Sprite		mJetFlameSprite;
+	//Sprites & Sprite pointer(s)
+	mercGFX		mSprite;
 
 	Sprite*		mBody;
 	Sprite*		mSparks;

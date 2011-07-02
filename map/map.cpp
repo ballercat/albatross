@@ -137,13 +137,13 @@ bgmf* bgmfopen(const char *fpath)
 	fread(&map->sprite[0], sizeof(bgmf_sprite) * map->header.sprc, 1, mapfile);
 	fread(&map->texture[0], sizeof(uint32_t) * map->header.pc, 1, mapfile);
     fread(&map->mask[0], sizeof(bgmf_pmask) * map->header.pc, 1, mapfile);
-	for(int i=0;i<map->header.pc;i++){
+	for(unsigned i=0;i<map->header.pc;i++){
 		fread(&temp, sizeof(uint32_t), 1, mapfile);
 		map->color[i].data.resize(temp, glm::vec4());
 		fread(&map->color[i].data[0], sizeof(glm::vec4), temp, mapfile);
 	}
     //fread(&map->color[0], sizeof(bgmf_color) * map->header.pc, 1, mapfile);
-	for(int i=0;i<map->header.pc;i++){
+	for(unsigned i=0;i<map->header.pc;i++){
 		fread(&temp, sizeof(uint32_t), 1, mapfile);
 		map->poly[i].data.resize(temp, glm::vec3());
 		fread(&map->poly[i].data[0], sizeof(glm::vec3), temp, mapfile);
@@ -269,14 +269,14 @@ void bgmfsave(bgmf *map, const char *fpath)
 	fwrite(&map->sprite[0], sizeof(bgmf_sprite)*map->header.sprc, 1, mapfile);
 	fwrite(&map->texture[0], sizeof(uint32_t)*map->header.pc, 1, mapfile);
     fwrite(&map->mask[0], sizeof(bgmf_pmask)*map->header.pc, 1, mapfile);
-	for(int i=0;i<map->header.pc;i++){
+	for(unsigned i=0;i<map->header.pc;i++){
 		temp = map->color[i].data.size();
 		fwrite(&temp, sizeof(uint32_t), 1, mapfile);
 		fwrite(&map->color[i].data[0], sizeof(glm::vec4)*temp, 1, mapfile);
 	}
     //fwrite(&map->color[0], sizeof(bgmf_color)*map->header.pc, 1, mapfile);
     //fwrite(&map->texcoord[0], sizeof(bgmf_poly_tex)*map->header.pc, 1, mapfile);
-    for(int i=0;i<map->header.pc;i++){
+    for(unsigned i=0;i<map->header.pc;i++){
 		temp = map->poly[i].data.size();
 		fwrite(&temp, sizeof(uint32_t), 1, mapfile);
 		fwrite(&map->poly[i].data[0], sizeof(glm::vec3)*temp, 1, mapfile);
