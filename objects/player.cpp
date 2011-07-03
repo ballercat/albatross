@@ -30,11 +30,6 @@ Player::Player()
 	pTime.Jet		= ATimer();
 	pTime.Shoot		= ATimer();
 
-	//mRunningSprite	= Sprite();
-	//mIdleSprite		= Sprite("assets/sprite/merc/still.sprh");
-	//mJetSprite		= Sprite("assets/sprite/merc/jet.sprh");
-	//mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh");
-
 	mBody			= NULL;
 	mSparks			= NULL;
 
@@ -72,12 +67,7 @@ Player::Player(mercGFX& p_mercData) :
 	pTime.Move		= ATimer();
 	pTime.Jet		= ATimer();
 	pTime.Shoot		= ATimer();
-/*
-	mRunningSprite	= Sprite("assets/sprite/merc/run.sprh", Texture[PLAYER_LEGS]);
-	mIdleSprite		= Sprite("assets/sprite/merc/still.sprh", Texture[PLAYER_TORSO]);
-	mJetSprite		= Sprite("assets/sprite/merc/jet.sprh", Texture[PLAYER_JETS]);	
-	mJetFlameSprite = Sprite("assets/sprite/merc/jetflame.sprh", Texture[JET_FLAME]);
-*/
+
 	mSprite			= p_mercData;
 	mBody			= &mSprite.Idle;
 	mSparks			= &mSprite.JetFlame;
@@ -189,6 +179,9 @@ void Player::Step(glm::vec3& cursor, float& p_Time)
 		case ActState::JETTING:
 			mBody = &mSprite.Jet;
 			break;
+		case ActState::SHOOTING:
+			mBody = &mSprite.Shoot;
+			break;
 	}
 }
 
@@ -223,6 +216,7 @@ void Player::Draw(float interpolate)
 	//Interpolate
 	if(interpolate > 0.0f){
 		pIPos = pPos + (mVelocity * interpolate);
+		pIPos.y += 4.5f;
 		_updatePositions(pIPos);
 	}
 	else {
@@ -339,6 +333,8 @@ Bullet* Player::Shoot(glm::vec3& p_Dest)
 	Bullet *bullet = pWeapon.Shoot();
 
 	if(bullet){
+		mSprite.Shoot.Step();
+		pAction[ActState::SHOOTING] = true;
 		bullet->pos = pBarrelPos;
 		bullet->des = pBarrelPos + p_Dest;
 		bullet->startV = mVelocity;

@@ -95,6 +95,7 @@ void MainClient::_loadObjectSprites(void)
 	gs.MercSprite.Run = Sprite("assets/sprite/merc/run.sprh", gs.MercTexture[mercGFX::RUN]);
 	gs.MercSprite.Jet = Sprite("assets/sprite/merc/jet.sprh", gs.MercTexture[mercGFX::JET]);
 	gs.MercSprite.JetFlame = Sprite("assets/sprite/merc/jetflame.sprh", gs.MercTexture[mercGFX::JETFLAME]);
+	gs.MercSprite.Shoot = Sprite("assets/sprite/merc/shoot.sprh", gs.MercTexture[mercGFX::SHOOT]);
 }
 ////////////////////////////////////////////////////////////
 /// Load HUD sprites

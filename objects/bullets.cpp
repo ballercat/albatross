@@ -56,9 +56,13 @@ void BulletPlain::Initialize(void)
     cpVect s = cpv(pos.x,pos.y);
     cpVect e = cpv(des.x,des.y);
     cpFloat d = cpvdist(s,e);
-    cpFloat t = d/(pSpeed+abs(startV.x/1.5f));
+	glm::vec3 test = des - pos;
+	cpFloat t = 0;
+	if(abs(startV.x) > 0.99f && startV.x/test.x > 0.0f)
+		t = d/(pSpeed+abs(startV.x/1.5f));
+	else
+		t = d/pSpeed;
 
-	//cpBodySetVel(&myBody->GetBodyDef(), cpv(startV.x,startV.y));
     myBody->Move(des, t);
 
     myStatus.val = BulletStatus::Active;
@@ -132,7 +136,13 @@ void Explosive::Initialize(void)
 	cpVect s = cpv(pos.x, pos.y);
 	cpVect e = cpv(des.x, des.y);
 	cpFloat d = cpvdist(s, e);
-	cpFloat t = d/(pSpeed+abs(startV.x/1.5f));
+	glm::vec3 test = des - pos;
+	cpFloat t = 0;
+	if(abs(startV.x) > 0.99f && startV.x/test.x > 0.0f)
+		t = d/(pSpeed+abs(startV.x/1.5f));
+	else
+		t = d/pSpeed;
+
 
 	cpBodySetVel(&m_phProjectile->GetBodyDef(), cpv(startV.x,startV.y));
 	m_phProjectile->Move(des, t);

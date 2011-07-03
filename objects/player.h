@@ -247,10 +247,14 @@ private:
 			else if(mStateData[ActState::JETTING]){
 				Current = ActState::JETTING;
 			}
+			else if(mStateData[ActState::SHOOTING]){
+				Current = ActState::SHOOTING;
+			}
 			
 			mStateData[ActState::RUNNING] 	= false;
 			mStateData[ActState::JETTING]	= false;
-			
+			mStateData[ActState::SHOOTING] 	= false;
+
 			Swap = Current;
 			Current = ActState::IDLE;
 			
