@@ -84,6 +84,33 @@ namespace gfx
 		}
 
 		////////////////////////////////////////////////////////////
+		/// Create fixed content with dimensions
+		////////////////////////////////////////////////////////////
+		static Core*
+		NewFixedContext(glm::vec2 p_WindowDim, const char *p_WindowName, bool p_FullScreen = false)
+		{
+			//Create a context
+			sf::RenderWindow *context = NULL;
+
+			unsigned windowstyle = (p_FullScreen) ? sf::Style::Fullscreen : sf::Style::Close;
+
+			context = new sf::RenderWindow(	sf::VideoMode(p_WindowDim.x, p_WindowDim.y),
+											p_WindowName,
+											windowstyle );
+
+			Core *pipeline = new FixedPipeline(context);
+
+			renderPointers *hooks = &Link::Instance();
+
+			hooks->spriteBuild = &FixedPipeline::spriteBuild;
+			hooks->spriteDraw = &FixedPipeline::spriteDraw;
+
+			FixedPipeline::setupBuffers();
+
+			return pipeline;
+		}
+
+		////////////////////////////////////////////////////////////
 		/// Generic context builder
 		////////////////////////////////////////////////////////////
 		static Core* _buildContext(sf::RenderWindow *context)

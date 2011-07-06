@@ -103,7 +103,7 @@ Player::Player(mercGFX& p_mercData) :
 ///Step
 /// @param cursor : vec3 location of the cursor on screen
 ////////////////////////////////////////////////////////////
-void Player::Step(glm::vec3& cursor, float& p_Time)
+void Player::Step(glm::vec3 &cursor, float& p_Time)
 {
 	if(!pSpawned)
 		return;

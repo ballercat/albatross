@@ -375,6 +375,7 @@ void MainClient::_initCollisionHandlers(cpSpace *space)
 {
 	mPhysics->AddCollision(MAPPOLYGON, BULLET, this, NULL, NULL, collision::Post::BulletWorld);
 	mPhysics->AddCollision(EXPLOSIVE, MAPPOLYGON, this, collision::Begin::ExplosiveWorld);
+	mPhysics->AddCollision(BULLET, PLAYER, this, collision::Begin::BulletObject);
 	mPhysics->AddCollision(EXPLOSION, PLAYER, this, collision::Begin::ExplosionObject);
 	mPhysics->AddCollision(EXPLOSIVE, PLAYER, this, collision::Begin::ExplosiveObject);
 

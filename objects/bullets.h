@@ -179,6 +179,24 @@ public:
 	////////////////////////////////////////////////////////////
 	Explosive();
 
+	/*Explosive(const Explosive &p_Copy):
+	explosion_pos(p_Copy.explosion_pos),
+	m_phProjectile(p_Copy.m_phProjectile),
+	m_phExplosion(p_Copy.m_phExplosion),
+	m_isExploded(p_Copy.m_isExploded)
+	{
+
+	}
+
+	Explosive& operator=(const Explosive &p_Copy){
+		explosion_pos = p_Copy.explosion_pos;
+		m_phProjectile = p_Copy.m_phProjectile;
+		m_phExplosion = p_Copy.m_phExplosion;
+		m_isExploded = p_Copy.m_isExploded;
+
+		return *this;
+	}*/
+
 public:
 	////////////////////////////////////////////////////////////	
 	/// Destructor	
@@ -200,8 +218,8 @@ public:
 
 public:
 	glm::vec3 explosion_pos;
-	
-private:
+
+public:
 	////////////////////////////////////////////////////////////	
 	/// Physics body	
 	////////////////////////////////////////////////////////////

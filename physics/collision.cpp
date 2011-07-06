@@ -44,6 +44,18 @@ cpBool Begin::BulletWorld(BEGINVARS)
 	return cpTrue;
 }
 
+cpBool Begin::BulletObject(BEGINVARS)
+{
+	CP_ARBITER_GET_SHAPES(arb, a, b);
+
+	Bullet *bullet = (Bullet*)a->data;
+	GameObject *object = (GameObject*)b->data;
+
+	object->Damage(bullet->pDamage);
+
+	return cpFalse;
+}
+
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 cpBool Begin::ExplosiveWorld(BEGINVARS)
@@ -55,7 +67,8 @@ cpBool Begin::ExplosiveWorld(BEGINVARS)
 	explosive->Hit = Bullet::HitSpot( explosive->pos ,
 							  _cTimer.GetElapsedTime(),
 							  explosive->Type );
-	explosive->Explode();
+
+	cpSpaceAddPostStepCallback(space, PostStep::Explode, explosive, NULL);
 
 	return cpTrue;
 }
@@ -69,9 +82,10 @@ cpBool Begin::ExplosiveObject(BEGINVARS)
 	explosive->Hit = Bullet::HitSpot( explosive->pos,
 									  _cTimer.GetElapsedTime(),
 									  explosive->Type );
-	explosive->Explode();
 
-	return cpFalse;
+	cpSpaceAddPostStepCallback(space, PostStep::Explode, explosive, NULL);
+
+	return cpTrue;
 }
 
 ////////////////////////////////////////////////////////////
@@ -135,7 +149,7 @@ cpBool Begin::PlayerWorld(BEGINVARS)
 
     cpVect n = cpvneg(cpArbiterGetNormal(arb,0));
     if(n.y > 0.0f){
-        cpArrayPush(player->pGroundShapes, b);
+       player->pGroundShapes++;
     }
 
 	return cpTrue;
@@ -199,14 +213,18 @@ void Separate::PlayerWorld(SEPARATEVARS)
     CP_ARBITER_GET_SHAPES(arb, a, b);
     GameObject::Status *player = &((GameObject*)a->data)->myStatus;
 
-    cpArrayDeleteObj(player->pGroundShapes, b);
+    player->pGroundShapes--;
 
-    if(player->pGroundShapes->num == 0){
+    if(player->pGroundShapes <= 0){
+		player->pGroundShapes = 0;
         a->u = 0.0f;
         player->pGroundNormal = cpvzero;
         player->pAirborne = true;
     }
 }
 
-
-
+void PostStep::Explode(POSTSTEPVARS)
+{
+	Explosive *explosive = (Explosive*)(obj);
+	explosive->Explode();
+}

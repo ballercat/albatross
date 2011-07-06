@@ -20,6 +20,8 @@
 #include "physics.h"
 #include <stdio.h>
 #include "bullets.h"
+#include"collision.h"
+#include<iostream>
 
 using namespace physics;
 
@@ -43,7 +45,6 @@ PhysicsSimulator::PhysicsSimulator(void) :
 ////////////////////////////////////////////////////////////
 PhysicsSimulator::~PhysicsSimulator(void)
 {
-    cpSpaceFreeChildren(mySpace);
     cpSpaceFree(mySpace);
 }
 
@@ -77,7 +78,7 @@ void PhysicsSimulator::AddCollision(int p_One,
 ////////////////////////////////////////////////////////////
 int PhysicsSimulator::addStaticSegmentShape(glm::vec3& p_Vert0, glm::vec3& p_Vert1, int p_Type)
 {
-	cpShape* shape = cpSpaceAddShape(mySpace, cpSegmentShapeNew(&mySpace->staticBody,
+	cpShape* shape = cpSpaceAddShape(mySpace, cpSegmentShapeNew(mySpace->staticBody,
 											cpv(p_Vert0.x,p_Vert0.y),
 											cpv(p_Vert1.x,p_Vert1.y), 0.0f));
 
@@ -122,6 +123,22 @@ void PhysicsSimulator::remAllStaticShapes()
 }
 
 ////////////////////////////////////////////////////////////
+/// Simple raycast
+////////////////////////////////////////////////////////////
+bool PhysicsSimulator::raycastAB(glm::vec3 &p_A, glm::vec3 &p_B)
+{
+	cpVect a = cpv(p_A.x, p_A.y);
+	cpVect b = cpv(p_B.x, p_B.y);
+
+	cpSegmentQueryInfo info;
+
+	if(cpSpaceSegmentQueryFirst(mySpace, a, b, CP_ALL_LAYERS, 1, &info))
+		return true;
+
+	return false;
+}
+
+////////////////////////////////////////////////////////////
 /// Physics Object ctor
 ////////////////////////////////////////////////////////////
 PhysicsObject::PhysicsObject(void) :
@@ -156,10 +173,10 @@ void PhysicsObject::Kill(void)
 ////////////////////////////////////////////////////////////
 PhysicsObject::~PhysicsObject(void)
 {
-	if(m_Spawn)
-    	cpSpaceRemoveShape(mWorldPtr, myShapeDef);
-    cpSpaceRemoveBody(mWorldPtr, myBodyDef);
-    if(m_Spawn)
-		cpShapeFree(myShapeDef);
-    cpBodyFree(myBodyDef);
+	cpSpaceRemoveBody(mWorldPtr, myBodyDef);
+	cpSpaceRemoveShape(mWorldPtr, myShapeDef);
+	cpBodyFree(myBodyDef);
+	cpShapeFree(myShapeDef);
+	myBodyDef = NULL;
+	myShapeDef = NULL;
 }

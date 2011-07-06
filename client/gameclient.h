@@ -33,6 +33,7 @@
 #include "map.h"
 #include "demo.h"
 #include "timing.h"
+#include "humanoid.h"
 #include <vector>
 #include <list>
 
@@ -99,14 +100,6 @@ struct GameSprites{
 };
 
 ////////////////////////////////////////////////////////////
-/// In-game HUD, menu and menu input
-////////////////////////////////////////////////////////////
-struct GameHUD
-{
-
-};
-
-////////////////////////////////////////////////////////////
 ///Main game Client
 ////////////////////////////////////////////////////////////
 class MainClient : public Client
@@ -116,10 +109,6 @@ public:
 	virtual ~MainClient();
 
 	virtual int Connect(std::string server_ip);
-
-#ifdef NDEBUG
-	void DebugDrawPhysics(void);
-#endif
 
 	//Game-step... deprecated
 	//int Execute(void);
@@ -189,6 +178,7 @@ private:
 private:
 	//Main player data
 	Player*		                    mPlayer;
+	Player							*mRobot;
 	GenericHeap<Bullet>             Bullets;
 	//NOTE: test code ONLY. REMOVE LATER
 	float							mSpawnTimer;
@@ -282,6 +272,7 @@ private:
 private:
 	///Private functions
 	bool _handleMessages(void);
+	void _handleAgentMessages(ai::Agent*);
 };
 
 #endif //GAME_CLIENT_HEADER_GUARD

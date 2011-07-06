@@ -100,7 +100,7 @@ public:
 	}
 
 public:
-    void Step(glm::vec3& cursor, float& p_Time);
+    void Step(glm::vec3 &cursor, float& p_Time);
 
 public:
     void Draw(float interpolate);

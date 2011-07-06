@@ -29,6 +29,8 @@
 #include<list>
 #include<glm/glm.hpp>
 #include<cassert>
+#include<iostream>
+
 
 // TODO : Finish adding comments
 
@@ -104,6 +106,12 @@ public:
 								cpCollisionPostSolveFunc p_Post=NULL,
 								cpCollisionSeparateFunc p_Sep=NULL);
 
+public:
+	////////////////////////////////////////////////////////////
+	/// Simple ray cast returns t/f
+	////////////////////////////////////////////////////////////
+	bool raycastAB(glm::vec3 &p_A, glm::vec3 &p_B);
+
 private:
     ////////////////////////////////////////////////////////////
     // Member Data
@@ -170,7 +178,7 @@ public:
 		static Object* Circle(glm::vec3 p_Pos, float p_Radius)
 		{
 			cpSpace *space = Simulator::Instance().GetWorldHandle();
-			cpBody *body = &space->staticBody;
+			cpBody *body = space->staticBody;
 
 			Object *shape = new Object;
 			shape->m_phShape = cpSpaceAddShape(space, 
@@ -222,13 +230,21 @@ public:
     /// \param y: y location
     /// \param t: time delta(float)
     ////////////////////////////////////////////////////////////
-    inline void Move(int x, int y, float t)
+    inline void Move(float x, float y, float t)
     {
-        cpBodySlew(myBodyDef,cpv(x,y),t);
-    }
+        //cpBodySlew(myBodyDef,cpv(x,y),t);
+        //cpVect delta = cpvsub(pos, body->p);
+        //body->v = cpvmult(delta, 1.0f/dt);
+		cpVect pos = cpv(x, y);
+		cpVect start = cpBodyGetPos(myBodyDef);
+		cpVect delta = cpvsub(pos, start);
+		cpVect velocity = cpvmult(delta, 1.0f/t);
+		cpBodySetVel(myBodyDef, velocity);
+	}
+
     inline void Move(glm::vec3 loc, float t)
     {
-        cpBodySlew(myBodyDef,cpv(loc.x,loc.y),t);
+		Move(loc.x, loc.y, t);
     }
     ////////////////////////////////////////////////////////////
     /// Getter & Setter functions

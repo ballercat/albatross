@@ -111,10 +111,20 @@ int MainClient::Connect(std::string server_ip)
 
 void MainClient::_drawWeapons()
 {
+	Sprite* weapon = NULL;
+
 	if(mPlayer->pHasWeapon && mPlayer->pHealth > 0.0f){
-		Sprite* weapon = &gs.Weapon[mPlayer->pWeaponID];
+		weapon = &gs.Weapon[mPlayer->pWeaponID];
 		weapon->pInfo.pos = mPlayer->pWeaponPos;
 		weapon->pInfo.angle = mPlayer->pAngle;
+
+		weapon->Draw();
+	}
+
+	if(mRobot->pHasWeapon && mRobot->pHealth > 0.0f){
+		weapon = &gs.Weapon[mRobot->pWeaponID];
+		weapon->pInfo.pos = mRobot->pWeaponPos;
+		weapon->pInfo.angle = mRobot->pAngle;
 
 		weapon->Draw();
 	}

@@ -50,7 +50,7 @@ void BulletPlain::Initialize(void)
     myBody->BuildRect(1.0f,1.0f,1.0f,pos);
 	myBody->Spawn(pos);
     myBody->SetShapeData(this);
-    myBody->SetGroup(0x01);
+    myBody->SetGroup(0x03);
     myBody->SetCollisionType(BULLET);
 
     cpVect s = cpv(pos.x,pos.y);
@@ -168,7 +168,7 @@ const BulletStatus& Explosive::Update(void)
 	pVelocity = m_phProjectile->GetVelocity();
 
 
-	cpBodySetVel(&m_phProjectile->GetBodyDef(), cpv(pVelocity.x, pVelocity.y));
+	//cpBodySetVel(&m_phProjectile->GetBodyDef(), cpv(pVelocity.x, pVelocity.y));
 
 	pAngle = R2D(m_phProjectile->GetBodyDef().a);
 
@@ -182,7 +182,6 @@ void Explosive::Explode(void)
 	if(m_isExploded)
 		return;
 	
-
 	m_phExplosion = physics::Static::Object::Circle(pos, 50.0f);
 	m_phExplosion->SetShapeData(this);
 	m_phExplosion->SetCollisionType(EXPLOSION);

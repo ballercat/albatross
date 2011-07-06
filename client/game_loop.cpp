@@ -24,8 +24,6 @@
 
 static glm::vec3 dmp;
 
-//#define PHYSICS_PERSTEP	(PHYSICS_DELTA/PHYSICS_STEPS)
-
 //Inplace game loop function
 void MainClient::Run(const char *p_DemoFile)
 {
@@ -63,6 +61,15 @@ void MainClient::Run(const char *p_DemoFile)
 	bool quit = false;
 	Bullet* bullet;
 
+	mRobot = new Player(gs.MercSprite);
+	mRobot->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y, 0));
+	mRobot->PickWeapon(WeaponInfo[0],0);
+	mRobot->SetJetAmmount(100);
+
+	mRobot->ResetTiming();
+
+	ai::MercAgent RobotControl(mRobot);
+	RobotControl.Target = mPlayer;
 
 	//Main game loop
 	while(!quit){
@@ -72,10 +79,9 @@ void MainClient::Run(const char *p_DemoFile)
 		//Input updates
 		while((currentTime - inputlag) >= INPUT_LATENCY){
 			mp = mInput->InputState().mouse.pos;
-			
+
+			// Demo garbage
 			if(info.demoPlay){
-
-
 				while(Demo.PC < Demo.Data.size() && Demo[Demo.PC].Tick == mTicks)
 				{
 					cmd = &Demo[Demo.PC];
@@ -107,6 +113,7 @@ void MainClient::Run(const char *p_DemoFile)
 			}
 
 			quit = _handleMessages();
+			_handleAgentMessages(&RobotControl);
 
 			inputlag += INPUT_LATENCY;
 		}
@@ -134,7 +141,15 @@ void MainClient::Run(const char *p_DemoFile)
 			}
 			Bullets.Flush();
 
+			RobotControl.Act(currentTime);
+
+			if(RobotControl.mObject->pHealth <= 0.0f){
+				RobotControl.mObject->Kill();
+				RobotControl.mObject->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y,0));
+			}
+
 			if(mPlayer->pHealth > 0.0f){
+				//Player update
 				mPlayer->Step(dmp, currentTime);
 				if(mPlayer->pJetCounter < 100){
 					if(mPlayer->pTime.Current - mPlayer->pTime.Jet.Stamp > 1.0f)
@@ -169,6 +184,7 @@ void MainClient::Run(const char *p_DemoFile)
 						damage.SetColor(sf::Color(255,0,0));
 					mPlayer->pHealth = 0.0f;
 					mPlayer->Kill();
+					RobotControl.Target = NULL;
 				}
 				if(!mSpawnTimer){
 					mSpawnTimer = SPAWN_TIME;
@@ -178,6 +194,7 @@ void MainClient::Run(const char *p_DemoFile)
 					if(mSpawnTimer <= 0){
 						mPlayer->Spawn(glm::vec3(map->redspawn[0].x, map->redspawn[0].y,0));
 						mSpawnTimer = 0.0f;
+						RobotControl.Target = mPlayer;
 					}
 				}
 			}
@@ -186,6 +203,9 @@ void MainClient::Run(const char *p_DemoFile)
 			oldtime += FRAME_TIME;
 			mTicks++;
 		}
+
+
+
 
 		display->zoom.x += mInput->InputState().mouse.wheel * 0.005f;
 		display->zoom.y += mInput->InputState().mouse.wheel * 0.005f;
@@ -224,13 +244,10 @@ void MainClient::Run(const char *p_DemoFile)
 			//Draw all the bullets
 			_drawBullets(delta);
 
-			#ifdef NDEBUG
-			if(info.debug)
-				DebugDrawPhysics();
-			#endif
-
 			//Draw the player with interpolate
 			mPlayer->Draw(delta);
+			mRobot->Draw(delta);
+
 			if(dtimer > 0){
 				damage.SetY(280+dtimer);
 				display->Window->Draw(damage);
@@ -280,8 +297,35 @@ void MainClient::Run(const char *p_DemoFile)
 
 	}
 
+	delete mRobot;
+	mRobot = NULL;
+
 	if(info.demoRecord)
 		Demo.Save("demo.bgdf");
+}
+
+////////////////////////////////////////////////////////////
+/// Handle an agents messages
+////////////////////////////////////////////////////////////
+void MainClient::_handleAgentMessages(ai::Agent *p_Agent)
+{
+	while(p_Agent->Messages.Size()){
+		int msgType = p_Agent->Messages.Read();
+		switch(msgType){
+			case message::GMSG_DEFAULT:
+				break;
+			case message::GMSG_FIRE:
+			{
+				ai::MercAgent *merc = static_cast<ai::MercAgent*>(p_Agent);
+				Bullet *bullet = merc->mObject->Shoot(merc->look);
+				if(NULL != bullet)
+					Bullets.Add(bullet);
+				break;
+			}
+		}
+
+		p_Agent->Messages.Pop();
+	}
 }
 
 ////////////////////////////////////////////////////////////

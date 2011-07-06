@@ -70,7 +70,7 @@ void Merc::Spawn(const glm::vec3 &p_Pos)
     myStatus.pAirborne = true;
     myStatus.pDoubleJump = true;
 	myStatus.pGroundNormal = cpvzero;
-	myStatus.pGroundShapes = cpArrayNew(0);
+	myStatus.pGroundShapes = 0;
 	myStatus.pHealth = 100.0f;
 
 	applyjump = false;
@@ -89,7 +89,7 @@ void Merc::Kill(void)
 	myStatus.pValue = GameObject::Status::Dead;
 	myStatus.pShape = NULL;
 	myStatus.pGroundNormal = cpvzero;
-	cpArrayDestroy(myStatus.pGroundShapes);
+	myStatus.pGroundShapes = 0;
 }
 
 ////////////////////////////////////////////////////////////
@@ -103,10 +103,11 @@ GameObject::Status& Merc::Update(float dt)
 
     cpBody *body = &myBody.GetBodyDef();
     cpVect groundNormal = myStatus.pGroundNormal;
+	cpVect vel = cpBodyGetVel(body);
 
 	//Apply jets
 	if(jets){
-		body->v.y += 15.0f;
+		vel.y += 15.0f;
 		myStatus.pAirborne = true;
 	}
 	jets = false;
@@ -117,9 +118,9 @@ GameObject::Status& Merc::Update(float dt)
     if(applyjump){
 		//The below line is from "Player.cpp" demo in chipmunks
 		//source code. Seems to work well so im keeping it here
-        body->v = cpvadd(body->v, cpvmult(cpvslerp(groundNormal, cpv(0.0f,1.0f),0.75),0.4f*jumpheight));
+        vel = cpvadd(vel, cpvmult(cpvslerp(groundNormal, cpv(0.0f,1.0f),0.75),0.4f*jumpheight));
 
-		body->v.x += 15.0f*direction;
+		vel.x += 15.0f*direction;
 
 		//Set some jump flags
 		myStatus.pAirborne = true;
@@ -133,7 +134,7 @@ GameObject::Status& Merc::Update(float dt)
 			//The controls have to be tight so
 			//changing the speed to zero while not pressing
 			//down any keys is a good way to keep that 'tight' feeling
-			body->v.x = 0.0f;
+			vel.x = 0.0f;
 
 			//ground Normal with y less than about .6f is a steep wall
 			//this is a diferent case and one would expect to slide of
@@ -148,29 +149,31 @@ GameObject::Status& Merc::Update(float dt)
 			//Ground velocity is accumulated
 			cpVect r = cpvmult(cpvperp(groundNormal), MERC_HORIZONTALSURFACEMAG*direction);
 			cpVect v = myStatus.pShape->surface_v + r;
-			v.x = cpfclamp(v.x, -400, 400);
+			vel.x = cpfclamp(v.x, -400, 400);
 			myStatus.pShape->surface_v = v;
-			body->v = -myStatus.pShape->surface_v;
+			vel = -myStatus.pShape->surface_v;
 		}
 		else{
 			//This little bit of code creates a nice effect i like
 			//this makes the player 'slide' just a little bit after they
 			//land providing for a smooth transition between flying and
 			//landing/running
-			myStatus.pShape->surface_v = -body->v; //Yes, velocity has to be negative
+			myStatus.pShape->surface_v = -vel; //Yes, velocity has to be negative
 		}
 
 		//While in air its usefull to make the player loose some of
 		//the controll they are used to while on the ground (1/5th)
 		if(myStatus.pAirborne){
 			//NOTE: body velocity is pretty different from surface_v(keep in mind)
-			body->v.x += 5.0f*direction;
+			vel.x += 5.0f*direction;
 		}
 	}
 
 	//Reset flags
     direction = 0;
 	jets = false;
+
+	cpBodySetVel(body, vel);
 
 	//Done
     return myStatus;

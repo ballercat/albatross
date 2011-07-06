@@ -26,7 +26,7 @@
 #define PRESOLVEVARS BEGINVARS
 #define POSTSOLVEVARS BEGINVARS
 #define SEPARATEVARS BEGINVARS
-
+#define POSTSTEPVARS cpSpace *space, void *obj, void *data
 namespace collision
 {
 
@@ -35,6 +35,7 @@ namespace collision
 	{
 		//Projectiles
 		static cpBool BulletWorld(BEGINVARS);
+		static cpBool BulletObject(BEGINVARS);
 		static cpBool ExplosiveWorld(BEGINVARS);
 		static cpBool ExplosionObject(BEGINVARS);
 		static cpBool ExplosiveObject(BEGINVARS);
@@ -63,6 +64,11 @@ namespace collision
 	{	
 		//Player
 		static void PlayerWorld(SEPARATEVARS);
+	};
+
+	struct PostStep
+	{
+		static void Explode(POSTSTEPVARS);
 	};
 
 } //namespace collision

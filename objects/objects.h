@@ -142,7 +142,7 @@ public:
         cpFloat 		u;
         cpShape 		*pShape;
         cpVect 			pGroundNormal;
-        cpArray 		*pGroundShapes;
+		int				pGroundShapes;
     };
 
 public:
